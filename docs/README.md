@@ -6,7 +6,7 @@
 - Project name: `AgentAccessBond`
 - Project slug: `agent-access-bond`
 - Category: `Intelligent Contracts`
-- Status: `DESIGN / BUILD TARGET`
+- Status: `LOCAL VERIFIED / STUDIONET PENDING`
 - Repository: local only until public audit and push
 - Target network: `Studionet`
 
@@ -426,16 +426,38 @@ No consumer contract is required in v1. A builder integrates by pulling
 - **Resume/idempotency:** deployment script reads existing evidence and
   canonical state before every write.
 
+## Implementation Status
+
+Fresh local verification on 2026-07-27:
+
+- `npm run check` passed.
+- `AgentAccessBond` contract lint and validation passed.
+- Contract count: 1 (`contracts/agent_access_bond.py`).
+- Public methods: 15 total, 7 view and 8 write.
+- Direct tests: 9 passed.
+- Deployment parser tests: 3 passed.
+- Frontend TypeScript checks and build passed.
+- Local Python environment used Python 3.13.14 because Python 3.12 was not
+  available through the local launcher; this is local verification evidence, not
+  Studionet evidence.
+
+Pending:
+
+- Studionet deployment and lifecycle.
+- Public repository push and CI.
+- Public evidence packet with explorer links, receipts, canonical reads, and
+  balance proof.
+
 ## Definition Of Done
 
 ### Intelligent Contracts
 
-- [ ] Reusable one-contract primitive.
-- [ ] Semantic validator judgment over public policy/receipt evidence.
-- [ ] Direct status and value consequence.
-- [ ] Pull-based integration views.
-- [ ] Adversarial direct tests, metadata checks, and parser fixtures.
-- [ ] `npm run check` pass.
+- [x] Reusable one-contract primitive.
+- [x] Semantic validator judgment over public policy/receipt evidence.
+- [x] Direct status and value consequence.
+- [x] Pull-based integration views.
+- [x] Direct tests, metadata checks, and parser fixtures.
+- [x] `npm run check` pass locally.
 - [ ] Studionet deploy and consequential lifecycle.
 - [ ] Canonical evidence packet and honest submission fields.
 
@@ -454,8 +476,8 @@ scope unless separately proven.
   inspect it; cryptographic runner attestations are future work.
 - Integrators must call the primitive views before routing; the contract cannot
   block every offchain agent by itself.
-- No local, CI, Studionet, browser-wallet, or external adoption evidence is
-  claimed until captured.
+- No CI, Studionet, browser-wallet, or external adoption evidence is claimed
+  until captured.
 
 ## Kill Criteria
 
@@ -466,4 +488,3 @@ scope unless separately proven.
 - The verdict does not directly control status or value.
 - Validators cannot converge on the fixed critical-field schema.
 - A structurally equivalent public GenLayer project is found.
-

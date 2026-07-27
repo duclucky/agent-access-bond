@@ -7,6 +7,8 @@ identity and settle bond credits.
 
 Project specification: [docs/README.md](docs/README.md)
 
-Current status: design/build target. Local tests, Studionet lifecycle, public
-CI, and deployment evidence remain pending until verified by fresh commands.
-
+Current status: local verification pass. On 2026-07-27, `npm run check` passed:
+one contract linted and validated, 9 direct tests passed, 3 deployment parser
+tests passed, and frontend TypeScript/build checks passed. Studionet lifecycle,
+public CI, public repository, and deployment evidence remain pending until
+verified by fresh commands.
