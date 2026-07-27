@@ -1,0 +1,12 @@
+.env
+.venv/
+node_modules/
+frontend/node_modules/
+frontend/.next/
+__pycache__/
+.pytest_cache/
+dist/
+build/
+*.log
+docs/evidence/**/private*
+
