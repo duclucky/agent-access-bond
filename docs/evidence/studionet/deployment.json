@@ -1,0 +1,146 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com",
+  "publicReceiptUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
+  "wallets": {
+    "operatorAddress": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "userAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+  },
+  "primary": {
+    "contractAddress": "0x4D2827F1BC7C4678DD439eea52de3340Ae9054Bd",
+    "transactionHash": "0xcf421b8b9da7fd865056e7f30fd33de09aff2ab1c0251de6534037a6e95b9329",
+    "status": "FINALIZED",
+    "execution": "FINISHED_WITH_RETURN",
+    "finalizedAt": "2026-07-27T21:58:35.595Z"
+  },
+  "activation": {
+    "agentId": "agent-fixture-policy-001",
+    "transactions": {
+      "createAgent": {
+        "transactionHash": "0x8435f3e35e27ddd0f065a395c55213c0f1512ce97e779102c5b3d49d00fa737c",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T21:59:35.396Z"
+      },
+      "acceptAgent": {
+        "transactionHash": "0x7a728894c3c70eb6cef3534939725843f97ae9080c5ce062aeeb5223ad9e9ed2",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T22:00:17.322Z"
+      }
+    },
+    "state": {
+      "agent": {
+        "accepted": true,
+        "active_case_id": "",
+        "agent_id": "agent-fixture-policy-001",
+        "allowed_purpose": "public search research only",
+        "case_count": 0,
+        "close_proposed_by": "0x0000000000000000000000000000000000000000",
+        "minimum_challenge_bond": "100000000000000000",
+        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        "operator_bond": "2000000000000000000",
+        "origin": "https://raw.githubusercontent.com",
+        "penalty_amount": "1000000000000000000",
+        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        "status": "ACTIVE",
+        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "user_agent": "AgentAccessBot/1.0"
+      },
+      "status": "ACTIVE",
+      "canExecute": true
+    },
+    "completedAt": "2026-07-27T22:00:21.655Z"
+  },
+  "demo": {
+    "caseId": "case-fixture-private-001",
+    "verdictId": "verdict-case-fixture-private-001-1",
+    "targetUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
+    "receiptUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
+    "transactions": {
+      "openCase": {
+        "transactionHash": "0x56e6c83ce517ab256aa5c0fd31c3268b4a76f933d9aa266ea7bbfac5714e44bd",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T22:01:11.981Z"
+      },
+      "adjudicateCase": {
+        "transactionHash": "0x6a528a073838ef3d7576a439870faa49b4ff8444445d5ba3f2108d1e415c572e",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T22:01:54.291Z"
+      }
+    },
+    "state": {
+      "agent": {
+        "accepted": true,
+        "active_case_id": "",
+        "agent_id": "agent-fixture-policy-001",
+        "allowed_purpose": "public search research only",
+        "case_count": 1,
+        "close_proposed_by": "0x0000000000000000000000000000000000000000",
+        "minimum_challenge_bond": "100000000000000000",
+        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        "operator_bond": "1000000000000000000",
+        "origin": "https://raw.githubusercontent.com",
+        "penalty_amount": "1000000000000000000",
+        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        "status": "QUARANTINED",
+        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "user_agent": "AgentAccessBot/1.0"
+      },
+      "case": {
+        "agent_id": "agent-fixture-policy-001",
+        "attempt_count": 1,
+        "bond_settled": true,
+        "case_id": "case-fixture-private-001",
+        "challenge_bond": "100000000000000000",
+        "opened_by": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "receipt_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
+        "status": "RESOLVED",
+        "target_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
+        "verdict_id": "verdict-case-fixture-private-001-1"
+      },
+      "verdict": {
+        "agent_id": "agent-fixture-policy-001",
+        "applicability": "MATERIAL_VIOLATION",
+        "attempt": 1,
+        "case_id": "case-fixture-private-001",
+        "matched_fact_ids": "RECEIPT,ROBOTS_RULE,TARGET_PATH,USER_AGENT",
+        "new_agent_status": "QUARANTINED",
+        "operator_credit_amount": 0,
+        "previous_agent_status": "ACTIVE",
+        "rationale": "Receipt target path matches a disallow rule in bounded public policy evidence.",
+        "required_action": "QUARANTINE_AND_CREDIT",
+        "source_coverage": "SUFFICIENT",
+        "target_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
+        "user_credit_amount": "1000000000000000000",
+        "verdict_id": "verdict-case-fixture-private-001-1",
+        "violation_type": "DISALLOWED_PATH"
+      },
+      "userCreditWei": "1100000000000000000",
+      "openerCreditWei": "1100000000000000000",
+      "accounting": {
+        "locked_challenge_bonds": 0,
+        "locked_operator_bonds": "1000000000000000000",
+        "withdrawable_credits": "1100000000000000000"
+      },
+      "canExecute": false
+    },
+    "completedAt": "2026-07-27T22:02:04.253Z"
+  },
+  "withdrawal": {
+    "userAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db",
+    "withdrawnCreditWei": "1100000000000000000",
+    "remainingCreditWei": "0",
+    "transaction": {
+      "transactionHash": "0x3854f5c69e069cb97b53e9ad8dd64da8a38ca92b61be71337abf786711d497d7",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-27T22:03:26.533Z"
+    },
+    "observedAt": "2026-07-27T22:03:27.949Z"
+  }
+}

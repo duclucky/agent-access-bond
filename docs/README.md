@@ -49,8 +49,8 @@ Value/access at risk:
 - **Consensus question:** did this agent user-agent access a URL that is
   disallowed or materially outside the locked policy, with sufficient evidence?
 - **State machine:** `Draft -> Active -> Case -> Verdict -> Active |
-  Quarantined | Pending Review -> Cure/Restore | Closed`.
-- **Direct consequence:** quarantine/restore agent identity and settle
+  Quarantined | Closed`.
+- **Direct consequence:** quarantine agent identity and settle
   operator/challenge bonds in the primitive.
 - **Reuse surface:** builders call `get_agent_status(agent_id)` or
   `can_execute(agent_id)` before routing work.
@@ -70,8 +70,8 @@ Value/access at risk:
 | Contract count | `PASS` | V1 uses one contract because the primitive owns both status and accounting consequence. |
 | Differentiation | `PASS` | Differs from interface compatibility, product recall, governance mandate, and legacy oracle/escrow structures. |
 | Claim-to-code | `PASS - planned` | Matrix below maps every claim to method, view, test, and network evidence target. |
-| Full lifecycle | `PASS - feasible` | Studionet path: activate agent, open case, adjudicate public evidence, quarantine/credit, cure/restore, withdraw. |
-| Scope honesty | `PASS` | No local, network, CI, or public submission evidence is claimed yet. |
+| Full lifecycle | `PASS` | Studionet path verified: activate agent, open case, adjudicate public evidence, quarantine/credit, withdraw. |
+| Scope honesty | `PASS` | Local and Studionet evidence are claimed only where captured; public CI/browser-wallet/adoption remain unclaimed. |
 
 ## Actors, Roles, And Incentives
 
@@ -96,7 +96,6 @@ Value/access at risk:
 - `COMPLIANT` and `MATERIAL_VIOLATION` verdicts for the current public robots
   policy lifecycle; malformed critical evidence reverts without changing
   canonical state.
-- Cure/restore based on a bounded public remediation receipt.
 - One-contract IC track with direct status/read integration.
 
 ### Out Of Scope
@@ -117,7 +116,6 @@ Value/access at risk:
 - `agent_id`: 1-64 ASCII characters, unique forever.
 - `case_id`: 1-64 ASCII characters, unique forever.
 - `verdict_id`: `verdict-{case_id}-{attempt}`.
-- `cure_id`: `cure-{agent_id}-{sequence}`.
 - `origin`: scheme + host + optional port, normalized lowercase host.
 
 ### Structured Storage
@@ -195,11 +193,7 @@ total_withdrawable_credits
 [ACTIVE] --open_access_case/challenger + bond--> [CASE_OPEN]
 [CASE_OPEN] --COMPLIANT finalized--> [ACTIVE + operator challenge credit]
 [CASE_OPEN] --MATERIAL_VIOLATION finalized--> [QUARANTINED + user/challenger credit]
-[CASE_OPEN] --UNVERIFIABLE finalized--> [PENDING_REVIEW + retryable case]
-[PENDING_REVIEW] --retry_case/operator|user|opener--> [CASE_OPEN]
-[QUARANTINED|PENDING_REVIEW] --submit_cure/operator--> [CURE_OPEN]
-[CURE_OPEN] --CURED finalized--> [ACTIVE]
-[ACTIVE|QUARANTINED|PENDING_REVIEW] --bilateral close/no open case--> [CLOSED]
+[ACTIVE|QUARANTINED] --bilateral close/no open case--> [CLOSED]
 ```
 
 ### Illegal Transitions
@@ -211,7 +205,6 @@ total_withdrawable_credits
 - Adjudicating a resolved case.
 - Retrying a case that is not retryable.
 - Settling the same case twice.
-- Submitting cure for an active or closed agent.
 - One party accepting its own close proposal.
 - Withdrawing another address's credit.
 
@@ -222,14 +215,12 @@ total_withdrawable_credits
 - `open_access_case`: permissionless with sufficient challenge bond.
 - `adjudicate_case`: permissionless after case open.
 - `retry_case`: operator, user, or original opener.
-- `submit_cure`: operator only.
-- `adjudicate_cure`: permissionless after cure open.
 - `propose_close` and `accept_close`: operator/user, distinct callers.
 - `withdraw_credit`: caller's own credit only.
 
 ### Idempotency And Double-action Prevention
 
-- Permanent uniqueness maps for agents, cases, verdicts, and cures.
+- Permanent uniqueness maps for agents, cases, and verdicts.
 - One active case per agent.
 - `bond_settled` on each case.
 - Append-only attempt history.
@@ -319,8 +310,8 @@ contract balance
    + total_withdrawable_credits
 ```
 
-Cure may restore `QUARANTINED` to `ACTIVE` but does not reverse already credited
-penalty unless a later bilateral offchain agreement exists outside v1.
+Joint close may return the remaining operator bond only when no active case is
+open; it does not reverse already credited value.
 
 ## Reusable Interface
 
@@ -333,8 +324,6 @@ accept_agent(agent_id)
 open_access_case(case_id, agent_id, target_url, receipt_url) payable
 adjudicate_case(case_id)
 retry_case(case_id)
-submit_cure(agent_id, cure_receipt_url)
-adjudicate_cure(cure_id)
 propose_close(agent_id)
 accept_close(agent_id)
 withdraw_credit(amount)
@@ -348,7 +337,6 @@ get_agent_status(agent_id)
 can_execute(agent_id)
 get_case(case_id)
 get_verdict(verdict_id)
-get_case_verdict_ids(case_id)
 get_credit(address)
 get_accounting()
 ```
@@ -375,7 +363,7 @@ No consumer contract is required in v1. A builder integrates by pulling
 ## Test Plan
 
 - Happy path: create, accept, open case, compliant, violation, withdrawal.
-- Unauthorized: wrong user accept, wrong close, wrong cure.
+- Unauthorized: wrong user accept and wrong close.
 - Isolation: two agents and cases do not cross-update.
 - Evidence failure: malformed receipt evidence leaves canonical state unchanged.
 - Malicious evidence: receipt/policy cannot expand allowed actions or
@@ -415,8 +403,8 @@ No consumer contract is required in v1. A builder integrates by pulling
 - **Network:** Studionet first.
 - **Actors/wallet separation:** operator primary wallet and distinct user or
   challenger wallet when authorized by local `.env`; keys never printed.
-- **Deploy steps:** inspect config, deploy AgentAccessBond, activate agent,
-  open case, adjudicate, read views, withdraw credit if applicable.
+- **Verified deploy steps:** inspected config, deployed AgentAccessBond,
+  activated agent, opened case, adjudicated, read views, and withdrew credit.
 - **Consequential lifecycle:** use a public test origin/receipt controlled by
   the project or stable public fixtures that validators can fetch.
 - **Canonical reads:** agent, case, verdict, credit, accounting, and
@@ -435,19 +423,33 @@ Fresh local verification on 2026-07-27:
 - `AgentAccessBond` contract lint and validation passed.
 - Contract count: 1 (`contracts/agent_access_bond.py`).
 - Public methods: 15 total, 7 view and 8 write.
-- Direct tests: 9 passed.
+- Direct tests: 11 passed.
 - Deployment parser tests: 3 passed.
 - Frontend TypeScript checks and build passed.
 - Local Python environment used Python 3.13.14 because Python 3.12 was not
   available through the local launcher; this is local verification evidence, not
   Studionet evidence.
 
-Pending:
+Studionet verification on 2026-07-27:
 
-- Studionet deployment and lifecycle.
-- Public repository push and CI.
-- Public evidence packet with explorer links, receipts, canonical reads, and
-  balance proof.
+- Active contract:
+  `0x4D2827F1BC7C4678DD439eea52de3340Ae9054Bd`.
+- Deploy tx:
+  `0xcf421b8b9da7fd865056e7f30fd33de09aff2ab1c0251de6534037a6e95b9329`.
+- Violation adjudication tx:
+  `0x6a528a073838ef3d7576a439870faa49b4ff8444445d5ba3f2108d1e415c572e`.
+- Withdrawal tx:
+  `0x3854f5c69e069cb97b53e9ad8dd64da8a38ca92b61be71337abf786711d497d7`.
+- Canonical reads show verdict `MATERIAL_VIOLATION`, status `QUARANTINED`,
+  `can_execute=false`, and remaining user credit `0` after withdrawal.
+- Evidence packet:
+  `docs/evidence/studionet/deployment.json`.
+
+Still unclaimed:
+
+- Public CI.
+- Browser-wallet project-track evidence.
+- External adoption.
 
 ## Definition Of Done
 
@@ -459,8 +461,10 @@ Pending:
 - [x] Pull-based integration views.
 - [x] Direct tests, metadata checks, and parser fixtures.
 - [x] `npm run check` pass locally.
-- [ ] Studionet deploy and consequential lifecycle.
-- [ ] Canonical evidence packet and honest submission fields.
+- [x] Studionet deploy and consequential lifecycle.
+- [x] Canonical evidence packet.
+- [ ] Public CI.
+- [ ] Submission fields.
 
 ### Projects, if selected
 
@@ -477,8 +481,8 @@ scope unless separately proven.
   inspect it; cryptographic runner attestations are future work.
 - Integrators must call the primitive views before routing; the contract cannot
   block every offchain agent by itself.
-- No CI, Studionet, browser-wallet, or external adoption evidence is claimed
-  until captured.
+- No public CI, browser-wallet, or external adoption evidence is claimed until
+  captured.
 
 ## Kill Criteria
 
