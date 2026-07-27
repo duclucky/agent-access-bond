@@ -71,7 +71,7 @@ Value/access at risk:
 | Differentiation | `PASS` | Differs from interface compatibility, product recall, governance mandate, and legacy oracle/escrow structures. |
 | Claim-to-code | `PASS - planned` | Matrix below maps every claim to method, view, test, and network evidence target. |
 | Full lifecycle | `PASS` | Studionet path verified: activate agent, open case, adjudicate public evidence, quarantine/credit, withdraw. |
-| Scope honesty | `PASS` | Local and Studionet evidence are claimed only where captured; public CI/browser-wallet/adoption remain unclaimed. |
+| Scope honesty | `PASS` | Local, Studionet, and public CI evidence are claimed only where captured; browser-wallet/adoption remain unclaimed. |
 
 ## Actors, Roles, And Incentives
 
@@ -447,7 +447,6 @@ Studionet verification on 2026-07-27:
 
 Still unclaimed:
 
-- Public CI.
 - Browser-wallet project-track evidence.
 - External adoption.
 
@@ -463,7 +462,7 @@ Still unclaimed:
 - [x] `npm run check` pass locally.
 - [x] Studionet deploy and consequential lifecycle.
 - [x] Canonical evidence packet.
-- [ ] Public CI.
+- [x] Public CI.
 - [ ] Submission fields.
 
 ### Projects, if selected
@@ -481,8 +480,7 @@ scope unless separately proven.
   inspect it; cryptographic runner attestations are future work.
 - Integrators must call the primitive views before routing; the contract cannot
   block every offchain agent by itself.
-- No public CI, browser-wallet, or external adoption evidence is claimed until
-  captured.
+- No browser-wallet or external adoption evidence is claimed until captured.
 
 ## Kill Criteria
 
