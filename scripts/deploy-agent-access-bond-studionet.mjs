@@ -21,13 +21,13 @@ const RPC_URL = studionet.rpcUrls.default.http[0];
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const REPO_RAW_BASE =
   "https://raw.githubusercontent.com/duclucky/agent-access-bond/main";
-const AGENT_ID = "agent-googlebot-policy-001";
-const CASE_ID = "case-google-search-001";
+const AGENT_ID = "agent-fixture-policy-001";
+const CASE_ID = "case-fixture-private-001";
 const VERDICT_ID = `verdict-${CASE_ID}-1`;
 const USER_AGENT = "AgentAccessBot/1.0";
-const ORIGIN = "https://www.google.com";
-const POLICY_URL = "https://www.google.com/robots.txt";
-const TARGET_URL = "https://www.google.com/search?q=agentaccessbond";
+const ORIGIN = "https://raw.githubusercontent.com";
+const POLICY_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/agent-policy.txt`;
+const TARGET_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/challenge-target/report.json`;
 const RECEIPT_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/case-1-receipt.json`;
 const OPERATOR_BOND = 2_000_000_000_000_000_000n;
 const PENALTY_AMOUNT = 1_000_000_000_000_000_000n;
@@ -545,4 +545,3 @@ if (!(command in commands)) {
 }
 
 await commands[command]();
-

@@ -408,6 +408,10 @@ class AgentAccessBond(gl.Contract):
         _require(agent.status in ("ACTIVE", "PENDING_REVIEW"), "Agent cannot open case")
         _require(agent.active_case_id == "", "Agent already has an active case")
         normalized_target = _valid_https_url(target_url, "target_url")
+        _require(
+            normalized_target.startswith(agent.origin.rstrip("/") + "/"),
+            "Target must be under agent origin",
+        )
         normalized_receipt = _valid_https_url(receipt_url, "receipt_url")
         challenge_value = u256(gl.message.value)
         _require(

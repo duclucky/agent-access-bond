@@ -1,0 +1,5 @@
+User-agent: AgentAccessBot
+Disallow: /duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/
+
+User-agent: *
+Allow: /duclucky/agent-access-bond/main/docs/evidence/public-fixtures/

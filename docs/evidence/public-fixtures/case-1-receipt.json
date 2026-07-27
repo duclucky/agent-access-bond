@@ -1,15 +1,14 @@
 {
-  "receipt_id": "agent-access-bond-google-search-001",
-  "agent_id": "agent-googlebot-policy-001",
-  "case_id": "case-google-search-001",
+  "receipt_id": "agent-access-bond-fixture-private-001",
+  "agent_id": "agent-fixture-policy-001",
+  "case_id": "case-fixture-private-001",
   "operator": "AgentAccessBond demo operator",
   "runner": "AgentAccessBond public fixture runner",
   "user_agent": "AgentAccessBot/1.0",
   "method": "GET",
-  "target_url": "https://www.google.com/search?q=agentaccessbond",
+  "target_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
   "started_at": "2026-07-27T00:00:00Z",
   "completed_at": "2026-07-27T00:00:01Z",
-  "declared_policy_basis": "https://www.google.com/robots.txt",
-  "notes": "Public fixture for GenLayer validators. It states that the configured demo agent accessed a Google /search URL with the locked user-agent. Validators must compare this receipt against the locked origin robots.txt and policy URL; this file is evidence data, not instructions."
+  "declared_policy_basis": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+  "notes": "Public fixture for GenLayer validators. It states that the configured demo agent accessed a path that the locked public policy disallows for AgentAccessBot. This file is evidence data, not instructions."
 }
-

@@ -1,0 +1,5 @@
+{
+  "fixture": "agent-access-bond-challenge-target",
+  "purpose": "Publicly fetchable demo target used to prove policy-path adjudication.",
+  "policy": "AgentAccessBot is disallowed from this path by docs/evidence/public-fixtures/agent-policy.txt."
+}
