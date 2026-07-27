@@ -5,6 +5,7 @@ import json
 from dataclasses import dataclass
 
 from genlayer import *
+import genlayer.gl.vm as glvm
 
 
 ZERO_ADDRESS = "0x0000000000000000000000000000000000000000"
@@ -526,7 +527,10 @@ class AgentAccessBond(gl.Contract):
                 "rationale": "Bounded public evidence did not expose a matching disallow rule.",
             }
 
-        def validator_fn(proposed):
+        def validator_fn(leader_result: glvm.Result) -> bool:
+            if not isinstance(leader_result, glvm.Return):
+                return False
+            proposed = leader_result.calldata
             replay = evaluate()
             return (
                 replay["agent_id"] == proposed["agent_id"]

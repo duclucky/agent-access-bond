@@ -198,6 +198,41 @@ def test_material_violation_quarantines_agent_and_records_verdict(
     assert contract.can_execute("agent-alpha") is False
 
 
+def test_validator_replay_accepts_matching_access_verdict(
+    direct_vm,
+    direct_deploy,
+    direct_alice,
+    direct_bob,
+    direct_charlie,
+):
+    contract = direct_deploy(CONTRACT_PATH)
+    create_and_accept_agent(contract, direct_vm, direct_alice, direct_bob)
+    open_access_case(contract, direct_vm, direct_charlie)
+    mock_access_result(direct_vm, access_result("MATERIAL_VIOLATION"))
+
+    contract.adjudicate_case("case-1")
+
+    assert direct_vm.run_validator() is True
+
+
+def test_validator_replay_rejects_changed_access_verdict(
+    direct_vm,
+    direct_deploy,
+    direct_alice,
+    direct_bob,
+    direct_charlie,
+):
+    contract = direct_deploy(CONTRACT_PATH)
+    create_and_accept_agent(contract, direct_vm, direct_alice, direct_bob)
+    open_access_case(contract, direct_vm, direct_charlie)
+    mock_access_result(direct_vm, access_result("MATERIAL_VIOLATION"))
+
+    contract.adjudicate_case("case-1")
+    malicious = access_result("COMPLIANT")
+
+    assert direct_vm.run_validator(leader_result=malicious) is False
+
+
 def test_compliant_keeps_agent_active(
     direct_vm,
     direct_deploy,
