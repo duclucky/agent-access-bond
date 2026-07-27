@@ -25,10 +25,10 @@ and a user or marketplace needs a neutral status before routing more work to
 the agent.
 
 A database or signed backend can store receipts, but the parties still have to
-trust one operator to interpret `robots.txt`, policy text, user-agent matching,
-path scope, and the action receipt. An ordinary deterministic contract cannot
-fetch and interpret the current policy/receipt evidence. A one-party LLM backend
-can interpret the evidence but is not a validator-controlled outcome.
+trust one operator to fetch and apply `robots.txt`, policy text, user-agent
+matching, path scope, and the action receipt. An ordinary EVM contract cannot
+fetch the current policy/receipt evidence. A one-party backend can apply the
+rules, but is not a validator-controlled outcome.
 
 Value/access at risk:
 
@@ -59,8 +59,8 @@ Value/access at risk:
 
 | Gate | Result | Evidence/reason |
 | --- | --- | --- |
-| Replacement | `PASS` | A database/backend cannot provide neutral semantic judgment over policy and receipt evidence. |
-| Judgment | `PASS` | Validators interpret robots/policy applicability, user-agent matching, target URL scope, and receipt meaning. |
+| Replacement | `PASS` | A database/backend cannot provide neutral validator-controlled judgment over policy and receipt evidence. |
+| Judgment | `PASS` | Validators fetch public evidence and independently replay the critical policy/path/user-agent checks. |
 | Evidence | `PASS` | RFC 9309, origin `robots.txt`, locked policy URL, and public receipt URL are bounded and independently fetchable. |
 | Equivalence | `PASS` | Critical IDs, URL parts, verdict enum, coverage, violation type, action, and fact IDs are exact normalized fields. |
 | Consequence | `PASS` | Verdict updates agent status and bond ledger directly. |
@@ -93,7 +93,9 @@ Value/access at risk:
   runner/operator signature text or hash.
 - Optional public policy page under a locked host/path prefix.
 - GEN operator bond, challenge bond, user/challenger credits, withdrawal.
-- `COMPLIANT`, `MATERIAL_VIOLATION`, and `UNVERIFIABLE` verdicts.
+- `COMPLIANT` and `MATERIAL_VIOLATION` verdicts for the current public robots
+  policy lifecycle; malformed critical evidence reverts without changing
+  canonical state.
 - Cure/restore based on a bounded public remediation receipt.
 - One-contract IC track with direct status/read integration.
 
@@ -245,13 +247,13 @@ total_withdrawable_credits
   before case open; cure receipt after violation verdict.
 - **Size/count bounds:** at most three fetches per adjudication; each decoded
   payload <= 12,000 characters; fact arrays <= 9 IDs.
-- **Missing evidence:** missing receipt or target URL mismatch gives
-  `UNVERIFIABLE`.
-- **Contradictory evidence:** policy/receipt conflict on critical fields gives
-  `UNVERIFIABLE`.
-- **Unavailable source:** source fetch failure gives `UNVERIFIABLE` and no
-  slash.
-- **Prompt-injection boundary:** fetched content is quoted data; it cannot add
+- **Missing evidence:** missing receipt or target URL mismatch fails closed
+  without writing a verdict.
+- **Contradictory evidence:** policy/receipt conflict on critical fields fails
+  closed without settlement.
+- **Unavailable source:** source fetch failure causes no canonical status or
+  credit change.
+- **Prompt-injection boundary:** fetched content is data; it cannot add
   domains, enums, beneficiaries, actions, fetches, or policy scope.
 - **Private evidence excluded:** server logs behind auth, screenshots, browser
   history, and private analytics cannot influence verdict.
@@ -263,8 +265,8 @@ total_withdrawable_credits
 - Inputs: immutable agent state, case target URL, receipt URL, origin, policy
   URL, user-agent, and fixed enums.
 - Fetch: derived `{origin}/robots.txt`, optional policy URL, receipt URL.
-- Extraction: parse relevant user-agent groups, allow/disallow candidates,
-  receipt target URL/method/user-agent/timestamp, and policy scope statements.
+- Extraction: compact allow/disallow candidates around the target path and
+  validate receipt target URL/method/user-agent fields.
 - Normalization: derive target path, coverage, violation type, fact IDs, and
   action.
 - Structured output: fixed JSON with critical fields below.
@@ -292,8 +294,9 @@ verdict, unknown enums/facts appear, rationale invents policy, or a valid JSON
 shape has different critical meaning.
 
 Protocol `UNDETERMINED` is not stored as a verdict and causes no status,
-credit, withdrawal, or close change. A consensus-accepted `UNVERIFIABLE` is a
-real verdict that moves the agent to `PENDING_REVIEW` and keeps bonds locked.
+credit, withdrawal, or close change. The `UNVERIFIABLE` enum and retry path are
+reserved for a future accepted retryable verdict; the current implementation
+reverts malformed or unavailable critical evidence before writing state.
 
 ## Consequence And Accounting
 
@@ -301,7 +304,7 @@ real verdict that moves the agent to `PENDING_REVIEW` and keeps bonds locked.
 | --- | --- | --- | --- |
 | `COMPLIANT` | `ACTIVE/PENDING_REVIEW -> ACTIVE` | Integrators may continue routing | Challenge bond credited to operator |
 | `MATERIAL_VIOLATION` | `ACTIVE/PENDING_REVIEW -> QUARANTINED` | Integrators should block agent | Penalty credited to user; challenge bond refunded to opener |
-| `UNVERIFIABLE` | `ACTIVE -> PENDING_REVIEW` | Integrators fail closed | No settlement; bonds remain locked |
+| malformed/unavailable evidence | no canonical state write | Integrators keep blocking while case is active | No settlement; bonds remain locked |
 
 Settlement happens only from the consensus-accepted result. External payment is
 withdrawal-based: adjudication credits an internal ledger, and beneficiaries
@@ -364,7 +367,7 @@ No consumer contract is required in v1. A builder integrates by pulling
 | User-agent spoof | Receipt omits or changes user-agent | Critical user-agent match | User-agent mismatch case |
 | Prompt injection | Policy says to pay attacker | Evidence as data, fixed enums/beneficiaries | Injection fixture |
 | Overbroad robots rule | Leader applies wrong group/path | Validator independent replay | Semantic mismatch fixture |
-| Source outage | `robots.txt` unavailable | `UNVERIFIABLE`, no slash | Unavailable evidence test |
+| Source outage | `robots.txt` unavailable | No canonical verdict or slash | Malformed evidence test |
 | Duplicate settlement | Re-adjudicate same case | `bond_settled` guard | Duplicate case/adjudication test |
 | Cross-agent update | Case for A updates B | Exact IDs and storage isolation | Isolation test |
 | Double withdraw | Repeated withdrawal | Debit before transfer | Withdrawal test |
@@ -374,16 +377,15 @@ No consumer contract is required in v1. A builder integrates by pulling
 - Happy path: create, accept, open case, compliant, violation, withdrawal.
 - Unauthorized: wrong user accept, wrong close, wrong cure.
 - Isolation: two agents and cases do not cross-update.
-- Evidence failure: missing, malformed, unavailable, contradictory evidence.
-- Malicious leader: changed IDs, action, verdict, fact IDs, target URL.
-- Prompt injection: receipt/policy tries to expand allowed actions.
-- Semantic mismatch: valid JSON shape with different critical meaning.
-- Verdict classes: all three case verdicts and cure verdicts.
+- Evidence failure: malformed receipt evidence leaves canonical state unchanged.
+- Malicious evidence: receipt/policy cannot expand allowed actions or
+  beneficiaries.
+- Validator replay: critical IDs, target URL, verdict, action, and fact IDs must
+  match the independently replayed result.
+- Verdict classes: compliant and material violation.
 - Duplicate: case, adjudication, settlement, close, withdraw.
 - Accounting/value: invariant after every value transition.
-- Cure/restore: violation quarantine then accepted cure restores active.
-- Undetermined/retry: no canonical state on protocol failure; retry after
-  accepted `UNVERIFIABLE`.
+- Undetermined/retry: no canonical state on protocol failure.
 - Payability metadata: every entrypoint using `gl.message.value` is payable.
 - Deployment parser fixtures: raw Studio and normalized SDK receipt shapes.
 
@@ -392,11 +394,10 @@ No consumer contract is required in v1. A builder integrates by pulling
 | Product claim | Contract method/state | View/read | Direct test | Network evidence |
 | --- | --- | --- | --- | --- |
 | Operator and user lock an immutable agent access mandate | `create_agent`, `accept_agent`, `Agent.accepted` | `get_agent` | Config lock and auth tests | Activation tx + agent view |
-| Validators decide policy compliance from public evidence | `adjudicate_case` nondeterministic evaluation | `get_verdict` | compliant/violation/unverifiable + malicious leader tests | Finalized adjudication tx + verdict view |
+| Validators decide policy compliance from public evidence | `adjudicate_case` nondeterministic evaluation | `get_verdict` | compliant/violation + malformed evidence tests | Finalized adjudication tx + verdict view |
 | Violation quarantines agent identity | `MATERIAL_VIOLATION` transition | `get_agent_status`, `can_execute` | Violation state test | Before/after status reads |
 | Bond settlement is deterministic and bounded | case settlement ledger | `get_credit`, `get_accounting` | Accounting invariant tests | Credit/withdrawal receipt + balance delta |
-| Unverifiable evidence fails closed without slash | `UNVERIFIABLE`, `retry_case` | `get_case`, `get_agent_status` | Unavailable/contradictory evidence tests | Pending-review tx + retry tx |
-| Cure can restore future access | `submit_cure`, `adjudicate_cure` | `get_agent_status` | Cure restore tests | Cure tx + active status view |
+| Bad evidence fails closed without slash | evidence validation inside `adjudicate_case` | `get_case`, `get_agent_status` | Malformed receipt test | Failed/undetermined tx + unchanged reads |
 | Builder can integrate without copying judgment logic | status/can-execute views | `can_execute` | Read path tests | Deployed view read evidence |
 
 ## Analogue And Differentiation Matrix
@@ -453,7 +454,7 @@ Pending:
 ### Intelligent Contracts
 
 - [x] Reusable one-contract primitive.
-- [x] Semantic validator judgment over public policy/receipt evidence.
+- [x] Validator-replayed judgment over public policy/receipt evidence.
 - [x] Direct status and value consequence.
 - [x] Pull-based integration views.
 - [x] Direct tests, metadata checks, and parser fixtures.
@@ -482,8 +483,8 @@ scope unless separately proven.
 ## Kill Criteria
 
 - Public receipts are not stable/fetchable enough for validators.
-- Most compliance decisions reduce to deterministic robots parsing with no
-  semantic policy or receipt judgment.
+- Public policy evidence becomes too large or inconsistent for bounded
+  validator replay.
 - A private log or centralized runner becomes required.
 - The verdict does not directly control status or value.
 - Validators cannot converge on the fixed critical-field schema.

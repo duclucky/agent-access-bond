@@ -1,0 +1,76 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "rpc": "https://studio.genlayer.com/api",
+  "explorer": "https://explorer-studio.genlayer.com",
+  "publicReceiptUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
+  "wallets": {
+    "operatorAddress": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "userAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+  },
+  "primary": {
+    "contractAddress": "0x02401e5aE095Bc1F48403aD82Dfc6f4C527a2642",
+    "transactionHash": "0xe3c9545f9ea356a45b7171692911351e3cf1f4b127bd3b975e4f2cd0d74c7d2e",
+    "status": "FINALIZED",
+    "execution": "FINISHED_WITH_RETURN",
+    "finalizedAt": "2026-07-27T15:32:28.442Z"
+  },
+  "activation": {
+    "agentId": "agent-googlebot-policy-001",
+    "transactions": {
+      "createAgent": {
+        "transactionHash": "0x7448ea86da68efa916f0ca895f45ba24efb3a2de8ec2f84f061a0b6c99aa3253",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T15:33:41.632Z"
+      },
+      "acceptAgent": {
+        "transactionHash": "0xcfa90e5de6f667a65b9170eddf50be33e7efe4e0d1b7ca190b8160c399fa3a9b",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T15:34:20.985Z"
+      }
+    },
+    "state": {
+      "agent": {
+        "accepted": true,
+        "active_case_id": "",
+        "agent_id": "agent-googlebot-policy-001",
+        "allowed_purpose": "public search research only",
+        "case_count": 0,
+        "close_proposed_by": "0x0000000000000000000000000000000000000000",
+        "minimum_challenge_bond": "100000000000000000",
+        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        "operator_bond": "2000000000000000000",
+        "origin": "https://www.google.com",
+        "penalty_amount": "1000000000000000000",
+        "policy_url": "https://www.google.com/robots.txt",
+        "status": "ACTIVE",
+        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "user_agent": "AgentAccessBot/1.0"
+      },
+      "status": "ACTIVE",
+      "canExecute": true
+    },
+    "completedAt": "2026-07-27T15:34:25.740Z"
+  },
+  "demo": {
+    "caseId": "case-google-search-001",
+    "verdictId": "verdict-case-google-search-001-1",
+    "targetUrl": "https://www.google.com/search?q=agentaccessbond",
+    "receiptUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
+    "transactions": {
+      "openCase": {
+        "transactionHash": "0x43b5e5a0e8396697ea62add44edafa9d2ac6bd6b721e73a9a2bd0f574e4919e8",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-27T15:35:20.989Z"
+      },
+      "adjudicateCase": {
+        "transactionHash": "0xd066754579804fcd32fb206ca4840953465b27b131a18a193d0ec198968d2f44",
+        "status": "SUBMITTED",
+        "submittedAt": "2026-07-27T15:35:31.018Z"
+      }
+    }
+  }
+}

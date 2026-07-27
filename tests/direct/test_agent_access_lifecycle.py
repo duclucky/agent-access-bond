@@ -65,12 +65,17 @@ def open_access_case(
 
 
 def mock_access_result(vm, result):
+    robots_body = (
+        "User-agent: AgentAccessBot\nDisallow: /private/"
+        if result["applicability"] == "MATERIAL_VIOLATION"
+        else "User-agent: AgentAccessBot\nDisallow: /admin/"
+    )
     vm.mock_web(
         r".*example\.com/robots\.txt",
         {
             "method": "GET",
             "status": 200,
-            "body": "User-agent: AgentAccessBot\nDisallow: /private/",
+            "body": robots_body,
         },
     )
     vm.mock_web(
@@ -213,7 +218,7 @@ def test_compliant_keeps_agent_active(
     assert contract.can_execute("agent-alpha") is True
 
 
-def test_unverifiable_pauses_without_settlement_and_allows_retry(
+def test_malformed_receipt_rejects_without_canonical_state(
     direct_vm,
     direct_deploy,
     direct_alice,
@@ -223,18 +228,24 @@ def test_unverifiable_pauses_without_settlement_and_allows_retry(
     contract = direct_deploy(CONTRACT_PATH)
     create_and_accept_agent(contract, direct_vm, direct_alice, direct_bob)
     open_access_case(contract, direct_vm, direct_charlie)
-    mock_access_result(direct_vm, access_result("UNVERIFIABLE"))
+    direct_vm.mock_web(
+        r".*example\.com/robots\.txt",
+        {"method": "GET", "status": 200, "body": "User-agent: *\nDisallow: /private/"},
+    )
+    direct_vm.mock_web(
+        r".*example\.com/agent-policy",
+        {"method": "GET", "status": 200, "body": "Policy text."},
+    )
+    direct_vm.mock_web(
+        r".*example\.com/receipts/case-1\.json",
+        {"method": "GET", "status": 200, "body": "not json"},
+    )
 
-    verdict_id = contract.adjudicate_case("case-1")
+    with direct_vm.expect_revert("Expected JSON object"):
+        contract.adjudicate_case("case-1")
 
     case = contract.get_case("case-1")
-    verdict = contract.get_verdict(verdict_id)
-    assert case.status == "RETRYABLE"
-    assert verdict.applicability == "UNVERIFIABLE"
-    assert contract.get_agent_status("agent-alpha") == "PENDING_REVIEW"
+    assert case.status == "OPEN"
+    assert case.verdict_id == ""
+    assert contract.get_agent_status("agent-alpha") == "ACTIVE"
     assert contract.can_execute("agent-alpha") is False
-
-    direct_vm.sender = direct_charlie
-    contract.retry_case("case-1")
-    retryable = contract.get_case("case-1")
-    assert retryable.status == "OPEN"
