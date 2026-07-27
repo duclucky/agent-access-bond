@@ -88,6 +88,8 @@ def mock_access_result(vm, result):
             "status": 200,
             "body": json.dumps(
                 {
+                    "agent_id": "agent-alpha",
+                    "case_id": "case-1",
                     "target_url": "https://example.com/private/report",
                     "user_agent": "AgentAccessBot/1.0",
                     "method": "GET",
