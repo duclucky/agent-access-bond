@@ -1,0 +1,9 @@
+{
+  "network": "studionet",
+  "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
+  "status": "PENDING_USER_WALLET_PROOF",
+  "capturedTransactions": [],
+  "canonicalReadsCaptured": false,
+  "productionFrontendUrl": null,
+  "reason": "No transaction signed through an injected browser wallet has been captured for this revision. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
+}

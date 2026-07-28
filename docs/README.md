@@ -1,332 +1,121 @@
-# IDEA-004 - AgentAccessBond
+# AgentAccessBond Technical Specification
 
 ## Identity
 
 - Idea ID: `IDEA-004`
-- Project name: `AgentAccessBond`
-- Project slug: `agent-access-bond`
-- Category: `Intelligent Contracts`
-- Status: `LOCAL VERIFIED / STUDIONET PENDING`
-- Repository: local only until public audit and push
-- Target network: `Studionet`
+- Project: `AgentAccessBond`
+- Slug: `agent-access-bond`
+- Locked category: `Projects`
+- Network: `Studionet`
+- Status: `STUDIONET SCRIPT LIFECYCLE VERIFIED / BROWSER WALLET PENDING`
+- Contract count: 1
+- Active address:
+  `0x37826aA6a75F033D67169b2F8D2616382Ca06522`
 
-## One-sentence product hook
+## Product Outcome
 
-When a bonded agent crosses a site's stated crawl boundary, validators
-quarantine that agent identity and turn operator bond into challenger/user
-credit.
+An operator bonds an automated web agent to a fixed origin, user-agent, policy,
+and purpose. A challenger opens a case with a public action receipt. GenLayer
+validators independently fetch bounded public evidence and decide its semantic
+meaning. A finalized material violation quarantines the agent, transfers a
+fixed penalty to the user, refunds the challenge bond, and blocks
+`can_execute(agent_id)`.
 
-## Trust problem
+The product includes the reusable contract, a real-wallet browser application,
+revision-aware deployment tooling, canonical state reads, and Studionet
+lifecycle evidence.
 
-Agent operators, users, and site owners have conflicting incentives around
-whether an autonomous agent respected a web-access mandate. An operator may
-publish logs that minimize a bad action, a challenger may over-claim violation,
-and a user or marketplace needs a neutral status before routing more work to
-the agent.
+## Mandatory Gates
 
-A database or signed backend can store receipts, but the parties still have to
-trust one operator to fetch and apply `robots.txt`, policy text, user-agent
-matching, path scope, and the action receipt. An ordinary EVM contract cannot
-fetch the current policy/receipt evidence. A one-party backend can apply the
-rules, but is not a validator-controlled outcome.
-
-Value/access at risk:
-
-- operator bond;
-- challenge bond;
-- user/challenger credit;
-- agent identity status for future task routing;
-- public trust in agent marketplace or wallet automation.
-
-## Fingerprint
-
-- **Trust problem:** no single party should decide whether a bonded agent stayed
-  inside a public web-access boundary.
-- **Actors/adversary:** operator wants to keep bond/access; challenger or site
-  owner may over-claim; user wants neutral status for routing.
-- **Evidence class:** immutable onchain access mandate, origin `robots.txt`,
-  optional locked policy URL, and public action receipt URL.
-- **Consensus question:** did this agent user-agent access a URL that is
-  disallowed or materially outside the locked policy, with sufficient evidence?
-- **State machine:** `Draft -> Active -> Case -> Verdict -> Active |
-  Quarantined | Closed`.
-- **Direct consequence:** quarantine agent identity and settle
-  operator/challenge bonds in the primitive.
-- **Reuse surface:** builders call `get_agent_status(agent_id)` or
-  `can_execute(agent_id)` before routing work.
-
-## Mandatory Gate Matrix
-
-| Gate | Result | Evidence/reason |
+| Gate | Result | Evidence |
 | --- | --- | --- |
-| Replacement | `PASS` | A database/backend cannot provide neutral validator-controlled judgment over policy and receipt evidence. |
-| Judgment | `PASS` | Validators fetch public evidence and independently replay the critical policy/path/user-agent checks. |
-| Evidence | `PASS` | RFC 9309, origin `robots.txt`, locked policy URL, and public receipt URL are bounded and independently fetchable. |
-| Equivalence | `PASS` | Critical IDs, URL parts, verdict enum, coverage, violation type, action, and fact IDs are exact normalized fields. |
-| Consequence | `PASS` | Verdict updates agent status and bond ledger directly. |
-| Adversarial | `PASS` | Operator and challenger/site owner have opposing financial/access incentives. |
-| State model | `PASS` | Per-agent/per-case storage, one active case, append-only attempts, access control, and settlement guards are specified. |
-| Reuse | `PASS` | Integrators can pull canonical status without a consumer contract. |
-| Contract count | `PASS` | V1 uses one contract because the primitive owns both status and accounting consequence. |
-| Differentiation | `PASS` | Differs from interface compatibility, product recall, governance mandate, and legacy oracle/escrow structures. |
-| Claim-to-code | `PASS - planned` | Matrix below maps every claim to method, view, test, and network evidence target. |
-| Full lifecycle | `PASS` | Studionet path verified: activate agent, open case, adjudicate public evidence, quarantine/credit, withdraw. |
-| Scope honesty | `PASS` | Local, Studionet, and public CI evidence are claimed only where captured; browser-wallet/adoption remain unclaimed. |
+| Replacement | `PASS` | A database or operator backend cannot provide validator-controlled interpretation; ordinary EVM cannot fetch and interpret the public sources. |
+| Judgment | `PASS` | `adjudicate_case` calls an LLM inside `gl.vm.run_nondet`; validators independently re-evaluate the bounded evidence. |
+| Evidence | `PASS` | Sources are derived or locked public HTTPS URLs with strict length, identity, and scope checks. |
+| Equivalence | `PASS` | Validators compare normalized applicability and violation type; code derives coverage, facts, action, status, and settlement. |
+| Consequence | `PASS` | Accepted verdicts directly update status, execution eligibility, and the bond ledger. |
+| Adversarial pressure | `PASS` | Operator, user, and challenger have conflicting access and financial incentives. |
+| State model | `PASS` | State is keyed per agent/case/verdict with authorization, one active case, append-only attempts, and settlement guards. |
+| Reuse | `PASS` | Other products can call the seven view methods without copying adjudication logic. |
+| Contract count | `PASS` | One contract owns the status and accounting enforcement boundary. |
+| Differentiation | `PASS` | The evidence, actors, agent identity consequence, and web-access protocol differ from prior workspace ideas. |
+| Claim-to-code | `PASS` | The matrix below maps every active claim to state, reads, tests, and evidence. |
+| Full lifecycle | `PASS` | Current revision finalized activation, violation adjudication, quarantine, credit, withdrawal, and canonical verification. |
+| Scope honesty | `PASS` | Browser-wallet, production-hosting, current CI, and external-adoption evidence remain explicitly pending. |
 
-## Actors, Roles, And Incentives
+## Trust and Evidence Model
 
-| Actor | Permissions | Value at risk | Incentive to bias |
-| --- | --- | --- | --- |
-| Operator | Create agent, lock bond, submit cure, propose close | Operator bond and future access | Hide or minimize a violation |
-| User | Accept an agent mandate, receive violation credit, close jointly | Access safety and credit | Prefer strict enforcement before routing tasks |
-| Challenger/site owner | Open case with challenge bond | Challenge bond | Over-claim a borderline violation |
-| Validators | Fetch and interpret bounded evidence | Protocol correctness | Reject unsupported leader output |
-| Integrator | Read status and credit views | Routing safety | None; read-only |
+The operator benefits from preserving its bond and routing eligibility. A
+challenger may overstate a violation. The designated user needs a neutral
+decision before granting more work. Validators inspect:
 
-## Scope And Non-goals
+- `{origin}/robots.txt`;
+- the immutable policy URL;
+- the case receipt URL;
+- immutable agent and case state.
 
-### In Scope
+Contract code validates source size and receipt identity, derives trusted IDs
+and URL scope, and treats fetched text as untrusted data. The prompt cannot
+expand source URLs, enums, beneficiaries, actions, or accounting values.
 
-- HTTP/HTTPS origins with public `robots.txt`.
-- One locked user-agent string per agent.
-- Public action receipts with timestamp, method, target URL, user-agent, and
-  runner/operator signature text or hash.
-- Optional public policy page under a locked host/path prefix.
-- GEN operator bond, challenge bond, user/challenger credits, withdrawal.
-- `COMPLIANT` and `MATERIAL_VIOLATION` verdicts for the current public robots
-  policy lifecycle; malformed critical evidence reverts without changing
-  canonical state.
-- One-contract IC track with direct status/read integration.
+The model returns only:
 
-### Out Of Scope
+- `applicability`: `COMPLIANT`, `MATERIAL_VIOLATION`, or `UNVERIFIABLE`;
+- `violation_type`: one bounded violation enum;
+- `rationale`: bounded, non-consensus prose.
 
-- Legal adjudication, damages, or trespass claims.
-- Private server logs, authenticated dashboards, screenshots, cookies, or
-  private user data.
-- Arbitrary web search, unbounded crawl, POST side effects, or hidden pages.
-- Treating `robots.txt` as access authorization; it is a policy signal for this
-  agreed bond protocol.
-- Project-track browser-wallet lifecycle unless separately proven.
-- A consumer guard contract only for show.
+The contract derives `source_coverage`, `matched_fact_ids`, `required_action`,
+new agent status, attempt/verdict IDs, and all monetary consequences.
+Validators compare the normalized semantic fields and ignore rationale wording.
+Malformed, missing, oversized, contradictory, or unavailable critical evidence
+fails without writing a canonical verdict.
 
-## State Model
-
-### Stable IDs
-
-- `agent_id`: 1-64 ASCII characters, unique forever.
-- `case_id`: 1-64 ASCII characters, unique forever.
-- `verdict_id`: `verdict-{case_id}-{attempt}`.
-- `origin`: scheme + host + optional port, normalized lowercase host.
-
-### Structured Storage
-
-`Agent`:
+## State and Accounting
 
 ```text
-agent_id
-operator
-user
-user_agent
-origin
-policy_url
-allowed_purpose
-operator_bond
-minimum_challenge_bond
-penalty_amount
-status                      DRAFT | ACTIVE | QUARANTINED | PENDING_REVIEW | CLOSED
-accepted
-active_case_id
-case_count
-close_proposed_by
+[ABSENT] -> DRAFT -> ACTIVE -> CASE_OPEN
+                            -> ACTIVE             (COMPLIANT)
+                            -> QUARANTINED        (MATERIAL_VIOLATION)
+                            -> PENDING_REVIEW     (UNVERIFIABLE)
+                            -> ACTIVE             (bilateral case cancel)
+
+ACTIVE | QUARANTINED -> CLOSED (bilateral close, no active case)
 ```
 
-`AccessCase`:
+An open case prevents execution. Bilateral cancellation requires agreement
+between the operator and original opener, refunds the challenge bond once, and
+restores the previous active routing state. Bilateral close requires the
+operator and designated user and returns the remaining operator bond.
 
-```text
-case_id
-agent_id
-opened_by
-target_url
-receipt_url
-challenge_bond
-status                      OPEN | RETRYABLE | RESOLVED
-attempt_count
-verdict_id
-bond_settled
-```
-
-`Verdict`:
-
-```text
-verdict_id
-case_id
-agent_id
-target_url
-applicability               COMPLIANT | MATERIAL_VIOLATION | UNVERIFIABLE
-source_coverage             SUFFICIENT | PARTIAL | FAILED
-violation_type              DISALLOWED_PATH | USER_AGENT_MISMATCH |
-                            POLICY_SCOPE_BREACH | RECEIPT_INSUFFICIENT | NONE
-required_action             KEEP_ACTIVE | QUARANTINE_AND_CREDIT | PAUSE_AND_RETRY
-matched_fact_ids[]
-rationale
-previous_agent_status
-new_agent_status
-user_credit_amount
-operator_credit_amount
-attempt
-```
-
-`Accounting`:
-
-```text
-credits[address]
-total_locked_operator_bonds
-total_locked_challenge_bonds
-total_withdrawable_credits
-```
-
-### State Machine
-
-```text
-[ABSENT] --create_agent/operator + bond--> [DRAFT]
-[DRAFT] --accept_agent/user--> [ACTIVE]
-[ACTIVE] --open_access_case/challenger + bond--> [CASE_OPEN]
-[CASE_OPEN] --COMPLIANT finalized--> [ACTIVE + operator challenge credit]
-[CASE_OPEN] --MATERIAL_VIOLATION finalized--> [QUARANTINED + user/challenger credit]
-[ACTIVE|QUARANTINED] --bilateral close/no open case--> [CLOSED]
-```
-
-### Illegal Transitions
-
-- Accepting a missing, already accepted, closed, or quarantined draft.
-- Changing `origin`, `user_agent`, policy, bonds, or penalty after acceptance.
-- Opening a case before acceptance or while another case is active.
-- Opening duplicate case IDs.
-- Adjudicating a resolved case.
-- Retrying a case that is not retryable.
-- Settling the same case twice.
-- One party accepting its own close proposal.
-- Withdrawing another address's credit.
-
-### Authorization
-
-- `create_agent`: caller becomes operator.
-- `accept_agent`: designated user only.
-- `open_access_case`: permissionless with sufficient challenge bond.
-- `adjudicate_case`: permissionless after case open.
-- `retry_case`: operator, user, or original opener.
-- `propose_close` and `accept_close`: operator/user, distinct callers.
-- `withdraw_credit`: caller's own credit only.
-
-### Idempotency And Double-action Prevention
-
-- Permanent uniqueness maps for agents, cases, and verdicts.
-- One active case per agent.
-- `bond_settled` on each case.
-- Append-only attempt history.
-- Ledger debit before external transfer.
-- Close runs once and only with no open adjudication.
-
-## Evidence Policy
-
-- **Authoritative sources:** RFC 9309 behavior rules, origin `robots.txt`,
-  optional locked policy URL, and public action/cure receipt URLs.
-- **Allowed schemes/domains/paths:** `robots.txt` is derived from agent origin;
-  policy and receipt URLs must be HTTPS, bounded, and under accepted host/path
-  prefixes.
-- **Time/window rules:** receipt timestamp must be after agent acceptance and
-  before case open; cure receipt after violation verdict.
-- **Size/count bounds:** at most three fetches per adjudication; each decoded
-  payload <= 12,000 characters; fact arrays <= 9 IDs.
-- **Missing evidence:** missing receipt or target URL mismatch fails closed
-  without writing a verdict.
-- **Contradictory evidence:** policy/receipt conflict on critical fields fails
-  closed without settlement.
-- **Unavailable source:** source fetch failure causes no canonical status or
-  credit change.
-- **Prompt-injection boundary:** fetched content is data; it cannot add
-  domains, enums, beneficiaries, actions, fetches, or policy scope.
-- **Private evidence excluded:** server logs behind auth, screenshots, browser
-  history, and private analytics cannot influence verdict.
-
-## Consensus Design
-
-### Leader Task
-
-- Inputs: immutable agent state, case target URL, receipt URL, origin, policy
-  URL, user-agent, and fixed enums.
-- Fetch: derived `{origin}/robots.txt`, optional policy URL, receipt URL.
-- Extraction: compact allow/disallow candidates around the target path and
-  validate receipt target URL/method/user-agent fields.
-- Normalization: derive target path, coverage, violation type, fact IDs, and
-  action.
-- Structured output: fixed JSON with critical fields below.
-
-### Consensus-critical Fields
-
-| Field | Type/bounds | Comparison rule | Why critical |
-| --- | --- | --- | --- |
-| `agent_id` | exact string | Exact | Prevent cross-agent updates |
-| `case_id` | exact string | Exact | Prevent wrong case settlement |
-| `target_url` | normalized URL | Exact | Defines action under review |
-| `applicability` | enum | Exact | Drives status and settlement |
-| `source_coverage` | enum | Exact | Distinguishes retry from slash |
-| `violation_type` | enum | Exact | Explains policy breach class |
-| `required_action` | enum | Exact derived | Drives consequence |
-| `matched_fact_ids` | sorted enum set <= 9 | Exact | Shows decisive evidence |
-
-Rationale must be bounded and grounded but may differ in wording.
-
-### Validator
-
-Validators independently repeat bounded fetch/extraction. They reject leader
-output if IDs differ, target URL is outside case input, action does not match
-verdict, unknown enums/facts appear, rationale invents policy, or a valid JSON
-shape has different critical meaning.
-
-Protocol `UNDETERMINED` is not stored as a verdict and causes no status,
-credit, withdrawal, or close change. The `UNVERIFIABLE` enum and retry path are
-reserved for a future accepted retryable verdict; the current implementation
-reverts malformed or unavailable critical evidence before writing state.
-
-## Consequence And Accounting
-
-| Verdict | Canonical state change | Consumer action | Value movement |
-| --- | --- | --- | --- |
-| `COMPLIANT` | `ACTIVE/PENDING_REVIEW -> ACTIVE` | Integrators may continue routing | Challenge bond credited to operator |
-| `MATERIAL_VIOLATION` | `ACTIVE/PENDING_REVIEW -> QUARANTINED` | Integrators should block agent | Penalty credited to user; challenge bond refunded to opener |
-| malformed/unavailable evidence | no canonical state write | Integrators keep blocking while case is active | No settlement; bonds remain locked |
-
-Settlement happens only from the consensus-accepted result. External payment is
-withdrawal-based: adjudication credits an internal ledger, and beneficiaries
-call `withdraw_credit`.
-
-Ledger invariant:
+Accounting invariant:
 
 ```text
 contract balance
-  == total_locked_operator_bonds
-   + total_locked_challenge_bonds
-   + total_withdrawable_credits
+  = total_locked_operator_bonds
+  + total_locked_challenge_bonds
+  + total_withdrawable_credits
 ```
 
-Joint close may return the remaining operator bond only when no active case is
-open; it does not reverse already credited value.
+Ledger credits are keyed by normalized lowercase address strings. Withdrawal
+debits the ledger before native transfer.
 
-## Reusable Interface
+## Public Interface
 
 ### Write Methods
 
 ```text
 create_agent(agent_id, user, user_agent, origin, policy_url,
-             allowed_purpose, penalty_amount, minimum_challenge_bond) payable
+             allowed_purpose, penalty_amount,
+             minimum_challenge_bond) payable
 accept_agent(agent_id)
 open_access_case(case_id, agent_id, target_url, receipt_url) payable
 adjudicate_case(case_id)
 retry_case(case_id)
+propose_case_cancel(case_id)
+accept_case_cancel(case_id)
+withdraw_credit(amount)
 propose_close(agent_id)
 accept_close(agent_id)
-withdraw_credit(amount)
 ```
 
 ### View Methods
@@ -341,153 +130,108 @@ get_credit(address)
 get_accounting()
 ```
 
-### Consumer/callback
+There are 17 public methods: 10 writes and 7 views. A separate consumer
+contract is not justified because an integrator can pull
+`get_agent_status(agent_id)` or `can_execute(agent_id)` directly.
 
-No consumer contract is required in v1. A builder integrates by pulling
-`can_execute(agent_id)` and `get_agent_status(agent_id)` from the primitive.
+## Frontend
 
-## Threat Model
+The React/Vite application is an operational workspace rather than a marketing
+page. It:
 
-| Threat | Attack | Mitigation | Test |
+- connects an injected wallet and switches to Studionet;
+- sends real `genlayer-js` writes to the configured revision;
+- displays submitted, accepted, finalized, failed, and retry states;
+- refreshes agent, case, verdict, credit, accounting, and eligibility after
+  finalization;
+- supports create, accept, case open/adjudicate/retry/cancel, withdrawal, and
+  bilateral close;
+- uses explorer links only for hashes returned by the SDK;
+- keeps canonical state onchain and never handles a private key.
+
+Public build configuration is defined in `frontend/.env.example`; the active
+local configuration is stored only in ignored `frontend/.env.local`.
+
+## Claim-to-Code Matrix
+
+| Claim | Contract transition | Canonical read | Test/evidence |
 | --- | --- | --- | --- |
-| Client verdict | Caller submits violation result | No verdict argument exists | Unknown write path absent |
-| Receipt substitution | Receipt target differs from case URL | Exact normalized target check | Mismatched target rejected |
-| User-agent spoof | Receipt omits or changes user-agent | Critical user-agent match | User-agent mismatch case |
-| Prompt injection | Policy says to pay attacker | Evidence as data, fixed enums/beneficiaries | Injection fixture |
-| Overbroad robots rule | Leader applies wrong group/path | Validator independent replay | Semantic mismatch fixture |
-| Source outage | `robots.txt` unavailable | No canonical verdict or slash | Malformed evidence test |
-| Duplicate settlement | Re-adjudicate same case | `bond_settled` guard | Duplicate case/adjudication test |
-| Cross-agent update | Case for A updates B | Exact IDs and storage isolation | Isolation test |
-| Double withdraw | Repeated withdrawal | Debit before transfer | Withdrawal test |
+| Operator and user lock a mandate | `create_agent`, `accept_agent` | `get_agent` | authorization/config tests; activation txs |
+| Validators judge public evidence | `adjudicate_case`, `gl.vm.run_nondet` | `get_verdict` | semantic/equivalence tests; adjudication tx |
+| Violation quarantines the identity | violation settlement | `get_agent_status`, `can_execute` | lifecycle tests; current canonical reads |
+| Bonds settle deterministically | verdict ledger transition | `get_credit`, `get_accounting` | accounting tests; withdrawal tx |
+| Bad evidence does not slash | validation before state write | `get_case`, `get_agent_status` | malformed/source tests |
+| Failed consensus can be recovered | bilateral case cancellation | case/credit/accounting views | cancellation/refund test |
+| Browser app uses canonical state | frontend SDK reads/writes | all seven views | 16 frontend tests; browser proof pending |
+| Revisions are attributable | deployment identity manifest | evidence file | 9 deployment/script tests |
 
-## Test Plan
+## Verification
 
-- Happy path: create, accept, open case, compliant, violation, withdrawal.
-- Unauthorized: wrong user accept and wrong close.
-- Isolation: two agents and cases do not cross-update.
-- Evidence failure: malformed receipt evidence leaves canonical state unchanged.
-- Malicious evidence: receipt/policy cannot expand allowed actions or
-  beneficiaries.
-- Validator replay: critical IDs, target URL, verdict, action, and fact IDs must
-  match the independently replayed result.
-- Verdict classes: compliant and material violation.
-- Duplicate: case, adjudication, settlement, close, withdraw.
-- Accounting/value: invariant after every value transition.
-- Undetermined/retry: no canonical state on protocol failure.
-- Payability metadata: every entrypoint using `gl.message.value` is payable.
-- Deployment parser fixtures: raw Studio and normalized SDK receipt shapes.
+The repository release gate is:
 
-## Claim-to-code Matrix
+```powershell
+npm run check
+```
 
-| Product claim | Contract method/state | View/read | Direct test | Network evidence |
-| --- | --- | --- | --- | --- |
-| Operator and user lock an immutable agent access mandate | `create_agent`, `accept_agent`, `Agent.accepted` | `get_agent` | Config lock and auth tests | Activation tx + agent view |
-| Validators decide policy compliance from public evidence | `adjudicate_case` nondeterministic evaluation | `get_verdict` | compliant/violation + malformed evidence tests | Finalized adjudication tx + verdict view |
-| Violation quarantines agent identity | `MATERIAL_VIOLATION` transition | `get_agent_status`, `can_execute` | Violation state test | Before/after status reads |
-| Bond settlement is deterministic and bounded | case settlement ledger | `get_credit`, `get_accounting` | Accounting invariant tests | Credit/withdrawal receipt + balance delta |
-| Bad evidence fails closed without slash | evidence validation inside `adjudicate_case` | `get_case`, `get_agent_status` | Malformed receipt test | Failed/undetermined tx + unchanged reads |
-| Builder can integrate without copying judgment logic | status/can-execute views | `can_execute` | Read path tests | Deployed view read evidence |
+It fails on the first unsuccessful stage and covers:
 
-## Analogue And Differentiation Matrix
+- GenVM lint and contract schema validation;
+- 20 direct-mode contract tests;
+- 9 deployment and verification-script tests;
+- 16 frontend tests;
+- frontend TypeScript checks;
+- production Vite build.
 
-| Analogue/prior idea | Similar dimensions | Structural difference | Collision decision |
-| --- | --- | --- | --- |
-| IDEA-001 Semantic Interface Covenant | bond, incident, status consequence | API compatibility vs agent access receipt/policy; provider/integrator vs operator/user/site owner | Not a collision |
-| IDEA-002 MandateLock | bilateral mandate and breach | governance vote/proposal vs web-access action receipt | Not a collision |
-| IDEA-003 RecallBond | public source and quarantine | product recall/remedy vs agent identity/access and robots/policy evidence | Not a collision |
-| Generic web compliance oracle | web policy plus pass/fail | fixed agent access protocol, bonded state machine, direct status/accounting | Generic oracle rejected |
-| AI arbitration/escrow | dispute plus payout | no arbitrary winner or free-form damages; fixed facts/actions | Not a generic escrow |
+The local linter is invoked as `python -m genvm_linter.cli` because the Windows
+console launcher in the repository environment exits silently. The current
+`genvm-linter` also excludes a class literally named `Contract` during schema
+reflection, so the deployed class remains `AgentAccessBond`.
 
-## Deployment And Evidence Plan
+## Studionet Evidence
 
-- **Network:** Studionet first.
-- **Actors/wallet separation:** operator primary wallet and distinct user or
-  challenger wallet when authorized by local `.env`; keys never printed.
-- **Verified deploy steps:** inspected config, deployed AgentAccessBond,
-  activated agent, opened case, adjudicated, read views, and withdrew credit.
-- **Consequential lifecycle:** use a public test origin/receipt controlled by
-  the project or stable public fixtures that validators can fetch.
-- **Canonical reads:** agent, case, verdict, credit, accounting, and
-  `can_execute` before/after.
-- **Balance/receipt proof:** withdrawal receipt and public balance delta for
-  any credited value.
-- **Evidence path:** `docs/evidence/studionet/deployment.json`.
-- **Resume/idempotency:** deployment script reads existing evidence and
-  canonical state before every write.
+Active revision:
 
-## Implementation Status
+- contract:
+  [`0x37826aA6a75F033D67169b2F8D2616382Ca06522`](https://explorer-studio.genlayer.com/address/0x37826aA6a75F033D67169b2F8D2616382Ca06522);
+- source commit: `e8f918130cf853f88611c3fd267c1a5cc913eda7`;
+- deploy tx:
+  `0xd70158005f15925fd0667fa0a5d9af5a9d87d0d8f21d8c953527ade753bf41bb`;
+- adjudication tx:
+  `0x6efbd23c5951195324e6165e1f5c7798cbff01e52b52a28f40e4d5243750a821`;
+- withdrawal tx:
+  `0xc2a5c21acc9e0bfb38a49c63c2da89263975b46b82c1f651be79a292bf7bf71e`;
+- verdict: `MATERIAL_VIOLATION / DISALLOWED_PATH`;
+- decisive facts: `RECEIPT,ROBOTS_RULE,TARGET_PATH,USER_AGENT`;
+- canonical state: agent `QUARANTINED`, case `RESOLVED`,
+  `can_execute=false`, remaining user credit `0`;
+- verified at: `2026-07-28T08:20:51.516Z`.
 
-Fresh local verification on 2026-07-27:
+The complete safe projection is
+`docs/evidence/studionet/deployment.json`.
 
-- `npm run check` passed.
-- `AgentAccessBond` contract lint and validation passed.
-- Contract count: 1 (`contracts/agent_access_bond.py`).
-- Public methods: 15 total, 7 view and 8 write.
-- Direct tests: 11 passed.
-- Deployment parser tests: 3 passed.
-- Frontend TypeScript checks and build passed.
-- Local Python environment used Python 3.13.14 because Python 3.12 was not
-  available through the local launcher; this is local verification evidence, not
-  Studionet evidence.
+Revision history:
 
-Studionet verification on 2026-07-27:
+- `0x4D2827F1BC7C4678DD439eea52de3340Ae9054Bd` is superseded and fully
+  recovered to zero accounting.
+- `0x751ed58604586A32F72fdEb0CE90155E14F30F10` is superseded after
+  `MAJORITY_DISAGREE`. It predates case cancellation and still has an open case
+  with 2 GEN operator bond and 0.1 GEN challenge bond locked. This is not
+  represented as recovered.
 
-- Active contract:
-  `0x4D2827F1BC7C4678DD439eea52de3340Ae9054Bd`.
-- Deploy tx:
-  `0xcf421b8b9da7fd865056e7f30fd33de09aff2ab1c0251de6534037a6e95b9329`.
-- Violation adjudication tx:
-  `0x6a528a073838ef3d7576a439870faa49b4ff8444445d5ba3f2108d1e415c572e`.
-- Withdrawal tx:
-  `0x3854f5c69e069cb97b53e9ad8dd64da8a38ca92b61be71337abf786711d497d7`.
-- Canonical reads show verdict `MATERIAL_VIOLATION`, status `QUARANTINED`,
-  `can_execute=false`, and remaining user credit `0` after withdrawal.
-- Evidence packet:
-  `docs/evidence/studionet/deployment.json`.
-
-Still unclaimed:
-
-- Browser-wallet project-track evidence.
-- External adoption.
-
-## Definition Of Done
-
-### Intelligent Contracts
-
-- [x] Reusable one-contract primitive.
-- [x] Validator-replayed judgment over public policy/receipt evidence.
-- [x] Direct status and value consequence.
-- [x] Pull-based integration views.
-- [x] Direct tests, metadata checks, and parser fixtures.
-- [x] `npm run check` pass locally.
-- [x] Studionet deploy and consequential lifecycle.
-- [x] Canonical evidence packet.
-- [x] Public CI.
-- [ ] Submission fields.
-
-### Projects, if selected
-
-Not selected. Browser-wallet write and full agent marketplace UI are out of
-scope unless separately proven.
+Script-signed evidence and browser-wallet evidence are intentionally separate.
+`docs/evidence/studionet/browser-wallet.json` remains
+`PENDING_USER_WALLET_PROOF`.
 
 ## Honest Limitations
 
-- `robots.txt` is an agreed policy signal in this bond protocol, not legal
-  access authorization.
-- V1 only uses public receipts and public policies; private server logs are
-  excluded.
-- A public receipt can prove what it states only to the extent validators can
-  inspect it; cryptographic runner attestations are future work.
-- Integrators must call the primitive views before routing; the contract cannot
-  block every offchain agent by itself.
-- No browser-wallet or external adoption evidence is claimed until captured.
-
-## Kill Criteria
-
-- Public receipts are not stable/fetchable enough for validators.
-- Public policy evidence becomes too large or inconsistent for bounded
-  validator replay.
-- A private log or centralized runner becomes required.
-- The verdict does not directly control status or value.
-- Validators cannot converge on the fixed critical-field schema.
-- A structurally equivalent public GenLayer project is found.
+- `robots.txt` is an agreed policy signal for this bond protocol, not legal
+  authorization.
+- Public receipts prove only what validators can inspect; cryptographic runner
+  attestation is future work.
+- Integrators must read the primitive before routing offchain work.
+- The superseded failed-consensus revision has funds locked because its
+  historical contract lacks a cancellation path.
+- Browser-wallet signing, production hosting, current-revision public CI, and
+  external adoption are not yet evidenced.
+- `genlayer-js@1.1.8` currently brings transitive npm audit findings for which
+  the installed dependency tree has no available upstream fix.

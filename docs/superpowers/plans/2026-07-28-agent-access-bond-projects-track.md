@@ -1,5 +1,25 @@
 # AgentAccessBond Projects Track Implementation Plan
 
+## Execution Record
+
+Implemented and locally verified:
+
+- fail-fast Windows release gate and reliable GenVM linter invocation;
+- semantic `gl.vm.run_nondet` adjudication with deterministic consequence
+  derivation and bilateral case recovery;
+- revision-aware deployment/recovery scripts and safe evidence projection;
+- operational React wallet application with canonical refresh and transaction
+  state handling;
+- Studionet revision
+  `0x37826aA6a75F033D67169b2F8D2616382Ca06522`, which finalized a material
+  violation, quarantine, credit, and withdrawal.
+
+Intentionally pending:
+
+- browser-wallet signed evidence;
+- production frontend hosting;
+- current-revision public CI and external adoption.
+
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.
 
 **Goal:** Upgrade AgentAccessBond into a verified Projects-track product with validator-controlled semantic adjudication, a real Studionet wallet frontend, revision-safe evidence, and fail-fast checks.

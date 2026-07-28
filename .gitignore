@@ -1,4 +1,5 @@
 .env
+.env.local
 .venv/
 node_modules/
 frontend/node_modules/
@@ -9,4 +10,3 @@ dist/
 build/
 *.log
 docs/evidence/**/private*
-

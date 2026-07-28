@@ -67,6 +67,9 @@ penalty, status, active case, and close handshake.
 
 `AccessCase` is isolated by `case_id`. It records opener, target and receipt
 URLs, challenge bond, attempt count, status, verdict ID, and settlement guard.
+It also records a bilateral cancellation proposal so a structurally failed
+adjudication can be closed and the challenge bond refunded without unilateral
+control.
 
 `Verdict` is immutable after creation and records normalized semantic output,
 the previous and new agent status, deterministic consequence amounts, and
@@ -93,6 +96,8 @@ already documented by the project.
 - `UNVERIFIABLE`: no bond settles; case becomes retryable and agent becomes
   `PENDING_REVIEW`.
 - `retry_case`: reopens only the same retryable case without a new bond.
+- bilateral case cancellation: operator and opener jointly cancel an open or
+  retryable case, refund the challenge bond once, and restore `ACTIVE`.
 - `withdraw_credit`: debits the internal ledger before native transfer.
 - bilateral close: designated user and operator jointly close an agent with no
   active case and credit the remaining operator bond.
@@ -114,23 +119,22 @@ the target path, derives allowed enum/action sets, and compacts evidence. The
 prompt treats every source body as untrusted evidence and explicitly forbids
 following embedded instructions.
 
-The model may return only these semantic fields:
+The model may return only these fields:
 
 - `applicability`: `COMPLIANT`, `MATERIAL_VIOLATION`, or `UNVERIFIABLE`;
-- `source_coverage`: `SUFFICIENT`, `PARTIAL`, or `FAILED`;
 - `violation_type`: one allowed violation enum;
-- `matched_fact_ids`: a bounded subset of known fact IDs;
 - `rationale`: bounded explanatory prose.
 
-The contract derives agent ID, case ID, target URL, required action, new status,
-credit mapping, and attempt ID. Unknown keys and unknown fact IDs are discarded.
-Missing or invalid consensus-critical fields fail closed.
+The contract derives agent ID, case ID, target URL, source coverage,
+matched fact IDs, required action, new status, credit mapping, and attempt ID.
+Unknown keys are discarded. Missing or invalid consensus-critical fields fail
+closed.
 
-The validator replay compares normalized applicability, source coverage,
-violation type, required action, and matched fact IDs. Rationale wording is not
-consensus-critical. The default implementation uses `gl.vm.run_nondet`; an
-unsafe variant is permitted only if an isolated compatibility proof shows the
-current Depends runner lacks the safe API and the fallback is documented.
+The validator replay compares normalized applicability and violation type;
+source coverage, required action, matched facts, status, and settlement are
+deterministically derived from those fields and validated source structure.
+Rationale wording is not consensus-critical. The implementation uses
+`gl.vm.run_nondet`.
 
 ## Frontend Product
 
@@ -208,6 +212,13 @@ The previous active manifest is archived under a revision-specific directory
 with `SUPERSEDED` status and reason. Exactly one
 `docs/evidence/studionet/deployment.json` remains active. Script-signed evidence
 and browser-wallet evidence are stored and claimed separately.
+
+The deployed current revision is
+`0x37826aA6a75F033D67169b2F8D2616382Ca06522`, bound to source commit
+`e8f918130cf853f88611c3fd267c1a5cc913eda7`. Its Studionet lifecycle finalized
+`MATERIAL_VIOLATION`, `QUARANTINED`, and `can_execute=false`. Browser-wallet
+proof and production hosting remain pending and are not inferred from the
+script-signed lifecycle.
 
 External deployment is attempted only after local checks pass and authorized
 wallet configuration is found without exposing secrets. A deployment or
