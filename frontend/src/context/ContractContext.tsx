@@ -17,10 +17,12 @@ import {
 } from "../contract";
 import type { PublicConfig } from "../config";
 import { WalletDialog } from "../components/WalletDialog";
+import { readRememberedAgentIds, rememberAgentId } from "../local-agent-index";
 import { formatGenValue, parseGen } from "../presentation";
 import { initialTxState, txReducer, type TxState } from "../tx-state";
 import {
   connectStudionetWallet,
+  getAuthorizedStudionetAccount,
   requestInjectedWallets,
   subscribeToInjectedWallets,
   type Eip1193Provider,
@@ -330,9 +332,9 @@ export function ContractProvider({
     [config]
   );
 
-  useEffect(
-    () =>
-      subscribeToInjectedWallets((nextWallet) => {
+  useEffect(() => {
+    let cancelled = false;
+    const unsubscribe = subscribeToInjectedWallets((nextWallet) => {
         setInjectedWallets((current) =>
           current.some(
             (item) =>
@@ -342,9 +344,33 @@ export function ContractProvider({
             ? current
             : [...current, nextWallet]
         );
-      }),
-    []
-  );
+        void getAuthorizedStudionetAccount(nextWallet.provider)
+          .then((account) => {
+            if (cancelled || !account) return;
+            const provider = nextWallet.provider as BrowserProvider;
+            const clients = createAgentAccessClients({
+              config,
+              account,
+              provider
+            });
+            if (!clients.writeClient) return;
+            setWalletProvider(provider);
+            setWriteClient(clients.writeClient);
+            setWallet({
+              isConnected: true,
+              address: account,
+              balanceGEN: 0,
+              network: NETWORK_NAME,
+              role: "user"
+            });
+          })
+          .catch(() => undefined);
+      });
+    return () => {
+      cancelled = true;
+      unsubscribe();
+    };
+  }, [config]);
 
   const upsertSnapshot = useCallback((snapshot: CanonicalSnapshot) => {
     const nextAgent = agentFromSnapshot(snapshot);
@@ -368,6 +394,32 @@ export function ContractProvider({
     return nextAgent;
   }, []);
 
+  const refreshRememberedAgents = useCallback(
+    async (account?: string) => {
+      const rememberedIds = readRememberedAgentIds(account);
+      await Promise.all(
+        rememberedIds.map(async (agentId) => {
+          try {
+            const snapshot = await readCanonicalSnapshot({
+              client: readClient,
+              contractAddress: config.contractAddress,
+              agentId,
+              account: account ? (account as `0x${string}`) : undefined
+            });
+            upsertSnapshot(snapshot);
+          } catch {
+            // Remembered IDs are only a local index. Missing/deleted IDs should not block the app.
+          }
+        })
+      );
+    },
+    [config.contractAddress, readClient, upsertSnapshot]
+  );
+
+  useEffect(() => {
+    void refreshRememberedAgents(wallet.address);
+  }, [refreshRememberedAgents, wallet.address]);
+
   const refreshAgent = useCallback(
     async (agentId: string, caseId?: string) => {
       const cleanAgentId = agentId.trim();
@@ -384,6 +436,9 @@ export function ContractProvider({
             ? (wallet.address as `0x${string}`)
             : undefined
         });
+        if (snapshot.agent) {
+          rememberAgentId(snapshot.agent.agent_id, wallet.address);
+        }
         return upsertSnapshot(snapshot);
       } catch (error) {
         setLastError(errorMessage(error));
@@ -554,6 +609,7 @@ export function ContractProvider({
           value: parseGen(String(data.operator_bond)),
           refreshAgentId: agentId
         });
+        rememberAgentId(agentId, wallet.address);
         return agentId;
       },
       approveAgent: async (agentId) => {

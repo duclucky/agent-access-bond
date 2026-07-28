@@ -163,7 +163,9 @@ identity-mismatched evidence cannot create a canonical punitive verdict.
 4. `docs/evidence/studionet/` contains projected public evidence only. Script
    wallets and browser-wallet proof are intentionally tracked separately.
 
-No backend or local storage acts as canonical contract state.
+No backend or local storage acts as canonical contract state. The browser only
+keeps a small recent Agent ID index so reloads can re-read those IDs from the
+deployed contract.
 
 ## Consequence
 
@@ -232,7 +234,7 @@ The fail-fast release gate currently proves:
 - GenVM lint and contract schema validation;
 - 20 direct contract tests;
 - 9 deployment and receipt-parser tests;
-- 46 frontend tests;
+- 50 frontend tests;
 - frontend TypeScript validation;
 - production Vite build.
 
@@ -314,7 +316,7 @@ allowing rationale wording to differ. A finalized material violation
 quarantines the agent, disables can_execute(agent_id), and credits the
 designated user and challenger. Integrators can reuse seven view methods
 without copying adjudication logic. One contract, 20 direct tests, 9 script
-tests, and 46 frontend tests are verified. The production wallet picker
+tests, and 50 frontend tests are verified. The production wallet picker
 discovers EIP-6963 extensions and offers explicit MetaMask mobile/QR fallback;
 browser-signed registration proof is captured; external adoption remains
 pending.

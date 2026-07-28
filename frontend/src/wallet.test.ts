@@ -4,6 +4,7 @@ import {
   STUDIONET_CHAIN_ID,
   createMetaMaskConnectClient,
   connectStudionetWallet,
+  getAuthorizedStudionetAccount,
   type Eip1193Provider,
   type MetaMaskConnectClient
 } from "./wallet";
@@ -11,6 +12,24 @@ import {
 const ACCOUNT = "0x2222222222222222222222222222222222222222" as const;
 
 describe("connectStudionetWallet", () => {
+  it("restores an already-authorized injected account without prompting", async () => {
+    const request = vi.fn(async ({ method }: { method: string }) => {
+      if (method === "eth_accounts") return [ACCOUNT];
+      if (method === "wallet_switchEthereumChain") return null;
+      throw new Error(`Unexpected method ${method}`);
+    });
+
+    const account = await getAuthorizedStudionetAccount({
+      request
+    } as Eip1193Provider);
+
+    expect(account).toBe(ACCOUNT);
+    expect(request.mock.calls.map(([call]) => call.method)).toEqual([
+      "eth_accounts",
+      "wallet_switchEthereumChain"
+    ]);
+  });
+
   it("initializes the real MetaMask Connect client through Vite ESM interop", async () => {
     const client = await createMetaMaskConnectClient();
 

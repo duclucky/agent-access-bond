@@ -160,6 +160,16 @@ async function switchInjectedProvider(provider: Eip1193Provider) {
   }
 }
 
+export async function getAuthorizedStudionetAccount(provider: Eip1193Provider) {
+  const accounts = (await provider.request({
+    method: "eth_accounts"
+  })) as Array<`0x${string}`>;
+  const account = accounts[0];
+  if (!account) return null;
+  await switchInjectedProvider(provider);
+  return account;
+}
+
 export async function createMetaMaskConnectClient(): Promise<MetaMaskConnectClient> {
   return (await createEVMClient({
     dapp: {
