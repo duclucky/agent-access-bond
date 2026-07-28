@@ -3,14 +3,23 @@
   "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
   "status": "PENDING_USER_WALLET_PROOF",
   "capturedTransactions": [],
-  "canonicalReadsCaptured": false,
+  "canonicalReadsCaptured": true,
   "productionFrontendUrl": "https://agent-access-bond.vercel.app",
   "connectionUiVerification": {
-    "providerInjected": false,
-    "metaMaskConnectModalOpened": true,
-    "extensionOptionPresent": true,
-    "mobileQrOptionPresent": true,
-    "verifiedAt": "2026-07-28T08:54:00.134Z"
+    "eip6963RequestPresentInBundle": true,
+    "appWalletPickerOpened": true,
+    "detectedExtensionCountInTestBrowser": 0,
+    "legacyProviderInjected": false,
+    "installedExtensionsSectionPresent": true,
+    "metaMaskMobileQrFallbackPresent": true,
+    "metaMaskFallbackInvokedExplicitly": true,
+    "mobileViewport": {
+      "width": 390,
+      "height": 844,
+      "dialogWidth": 335,
+      "horizontalOverflow": false
+    },
+    "verifiedAt": "2026-07-28T09:39:01.1247180Z"
   },
-  "reason": "MetaMask Connect onboarding was verified on the production frontend without an injected provider, but no user-approved wallet connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
+  "reason": "The production app-owned picker and explicit MetaMask mobile/QR fallback were verified in a browser without installed wallet extensions. EIP-6963 multi-provider discovery is covered by frontend tests, but no user-approved extension connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
 }

@@ -234,8 +234,9 @@ credits returned to zero, and contract accounting returned to its baseline.
 
 Frontend hosting evidence is recorded in
 `docs/evidence/studionet/frontend-hosting.json`. Vercel deployment
-`dpl_Ff3V3Sz8CC1n2KHE7hqK3SXneAyd` is `READY`; the production alias returned
-HTTP 200 and its JavaScript bundle contains the active contract address.
+`dpl_8sE1zKupqxR5waNzBg3a8jdhRR3c` is `READY`; the production alias returned
+HTTP 200 and its JavaScript bundle contains the active contract address,
+EIP-6963 discovery request, and app-owned wallet picker.
 
 ## Honest Limitations
 
