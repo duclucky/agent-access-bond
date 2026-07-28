@@ -17,7 +17,6 @@ Implemented and locally verified:
 Intentionally pending:
 
 - browser-wallet signed evidence;
-- production frontend hosting;
 - current-revision public CI and external adoption.
 
 > **For agentic workers:** REQUIRED SUB-SKILL: Use `executing-plans` to implement this plan task-by-task. Steps use checkbox (`- [ ]`) syntax for tracking.

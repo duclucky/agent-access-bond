@@ -1,0 +1,18 @@
+{
+  "provider": "vercel",
+  "status": "READY",
+  "project": "agent-access-bond",
+  "scope": "duckys-projects-bc83c6a0",
+  "productionUrl": "https://agent-access-bond.vercel.app",
+  "deploymentUrl": "https://agent-access-bond-cu1bo1y7c-duckys-projects-bc83c6a0.vercel.app",
+  "deploymentId": "dpl_A5y1ZWZWn6z1YhviL5jkipfLZwku",
+  "sourceCommit": "23b420314168adf2b59a16a779e798245c90f31f",
+  "network": "studionet",
+  "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
+  "verification": {
+    "httpStatus": 200,
+    "title": "AgentAccessBond",
+    "activeContractAddressPresentInBundle": true,
+    "verifiedAt": "2026-07-28T08:30:22.220Z"
+  }
+}

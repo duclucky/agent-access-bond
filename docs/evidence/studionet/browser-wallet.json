@@ -4,6 +4,6 @@
   "status": "PENDING_USER_WALLET_PROOF",
   "capturedTransactions": [],
   "canonicalReadsCaptured": false,
-  "productionFrontendUrl": null,
-  "reason": "No transaction signed through an injected browser wallet has been captured for this revision. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
+  "productionFrontendUrl": "https://agent-access-bond.vercel.app",
+  "reason": "The production frontend is deployed, but no transaction signed through an injected browser wallet has been captured for this revision. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
 }

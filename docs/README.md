@@ -41,7 +41,7 @@ lifecycle evidence.
 | Differentiation | `PASS` | The evidence, actors, agent identity consequence, and web-access protocol differ from prior workspace ideas. |
 | Claim-to-code | `PASS` | The matrix below maps every active claim to state, reads, tests, and evidence. |
 | Full lifecycle | `PASS` | Current revision finalized activation, violation adjudication, quarantine, credit, withdrawal, and canonical verification. |
-| Scope honesty | `PASS` | Browser-wallet, production-hosting, current CI, and external-adoption evidence remain explicitly pending. |
+| Scope honesty | `PASS` | Production hosting is verified; browser-wallet, current CI, and external-adoption evidence remain explicitly pending. |
 
 ## Trust and Evidence Model
 
@@ -151,6 +151,8 @@ page. It:
 
 Public build configuration is defined in `frontend/.env.example`; the active
 local configuration is stored only in ignored `frontend/.env.local`.
+The production deployment is
+[`https://agent-access-bond.vercel.app`](https://agent-access-bond.vercel.app).
 
 ## Claim-to-Code Matrix
 
@@ -222,6 +224,11 @@ Script-signed evidence and browser-wallet evidence are intentionally separate.
 `docs/evidence/studionet/browser-wallet.json` remains
 `PENDING_USER_WALLET_PROOF`.
 
+Frontend hosting evidence is recorded in
+`docs/evidence/studionet/frontend-hosting.json`. Vercel deployment
+`dpl_A5y1ZWZWn6z1YhviL5jkipfLZwku` is `READY`; the production alias returned
+HTTP 200 and its JavaScript bundle contains the active contract address.
+
 ## Honest Limitations
 
 - `robots.txt` is an agreed policy signal for this bond protocol, not legal
@@ -231,7 +238,7 @@ Script-signed evidence and browser-wallet evidence are intentionally separate.
 - Integrators must read the primitive before routing offchain work.
 - The superseded failed-consensus revision has funds locked because its
   historical contract lacks a cancellation path.
-- Browser-wallet signing, production hosting, current-revision public CI, and
-  external adoption are not yet evidenced.
+- Browser-wallet signing, current-revision public CI, and external adoption are
+  not yet evidenced.
 - `genlayer-js@1.1.8` currently brings transitive npm audit findings for which
   the installed dependency tree has no available upstream fix.

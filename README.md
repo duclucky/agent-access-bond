@@ -18,13 +18,17 @@ settle operator and challenge bonds, and make `can_execute(agent_id)` return
   `can_execute=false`, user credit withdrawn
 - Local verification: 20 direct contract tests, 9 deployment/script tests,
   16 frontend tests, contract lint, TypeScript, and production build
+- Production frontend:
+  [`https://agent-access-bond.vercel.app`](https://agent-access-bond.vercel.app)
 - Browser-wallet proof: `PENDING_USER_WALLET_PROOF`
-- Production frontend hosting and current-revision CI: pending
+- Current-revision CI: pending
 
 The active revision and safe projected lifecycle evidence are stored in
 [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json).
 Historical revisions are retained under
 [`docs/evidence/studionet/revisions/`](docs/evidence/studionet/revisions/).
+Vercel deployment evidence is stored in
+[`docs/evidence/studionet/frontend-hosting.json`](docs/evidence/studionet/frontend-hosting.json).
 
 ## Product
 

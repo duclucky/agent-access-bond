@@ -216,9 +216,9 @@ and browser-wallet evidence are stored and claimed separately.
 The deployed current revision is
 `0x37826aA6a75F033D67169b2F8D2616382Ca06522`, bound to source commit
 `e8f918130cf853f88611c3fd267c1a5cc913eda7`. Its Studionet lifecycle finalized
-`MATERIAL_VIOLATION`, `QUARANTINED`, and `can_execute=false`. Browser-wallet
-proof and production hosting remain pending and are not inferred from the
-script-signed lifecycle.
+`MATERIAL_VIOLATION`, `QUARANTINED`, and `can_execute=false`. The frontend is
+live at `https://agent-access-bond.vercel.app`; browser-wallet proof remains
+pending and is not inferred from either hosting or the script-signed lifecycle.
 
 External deployment is attempted only after local checks pass and authorized
 wallet configuration is found without exposing secrets. A deployment or
