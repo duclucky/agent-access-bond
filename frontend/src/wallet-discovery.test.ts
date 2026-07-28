@@ -79,4 +79,28 @@ describe("subscribeToInjectedWallets", () => {
     unsubscribe();
     window.removeEventListener("eip6963:requestProvider", announce);
   });
+
+  it("does not add a generic legacy proxy when an EIP-6963 wallet is announced", () => {
+    const announcedProvider = { request: vi.fn() } as Eip1193Provider;
+    const legacyProxy = { request: vi.fn() } as Eip1193Provider;
+    Object.defineProperty(window, "ethereum", {
+      configurable: true,
+      value: legacyProxy
+    });
+    const detail = wallet("okx-uuid", "OKX Wallet", announcedProvider);
+    const announce = () => {
+      window.dispatchEvent(
+        new CustomEvent("eip6963:announceProvider", { detail })
+      );
+    };
+    window.addEventListener("eip6963:requestProvider", announce);
+    const onWallet = vi.fn();
+
+    const unsubscribe = subscribeToInjectedWallets(onWallet);
+
+    expect(onWallet).toHaveBeenCalledTimes(1);
+    expect(onWallet).toHaveBeenCalledWith(detail);
+    unsubscribe();
+    window.removeEventListener("eip6963:requestProvider", announce);
+  });
 });

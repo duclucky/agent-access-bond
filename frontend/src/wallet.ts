@@ -26,6 +26,10 @@ export type InjectedWallet = {
   provider: Eip1193Provider;
 };
 
+export function requestInjectedWallets() {
+  window.dispatchEvent(new Event("eip6963:requestProvider"));
+}
+
 const STUDIONET_CHAIN_CONFIGURATION = {
   chainName: "GenLayer Studionet",
   nativeCurrency: {
@@ -70,6 +74,7 @@ export function subscribeToInjectedWallets(
 ) {
   const seenUuids = new Set<string>();
   const seenProviders = new Set<Eip1193Provider>();
+  let hasAnnouncedProvider = false;
   const announce = (wallet: InjectedWallet) => {
     if (
       seenUuids.has(wallet.info.uuid) ||
@@ -83,11 +88,14 @@ export function subscribeToInjectedWallets(
   };
   const onAnnouncement = (event: Event) => {
     const detail = (event as CustomEvent<unknown>).detail;
-    if (isInjectedWallet(detail)) announce(detail);
+    if (isInjectedWallet(detail)) {
+      hasAnnouncedProvider = true;
+      announce(detail);
+    }
   };
 
   window.addEventListener("eip6963:announceProvider", onAnnouncement);
-  window.dispatchEvent(new Event("eip6963:requestProvider"));
+  requestInjectedWallets();
 
   const legacy = window.ethereum as Eip1193Provider | undefined;
   const legacyProviders: Eip1193Provider[] =
@@ -96,7 +104,7 @@ export function subscribeToInjectedWallets(
       : legacy
         ? [legacy]
         : [];
-  legacyProviders.forEach((provider, index) => {
+  if (!hasAnnouncedProvider) legacyProviders.forEach((provider, index) => {
     announce({
       info: {
         uuid: `legacy-wallet-${index}`,
@@ -116,11 +124,16 @@ export function subscribeToInjectedWallets(
   };
 }
 
-function errorCode(error: unknown) {
-  if (typeof error !== "object" || error === null || !("code" in error)) {
-    return undefined;
+function hasErrorCode(error: unknown, expectedCode: number, seen = new Set<object>()): boolean {
+  if (typeof error !== "object" || error === null || seen.has(error)) return false;
+  seen.add(error);
+  if ("code" in error && Number((error as { code?: unknown }).code) === expectedCode) {
+    return true;
   }
-  return Number((error as { code?: unknown }).code);
+  const record = error as Record<string, unknown>;
+  return [record.data, record.originalError, record.error, record.cause].some((nested) =>
+    hasErrorCode(nested, expectedCode, seen)
+  );
 }
 
 async function switchInjectedProvider(provider: Eip1193Provider) {
@@ -130,7 +143,7 @@ async function switchInjectedProvider(provider: Eip1193Provider) {
       params: [{ chainId: STUDIONET_CHAIN_ID }]
     });
   } catch (error) {
-    if (errorCode(error) !== 4902) throw error;
+    if (!hasErrorCode(error, 4902)) throw error;
     await provider.request({
       method: "wallet_addEthereumChain",
       params: [

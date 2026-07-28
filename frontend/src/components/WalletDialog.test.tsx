@@ -57,4 +57,21 @@ describe("WalletDialog", () => {
     );
     expect(onMetaMaskConnect).toHaveBeenCalledOnce();
   });
+
+  it("shows connection failures inside the wallet dialog", () => {
+    render(
+      <WalletDialog
+        wallets={wallets}
+        connectingId={null}
+        error="Wallet rejected the network request."
+        onClose={vi.fn()}
+        onSelect={vi.fn()}
+        onMetaMaskConnect={vi.fn()}
+      />
+    );
+
+    expect(screen.getByRole("alert")).toHaveTextContent(
+      "Wallet rejected the network request."
+    );
+  });
 });

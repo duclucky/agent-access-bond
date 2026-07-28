@@ -46,13 +46,18 @@ describe("live product UI", () => {
     });
   });
 
-  it("does not prefill integrator tools with fake fixture agent IDs", async () => {
+  it("exposes only user-facing product navigation", () => {
     render(<App config={config} />);
 
-    await userEvent.click(screen.getByRole("button", { name: /integrator api/i }));
+    expect(screen.getAllByRole("button", { name: "Dashboard" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Register Agent" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Review Cases" }).length).toBeGreaterThan(0);
+    expect(screen.getAllByRole("button", { name: "Credits" }).length).toBeGreaterThan(0);
 
-    expect(screen.queryByText("AGENT-8821")).not.toBeInTheDocument();
-    expect(screen.queryByDisplayValue("AGENT-8821")).not.toBeInTheDocument();
+    expect(screen.queryByText("Integrator API")).not.toBeInTheDocument();
+    expect(screen.queryByText("Settings & Role")).not.toBeInTheDocument();
+    expect(screen.queryByText("Contract Repo")).not.toBeInTheDocument();
+    expect(screen.queryByText("v1.0.4-GENLAYER")).not.toBeInTheDocument();
   });
 
   it("reads the searched agent from canonical contract views", async () => {

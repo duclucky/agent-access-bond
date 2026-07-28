@@ -82,6 +82,37 @@ describe("connectStudionetWallet", () => {
     });
   });
 
+  it("adds Studionet when a wallet nests the unknown-chain code", async () => {
+    let switchAttempts = 0;
+    const request = vi.fn(async ({ method }: { method: string }) => {
+      if (method === "eth_requestAccounts") return [ACCOUNT];
+      if (method === "wallet_switchEthereumChain") {
+        switchAttempts += 1;
+        if (switchAttempts === 1) {
+          throw {
+            code: -32603,
+            data: { originalError: { code: 4902 } }
+          };
+        }
+        return null;
+      }
+      if (method === "wallet_addEthereumChain") return null;
+      throw new Error(`Unexpected method ${method}`);
+    });
+
+    await connectStudionetWallet({
+      injectedProvider: { request } as Eip1193Provider,
+      createFallbackClient: vi.fn()
+    });
+
+    expect(request.mock.calls.map(([call]) => call.method)).toEqual([
+      "eth_requestAccounts",
+      "wallet_switchEthereumChain",
+      "wallet_addEthereumChain",
+      "wallet_switchEthereumChain"
+    ]);
+  });
+
   it("falls back to MetaMask Connect when no extension injects a provider", async () => {
     const provider = { request: vi.fn() } as Eip1193Provider;
     const connect = vi.fn(async () => ({

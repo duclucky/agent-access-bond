@@ -1,26 +1,18 @@
 import React from 'react';
 import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
+import { USER_NAV_ITEMS } from '../navigation';
 
 interface SidebarProps {
   currentTab: string;
   onNavigate: (tab: string) => void;
-  onOpenSettings: () => void;
 }
 
-export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpenSettings }) => {
-  const { wallet, connectWallet, userCredits, contractAddress } = useContract();
-
-  const navItems = [
-    { id: 'dashboard', label: 'Dashboard', icon: 'dashboard' },
-    { id: 'register', label: 'Register Agent', icon: 'how_to_reg' },
-    { id: 'cases', label: 'Review Cases', icon: 'gavel' },
-    { id: 'credits', label: 'Credits', icon: 'payments', badge: userCredits > 0 ? `${userCredits} GEN` : undefined },
-    { id: 'api', label: 'Integrator API', icon: 'code' },
-  ];
+export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate }) => {
+  const { wallet, connectWallet, userCredits } = useContract();
 
   return (
-    <nav className="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-6 px-4 w-64 border-r border-slate-800 bg-slate-900 z-40 select-none">
+    <nav aria-label="Primary navigation" className="hidden lg:flex flex-col h-screen fixed left-0 top-0 py-6 px-4 w-64 border-r border-slate-800 bg-slate-900 z-30 select-none">
       <div className="flex flex-col h-full">
         {/* Header Branding */}
         <div className="mb-6 cursor-pointer" onClick={() => onNavigate('dashboard')}>
@@ -32,7 +24,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpen
               <h1 className="font-headline text-base font-black text-white uppercase leading-none">
                 AgentAccessBond
               </h1>
-              <span className="text-orange-500 text-[10px] font-mono underline underline-offset-2">v1.0.4-GENLAYER</span>
             </div>
           </div>
         </div>
@@ -48,12 +39,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpen
 
         {/* Navigation Links */}
         <ul className="flex-1 space-y-1.5">
-          {navItems.map((item) => {
+          {USER_NAV_ITEMS.map((item) => {
             const isActive = currentTab === item.id;
+            const badge = item.id === 'credits' && userCredits > 0 ? `${userCredits} GEN` : undefined;
             return (
               <li key={item.id}>
                 <button
                   onClick={() => onNavigate(item.id)}
+                  aria-current={isActive ? 'page' : undefined}
                   className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-sans text-sm transition-all ${
                     isActive
                       ? 'bg-orange-500/10 text-orange-400 font-bold border border-orange-500/30 shadow-sm'
@@ -64,9 +57,9 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpen
                     <Icon name={item.icon} className="text-lg" />
                     <span>{item.label}</span>
                   </div>
-                  {item.badge && (
+                  {badge && (
                     <span className="px-2 py-0.5 text-[10px] font-bold rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400">
-                      {item.badge}
+                      {badge}
                     </span>
                   )}
                 </button>
@@ -75,8 +68,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpen
           })}
         </ul>
 
-        {/* Footer Links & Wallet CTA */}
-        <div className="mt-auto space-y-3 pt-4 border-t border-slate-800">
+        <div className="mt-auto pt-4 border-t border-slate-800">
           <button
             onClick={connectWallet}
             className={`w-full font-sans text-xs py-2.5 px-3 rounded-xl transition-all flex items-center justify-center gap-2 font-bold uppercase ${
@@ -93,31 +85,6 @@ export const Sidebar: React.FC<SidebarProps> = ({ currentTab, onNavigate, onOpen
             </span>
           </button>
 
-          <ul className="space-y-1">
-            <li>
-              <button
-                onClick={onOpenSettings}
-                className="w-full flex items-center gap-3 px-3 py-2 text-slate-400 hover:bg-slate-800 hover:text-white transition-all rounded-xl font-sans text-sm"
-              >
-                <Icon name="settings" className="text-sm" />
-                <span>Settings & Role</span>
-              </button>
-            </li>
-            <li>
-              <a
-                href="https://github.com/duclucky/agent-access-bond"
-                target="_blank"
-                rel="noreferrer"
-                className="w-full flex items-center justify-between px-3 py-2 text-slate-500 hover:bg-slate-800 hover:text-slate-300 transition-all rounded-xl font-sans text-sm"
-              >
-                <div className="flex items-center gap-3">
-                  <Icon name="menu_book" className="text-sm" />
-                  <span>Contract Repo</span>
-                </div>
-                <Icon name="open_in_new" className="text-xs" />
-              </a>
-            </li>
-          </ul>
         </div>
       </div>
     </nav>

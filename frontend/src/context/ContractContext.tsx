@@ -19,6 +19,7 @@ import { WalletDialog } from "../components/WalletDialog";
 import { formatGenValue, parseGen } from "../presentation";
 import {
   connectStudionetWallet,
+  requestInjectedWallets,
   subscribeToInjectedWallets,
   type Eip1193Provider,
   type InjectedWallet
@@ -87,7 +88,6 @@ interface ContractContextType {
   claimCredit: () => Promise<number>;
   proposeClosure: (agentId: string) => Promise<void>;
   connectWallet: () => void;
-  setRole: (role: WalletState["role"]) => void;
   userCredits: number;
 }
 
@@ -596,8 +596,11 @@ export function ContractProvider({
           refreshAgentId: agentId
         });
       },
-      connectWallet: () => setWalletDialogOpen(true),
-      setRole: (role) => setWallet((current) => ({ ...current, role })),
+      connectWallet: () => {
+        setLastError(null);
+        requestInjectedWallets();
+        setWalletDialogOpen(true);
+      },
       userCredits
     }),
     [
@@ -624,6 +627,7 @@ export function ContractProvider({
         <WalletDialog
           wallets={injectedWallets}
           connectingId={connectingId}
+          error={lastError}
           onClose={() => setWalletDialogOpen(false)}
           onSelect={(selectedWallet) => void connectSelectedWallet(selectedWallet)}
           onMetaMaskConnect={() => void connectSelectedWallet()}
