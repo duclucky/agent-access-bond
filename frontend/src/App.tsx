@@ -9,12 +9,15 @@ import {
 import { AgentWorkspace, type ActionFields } from "./components/AgentWorkspace";
 import { TransactionActivity } from "./components/TransactionActivity";
 import { WalletBar } from "./components/WalletBar";
+import { WalletDialog } from "./components/WalletDialog";
 import type { PublicConfig } from "./config";
 import type { CanonicalSnapshot } from "./types";
 import { initialTxState, txReducer } from "./tx-state";
 import {
   connectStudionetWallet,
-  type Eip1193Provider
+  subscribeToInjectedWallets,
+  type Eip1193Provider,
+  type InjectedWallet
 } from "./wallet";
 import {
   availableActions,
@@ -63,6 +66,8 @@ export function App({ config }: { config: PublicConfig }) {
   >(null);
   const [walletProvider, setWalletProvider] =
     useState<BrowserProvider | null>(null);
+  const [injectedWallets, setInjectedWallets] = useState<InjectedWallet[]>([]);
+  const [walletDialogOpen, setWalletDialogOpen] = useState(false);
   const [snapshot, setSnapshot] = useState<CanonicalSnapshot | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -78,6 +83,22 @@ export function App({ config }: { config: PublicConfig }) {
   const { readClient } = useMemo(
     () => createAgentAccessClients({ config }),
     [config]
+  );
+
+  useEffect(
+    () =>
+      subscribeToInjectedWallets((wallet) => {
+        setInjectedWallets((current) =>
+          current.some(
+            (item) =>
+              item.info.uuid === wallet.info.uuid ||
+              item.provider === wallet.provider
+          )
+            ? current
+            : [...current, wallet]
+        );
+      }),
+    []
   );
 
   const refresh = async (
@@ -120,12 +141,13 @@ export function App({ config }: { config: PublicConfig }) {
     }
   }, [actions.join("|"), selectedAction]);
 
-  const connectWallet = async () => {
+  const connectWallet = async (selectedWallet?: InjectedWallet) => {
+    setWalletDialogOpen(false);
     setConnecting(true);
     setReadError(null);
     try {
       const connection = await connectStudionetWallet({
-        injectedProvider: window.ethereum
+        injectedProvider: selectedWallet?.provider
       });
       const provider = connection.provider as BrowserProvider;
       const clients = createAgentAccessClients({
@@ -268,8 +290,17 @@ export function App({ config }: { config: PublicConfig }) {
         contractAddress={config.contractAddress}
         explorerUrl={config.explorerUrl}
         connecting={connecting}
-        onConnect={() => void connectWallet()}
+        onConnect={() => setWalletDialogOpen(true)}
       />
+      {walletDialogOpen && (
+        <WalletDialog
+          wallets={injectedWallets}
+          connectingId={null}
+          onClose={() => setWalletDialogOpen(false)}
+          onSelect={(wallet) => void connectWallet(wallet)}
+          onMetaMaskConnect={() => void connectWallet()}
+        />
+      )}
       <AgentWorkspace
         agentId={agentId}
         onAgentIdChange={setAgentId}

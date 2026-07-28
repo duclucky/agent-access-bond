@@ -139,7 +139,10 @@ contract is not justified because an integrator can pull
 The React/Vite application is an operational workspace rather than a marketing
 page. It:
 
-- connects an injected wallet and switches to Studionet;
+- discovers installed extensions through EIP-6963, keeps legacy injected
+  providers as a compatibility path, and switches the selected wallet to
+  Studionet;
+- offers MetaMask mobile/QR only as an explicit fallback;
 - sends real `genlayer-js` writes to the configured revision;
 - displays submitted, accepted, finalized, failed, and retry states;
 - refreshes agent, case, verdict, credit, accounting, and eligibility after
@@ -164,7 +167,7 @@ The production deployment is
 | Bonds settle deterministically | verdict ledger transition | `get_credit`, `get_accounting` | accounting tests; withdrawal tx |
 | Bad evidence does not slash | validation before state write | `get_case`, `get_agent_status` | malformed/source tests |
 | Failed consensus can be recovered | bilateral case cancellation | case/credit/accounting views | cancellation/refund test |
-| Browser app uses canonical state | frontend SDK reads/writes | all seven views | 20 frontend tests; browser proof pending |
+| Browser app uses canonical state | frontend SDK reads/writes | all seven views | 24 frontend tests; browser transaction proof pending |
 | Revisions are attributable | deployment identity manifest | evidence file | 9 deployment/script tests |
 
 ## Verification
@@ -180,7 +183,7 @@ It fails on the first unsuccessful stage and covers:
 - GenVM lint and contract schema validation;
 - 20 direct-mode contract tests;
 - 9 deployment and verification-script tests;
-- 20 frontend tests;
+- 24 frontend tests;
 - frontend TypeScript checks;
 - production Vite build.
 
