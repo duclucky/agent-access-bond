@@ -30,6 +30,7 @@ const REPO_RAW_BASE =
 const AGENT_ID = "agent-fixture-policy-001";
 const CASE_ID = "case-fixture-private-001";
 const USER_AGENT = "AgentAccessBot/1.0";
+const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const ORIGIN = "https://raw.githubusercontent.com";
 const POLICY_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/agent-policy.txt`;
 const TARGET_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/challenge-target/report.json`;
@@ -81,6 +82,13 @@ function writeEvidence(patch) {
     deploymentIdentity: DEPLOYMENT_IDENTITY,
     ...patch
   };
+  mkdirSync(EVIDENCE_DIR, { recursive: true });
+  writeFileSync(EVIDENCE_PATH, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
+}
+
+function writeExistingEvidence(patch) {
+  const previous = readEvidence() ?? {};
+  const evidence = { ...previous, ...patch };
   mkdirSync(EVIDENCE_DIR, { recursive: true });
   writeFileSync(EVIDENCE_PATH, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
 }
@@ -299,6 +307,132 @@ async function inspect() {
     }
   }
   console.log(JSON.stringify(report, null, 2));
+}
+
+async function recoverSupersededRevision() {
+  const evidence = readEvidence();
+  if (!evidence?.primary?.contractAddress) {
+    throw new Error("Existing deployment evidence is missing");
+  }
+  if (identitiesMatch(evidence.deploymentIdentity, DEPLOYMENT_IDENTITY)) {
+    throw new Error("Active evidence already matches the current revision");
+  }
+
+  const address = evidence.primary.contractAddress;
+  const operator = signingClient(OPERATOR_KEY_VARIABLES);
+  const user = signingClient(USER_KEY_VARIABLES);
+  await assertStudionet(operator.client);
+  await assertStudionet(user.client);
+  if (
+    evidence.wallets?.operatorAddress?.toLowerCase() !==
+      operator.account.address.toLowerCase() ||
+    evidence.wallets?.userAddress?.toLowerCase() !==
+      user.account.address.toLowerCase()
+  ) {
+    throw new Error("Authorized wallets do not match existing evidence");
+  }
+
+  const recovery = {
+    ...(evidence.recovery ?? {}),
+    agentId: AGENT_ID,
+    transactions: { ...(evidence.recovery?.transactions ?? {}) }
+  };
+  const persist = () => writeExistingEvidence({ recovery });
+  let agent = await readView(operator.client, address, "get_agent", [AGENT_ID]);
+
+  if (agent.status !== "CLOSED") {
+    if (agent.active_case_id) {
+      throw new Error("Superseded agent still has an active case");
+    }
+    if (
+      String(agent.close_proposed_by).toLowerCase() === ZERO_ADDRESS &&
+      recovery.transactions.proposeClose?.status !== "FINALIZED"
+    ) {
+      recovery.transactions.proposeClose = await writeFinalized(
+        operator.client,
+        address,
+        "propose_close",
+        [AGENT_ID],
+        0n,
+        recovery.transactions.proposeClose,
+        (pending) => {
+          recovery.transactions.proposeClose = pending;
+          persist();
+        }
+      );
+      persist();
+    }
+
+    agent = await readView(operator.client, address, "get_agent", [AGENT_ID]);
+    const proposedBy = String(agent.close_proposed_by).toLowerCase();
+    const acceptor =
+      proposedBy === operator.account.address.toLowerCase() ? user : operator;
+    if (recovery.transactions.acceptClose?.status !== "FINALIZED") {
+      recovery.transactions.acceptClose = await writeFinalized(
+        acceptor.client,
+        address,
+        "accept_close",
+        [AGENT_ID],
+        0n,
+        recovery.transactions.acceptClose,
+        (pending) => {
+          recovery.transactions.acceptClose = pending;
+          persist();
+        }
+      );
+      persist();
+    }
+  }
+
+  const operatorCredit = BigInt(
+    await readView(operator.client, address, "get_credit", [
+      operator.account.address
+    ])
+  );
+  if (
+    operatorCredit > 0n &&
+    recovery.transactions.withdrawOperatorCredit?.status !== "FINALIZED"
+  ) {
+    recovery.transactions.withdrawOperatorCredit = await writeFinalized(
+      operator.client,
+      address,
+      "withdraw_credit",
+      [operatorCredit],
+      0n,
+      recovery.transactions.withdrawOperatorCredit,
+      (pending) => {
+        recovery.transactions.withdrawOperatorCredit = pending;
+        persist();
+      }
+    );
+    persist();
+  }
+
+  recovery.state = {
+    agent: await readView(operator.client, address, "get_agent", [AGENT_ID]),
+    operatorCreditWei: await readView(operator.client, address, "get_credit", [
+      operator.account.address
+    ]),
+    userCreditWei: await readView(operator.client, address, "get_credit", [
+      user.account.address
+    ]),
+    accounting: await readView(operator.client, address, "get_accounting")
+  };
+  const accounting = recovery.state.accounting;
+  if (
+    recovery.state.agent.status !== "CLOSED" ||
+    BigInt(recovery.state.operatorCreditWei) !== 0n ||
+    BigInt(recovery.state.userCreditWei) !== 0n ||
+    BigInt(accounting.locked_operator_bonds) !== 0n ||
+    BigInt(accounting.locked_challenge_bonds) !== 0n ||
+    BigInt(accounting.withdrawable_credits) !== 0n
+  ) {
+    throw new Error("Superseded revision accounting is not fully recovered");
+  }
+  recovery.status = "RECOVERED_ZERO";
+  recovery.completedAt = new Date().toISOString();
+  persist();
+  console.log("RECOVERED superseded AgentAccessBond revision");
 }
 
 async function deploy() {
@@ -580,6 +714,7 @@ async function verify() {
 const command = process.argv[2] ?? "inspect";
 const commands = {
   inspect,
+  "recover-superseded": recoverSupersededRevision,
   deploy,
   "activate-agent": activateAgent,
   "run-violation-demo": runViolationDemo,
