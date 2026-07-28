@@ -46,6 +46,15 @@ describe("live product UI", () => {
     });
   });
 
+  it("does not prefill integrator tools with fake fixture agent IDs", async () => {
+    render(<App config={config} />);
+
+    await userEvent.click(screen.getByRole("button", { name: /integrator api/i }));
+
+    expect(screen.queryByText("AGENT-8821")).not.toBeInTheDocument();
+    expect(screen.queryByDisplayValue("AGENT-8821")).not.toBeInTheDocument();
+  });
+
   it("reads the searched agent from canonical contract views", async () => {
     vi.mocked(readCanonicalSnapshot).mockResolvedValueOnce({
       agent: {

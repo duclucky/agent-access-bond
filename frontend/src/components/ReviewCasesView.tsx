@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useContract } from '../context/ContractContext';
 import { AccessCase } from '../types';
 
@@ -26,7 +26,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
     !!initialAgentIdForChallenge
   );
   const [targetAgentId, setTargetAgentId] = useState<string>(
-    initialAgentIdForChallenge || (agents[0]?.agent_id ?? 'AGENT-8821')
+    initialAgentIdForChallenge || (agents[0]?.agent_id ?? '')
   );
   const [targetUrl, setTargetUrl] = useState<string>('');
   const [receiptUrl, setReceiptUrl] = useState<string>('');
@@ -36,6 +36,14 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
   const [isAdjudicating, setIsAdjudicating] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  useEffect(() => {
+    if (initialAgentIdForChallenge) {
+      setTargetAgentId(initialAgentIdForChallenge);
+    } else if (!targetAgentId && agents[0]) {
+      setTargetAgentId(agents[0].agent_id);
+    }
+  }, [agents, initialAgentIdForChallenge, targetAgentId]);
 
   // Flatten all cases
   const allCases: AccessCase[] = agents.flatMap(a => a.cases);
@@ -48,6 +56,10 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
   const handleOpenChallengeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!targetUrl.trim() || !receiptUrl.trim()) return;
+    if (!targetAgentId.trim()) {
+      setErrorMsg('Load an agent before opening an access challenge.');
+      return;
+    }
 
     setIsSubmittingChallenge(true);
     setErrorMsg('');
@@ -408,6 +420,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                   onChange={(e) => setTargetAgentId(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-orange-500"
                 >
+                  <option value="">No agent loaded</option>
                   {agents.map((a) => (
                     <option key={a.agent_id} value={a.agent_id}>
                       {a.agent_id} ({a.origin}) - Min Bond: {a.minimum_challenge_bond} GEN

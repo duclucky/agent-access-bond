@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useContract } from '../context/ContractContext';
 
 export const IntegratorApiView: React.FC = () => {
@@ -19,11 +19,15 @@ export const IntegratorApiView: React.FC = () => {
     'can_execute' | 'get_agent' | 'get_agent_status' | 'get_case' | 'get_verdict' | 'get_accounting' | 'get_credit'
   >('can_execute');
 
-  const [inputAgentId, setInputAgentId] = useState<string>('AGENT-8821');
-  const [inputCaseId, setInputCaseId] = useState<string>('CASE-992');
-  const [inputVerdictId, setInputVerdictId] = useState<string>('VERDICT-992');
+  const [inputAgentId, setInputAgentId] = useState<string>('');
+  const [inputCaseId, setInputCaseId] = useState<string>('');
+  const [inputVerdictId, setInputVerdictId] = useState<string>('');
   const [inputAddress, setInputAddress] = useState<string>(wallet.address);
   const [copied, setCopied] = useState(false);
+
+  useEffect(() => {
+    if (!inputAgentId && agents[0]) setInputAgentId(agents[0].agent_id);
+  }, [agents, inputAgentId]);
 
   // Compute live test output
   let liveResult: any = null;
@@ -149,6 +153,7 @@ else:
                   onChange={(e) => setInputAgentId(e.target.value)}
                   className="w-full bg-slate-950 border border-slate-800 text-slate-200 px-3 py-2 rounded-xl focus:outline-none focus:border-orange-500"
                 >
+                  <option value="">No agent loaded</option>
                   {agents.map(a => (
                     <option key={a.agent_id} value={a.agent_id}>
                       {a.agent_id} ({a.status})
