@@ -11,19 +11,24 @@ import {
   deploymentEnvPaths,
   loadPrivateKey
 } from "./deployment-env.mjs";
+import {
+  buildDeploymentIdentity,
+  identitiesMatch,
+  prepareActiveEvidence
+} from "./deployment/revision-evidence.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "..");
 const ENV_PATHS = deploymentEnvPaths(ROOT_DIR);
 const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
+const CONTRACT_PATH = path.join(ROOT_DIR, "contracts", "agent_access_bond.py");
 const RPC_URL = studionet.rpcUrls.default.http[0];
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const REPO_RAW_BASE =
   "https://raw.githubusercontent.com/duclucky/agent-access-bond/main";
 const AGENT_ID = "agent-fixture-policy-001";
 const CASE_ID = "case-fixture-private-001";
-const VERDICT_ID = `verdict-${CASE_ID}-1`;
 const USER_AGENT = "AgentAccessBot/1.0";
 const ORIGIN = "https://raw.githubusercontent.com";
 const POLICY_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/agent-policy.txt`;
@@ -38,6 +43,11 @@ const TERMINAL_FAILURES = new Set([
   "LEADER_TIMEOUT",
   "VALIDATORS_TIMEOUT"
 ]);
+const DEPLOYMENT_IDENTITY = buildDeploymentIdentity({
+  rootDir: ROOT_DIR,
+  contractPath: CONTRACT_PATH,
+  network: "studionet"
+});
 
 function jsonSafe(value) {
   if (typeof value === "bigint") return value.toString();
@@ -68,10 +78,19 @@ function writeEvidence(patch) {
     rpc: RPC_URL,
     explorer: EXPLORER_URL,
     publicReceiptUrl: RECEIPT_URL,
+    deploymentIdentity: DEPLOYMENT_IDENTITY,
     ...patch
   };
   mkdirSync(EVIDENCE_DIR, { recursive: true });
   writeFileSync(EVIDENCE_PATH, `${JSON.stringify(evidence, null, 2)}\n`, "utf8");
+}
+
+function requireCurrentEvidence() {
+  const evidence = readEvidence();
+  if (!identitiesMatch(evidence?.deploymentIdentity, DEPLOYMENT_IDENTITY)) {
+    throw new Error("Active evidence does not match the current contract revision");
+  }
+  return evidence;
 }
 
 function signingClient(variableNames) {
@@ -171,7 +190,7 @@ function transactionRecord(hash, receipt) {
 
 async function deployContract(client, existing = null, onSubmitted = () => {}) {
   const code = new Uint8Array(
-    readFileSync(path.join(ROOT_DIR, "contracts", "agent_access_bond.py"))
+    readFileSync(CONTRACT_PATH)
   );
   let hash = existing?.transactionHash;
   if (!hash) {
@@ -244,7 +263,11 @@ async function inspect() {
   const report = {
     network: "studionet",
     chainId,
-    evidence: evidence ? "FOUND" : "PENDING_REAL_EVIDENCE",
+    evidence: evidence
+      ? identitiesMatch(evidence.deploymentIdentity, DEPLOYMENT_IDENTITY)
+        ? "CURRENT"
+        : "SUPERSEDED_SOURCE"
+      : "PENDING_REAL_EVIDENCE",
     contractAddress: evidence?.primary?.contractAddress ?? null,
     publicReceiptUrl: RECEIPT_URL,
     reads: []
@@ -254,11 +277,12 @@ async function inspect() {
     for (const [label, functionName, args] of [
       ["agent", "get_agent", [AGENT_ID]],
       ["case", "get_case", [CASE_ID]],
-      ["verdict", "get_verdict", [VERDICT_ID]],
+      ["verdict", "get_verdict", [evidence?.demo?.verdictId]],
       ["status", "get_agent_status", [AGENT_ID]],
       ["canExecute", "can_execute", [AGENT_ID]],
       ["accounting", "get_accounting", []]
     ]) {
+      if (args.some((value) => value == null)) continue;
       try {
         report.reads.push({
           label,
@@ -278,7 +302,8 @@ async function inspect() {
 }
 
 async function deploy() {
-  const evidence = readEvidence();
+  prepareActiveEvidence(EVIDENCE_PATH, DEPLOYMENT_IDENTITY);
+  const evidence = requireCurrentEvidence();
   if (evidence?.primary?.status === "FINALIZED") {
     console.log(`SKIP deploy ${evidence.primary.contractAddress}`);
     return;
@@ -293,12 +318,13 @@ async function deploy() {
   );
   writeEvidence({
     wallets: { ...(evidence?.wallets ?? {}), operatorAddress: account.address },
-    primary
+    primary,
+    status: "DEPLOYED"
   });
 }
 
 async function activateAgent() {
-  const evidence = readEvidence();
+  const evidence = requireCurrentEvidence();
   const address = evidence?.primary?.contractAddress;
   if (!/^0x[0-9a-fA-F]{40}$/.test(address ?? "")) {
     throw new Error("Finalized contract evidence missing");
@@ -377,7 +403,7 @@ async function activateAgent() {
 }
 
 async function runViolationDemo() {
-  const evidence = readEvidence();
+  const evidence = requireCurrentEvidence();
   const address = evidence?.primary?.contractAddress;
   if (!/^0x[0-9a-fA-F]{40}$/.test(address ?? "")) {
     throw new Error("Finalized contract evidence missing");
@@ -389,7 +415,6 @@ async function runViolationDemo() {
   const demo = {
     ...(evidence.demo ?? {}),
     caseId: CASE_ID,
-    verdictId: VERDICT_ID,
     targetUrl: TARGET_URL,
     receiptUrl: RECEIPT_URL,
     transactions: { ...(evidence.demo?.transactions ?? {}) }
@@ -426,10 +451,22 @@ async function runViolationDemo() {
     );
     persist();
   }
+  const canonicalCase = await readView(
+    operator.client,
+    address,
+    "get_case",
+    [CASE_ID]
+  );
+  if (!canonicalCase.verdict_id) {
+    throw new Error("Canonical case does not expose a verdict ID");
+  }
+  demo.verdictId = canonicalCase.verdict_id;
   demo.state = {
     agent: await readView(operator.client, address, "get_agent", [AGENT_ID]),
-    case: await readView(operator.client, address, "get_case", [CASE_ID]),
-    verdict: await readView(operator.client, address, "get_verdict", [VERDICT_ID]),
+    case: canonicalCase,
+    verdict: await readView(operator.client, address, "get_verdict", [
+      demo.verdictId
+    ]),
     userCreditWei: await readView(operator.client, address, "get_credit", [
       user.account.address
     ]),
@@ -454,7 +491,7 @@ async function runViolationDemo() {
 }
 
 async function withdrawUserCredit() {
-  const evidence = readEvidence();
+  const evidence = requireCurrentEvidence();
   const address = evidence?.primary?.contractAddress;
   if (!/^0x[0-9a-fA-F]{40}$/.test(address ?? "")) {
     throw new Error("Finalized contract evidence missing");
@@ -511,15 +548,21 @@ async function withdrawUserCredit() {
 }
 
 async function verify() {
-  const evidence = readEvidence();
-  if (!evidence?.primary?.contractAddress || !evidence?.demo?.state) {
+  const evidence = requireCurrentEvidence();
+  if (
+    !evidence?.primary?.contractAddress ||
+    !evidence?.demo?.state ||
+    !evidence?.demo?.verdictId
+  ) {
     throw new Error("Deployment or demo evidence missing");
   }
   const client = publicClient();
   const address = evidence.primary.contractAddress;
   const status = await readView(client, address, "get_agent_status", [AGENT_ID]);
   const canExecute = await readView(client, address, "can_execute", [AGENT_ID]);
-  const verdict = await readView(client, address, "get_verdict", [VERDICT_ID]);
+  const verdict = await readView(client, address, "get_verdict", [
+    evidence.demo.verdictId
+  ]);
   if (
     status !== "QUARANTINED" ||
     canExecute !== false ||
@@ -527,6 +570,10 @@ async function verify() {
   ) {
     throw new Error("Canonical reads do not prove violation consequence");
   }
+  writeEvidence({
+    status: "ACTIVE",
+    verifiedAt: new Date().toISOString()
+  });
   console.log("VERIFIED AgentAccessBond Studionet lifecycle");
 }
 
