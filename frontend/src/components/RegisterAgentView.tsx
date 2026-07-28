@@ -12,7 +12,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
 
   const [origin, setOrigin] = useState('');
   const [userAgent, setUserAgent] = useState('');
-  const [designatedUser, setDesignatedUser] = useState('0x918F3d58a3B52b8813C17F72E819aE19C038a8C4');
+  const [designatedUser, setDesignatedUser] = useState('');
   const [policyUrl, setPolicyUrl] = useState('');
   const [allowedPurpose, setAllowedPurpose] = useState('');
   const [operatorBond, setOperatorBond] = useState<number>(1000);
@@ -146,10 +146,11 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
                 </div>
 
                 <div>
-                  <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
+                  <label htmlFor="designated-user" className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                     Designated User Address (Beneficiary)
                   </label>
                   <input
+                    id="designated-user"
                     type="text"
                     value={designatedUser}
                     onChange={(e) => setDesignatedUser(e.target.value)}

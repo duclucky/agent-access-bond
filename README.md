@@ -232,7 +232,7 @@ The fail-fast release gate currently proves:
 - GenVM lint and contract schema validation;
 - 20 direct contract tests;
 - 9 deployment and receipt-parser tests;
-- 45 frontend tests;
+- 46 frontend tests;
 - frontend TypeScript validation;
 - production Vite build.
 
@@ -314,7 +314,7 @@ allowing rationale wording to differ. A finalized material violation
 quarantines the agent, disables can_execute(agent_id), and credits the
 designated user and challenger. Integrators can reuse seven view methods
 without copying adjudication logic. One contract, 20 direct tests, 9 script
-tests, and 45 frontend tests are verified. The production wallet picker
+tests, and 46 frontend tests are verified. The production wallet picker
 discovers EIP-6963 extensions and offers explicit MetaMask mobile/QR fallback;
 browser-signed registration proof is captured; external adoption remains
 pending.
