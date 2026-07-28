@@ -80,9 +80,14 @@ test("identity mismatch archives the previous revision and starts pending eviden
     sourceCommit: "new-commit"
   });
 
-  const active = prepareActiveEvidence(evidencePath, identity);
+  const active = prepareActiveEvidence(evidencePath, identity, {
+    chainId: 61999,
+    rpc: "https://studio.genlayer.com/api"
+  });
 
   assert.equal(active.status, "PENDING_DEPLOYMENT");
+  assert.equal(active.chainId, 61999);
+  assert.equal(active.rpc, "https://studio.genlayer.com/api");
   assert.deepEqual(active.deploymentIdentity, identity);
   assert.equal(active.primary, undefined);
 

@@ -436,7 +436,12 @@ async function recoverSupersededRevision() {
 }
 
 async function deploy() {
-  prepareActiveEvidence(EVIDENCE_PATH, DEPLOYMENT_IDENTITY);
+  prepareActiveEvidence(EVIDENCE_PATH, DEPLOYMENT_IDENTITY, {
+    chainId: studionet.id,
+    rpc: RPC_URL,
+    explorer: EXPLORER_URL,
+    publicReceiptUrl: RECEIPT_URL
+  });
   const evidence = requireCurrentEvidence();
   if (evidence?.primary?.status === "FINALIZED") {
     console.log(`SKIP deploy ${evidence.primary.contractAddress}`);

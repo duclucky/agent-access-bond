@@ -77,16 +77,25 @@ function archivePreviousEvidence(evidencePath, previous) {
   });
 }
 
-export function prepareActiveEvidence(evidencePath, identity) {
+export function prepareActiveEvidence(
+  evidencePath,
+  identity,
+  initialEvidence = {}
+) {
   if (existsSync(evidencePath)) {
     const previous = JSON.parse(readFileSync(evidencePath, "utf8"));
     if (identitiesMatch(previous.deploymentIdentity, identity)) {
-      return previous;
+      const current = { ...initialEvidence, ...previous };
+      if (JSON.stringify(current) !== JSON.stringify(previous)) {
+        writeJson(evidencePath, current);
+      }
+      return current;
     }
     archivePreviousEvidence(evidencePath, previous);
   }
 
   const active = {
+    ...initialEvidence,
     network: identity.network,
     deploymentIdentity: identity,
     status: "PENDING_DEPLOYMENT"
