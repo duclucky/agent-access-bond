@@ -1,5 +1,7 @@
 import { ExternalLink, ShieldCheck, Unplug, Wallet } from "lucide-react";
 
+import { shortAddress } from "../presentation";
+
 export function WalletBar({
   account,
   contractAddress,
@@ -13,17 +15,15 @@ export function WalletBar({
   connecting: boolean;
   onConnect: () => void;
 }) {
-  const short = (value: string) => `${value.slice(0, 8)}…${value.slice(-6)}`;
-
   return (
     <header className="topbar">
       <div className="brand-lockup">
         <span className="brand-mark">
-          <ShieldCheck size={23} strokeWidth={2.2} aria-hidden="true" />
+          <ShieldCheck size={22} strokeWidth={2.2} aria-hidden="true" />
         </span>
         <div>
           <strong>AgentAccessBond</strong>
-          <span>Studionet control surface</span>
+          <span>Accountable access for web agents</span>
         </div>
       </div>
 
@@ -37,7 +37,7 @@ export function WalletBar({
         >
           <span className="network-dot" aria-hidden="true" />
           <span>Studionet</span>
-          <code>{short(contractAddress)}</code>
+          <code>{shortAddress(contractAddress)}</code>
           <ExternalLink size={13} aria-hidden="true" />
         </a>
         <button
@@ -51,7 +51,11 @@ export function WalletBar({
           ) : (
             <Unplug size={17} aria-hidden="true" />
           )}
-          {connecting ? "Connecting" : account ? short(account) : "Connect wallet"}
+          {connecting
+            ? "Connecting"
+            : account
+              ? shortAddress(account)
+              : "Connect wallet"}
         </button>
       </div>
     </header>

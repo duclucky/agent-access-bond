@@ -62,7 +62,7 @@ identity-mismatched evidence cannot create a canonical punitive verdict.
 1. `contracts/agent_access_bond.py` owns authorization, immutable agent
    configuration, case state, semantic adjudication, credits, and execution
    eligibility.
-2. `frontend/` is a React/Vite control surface using `genlayer-js`. It
+2. `frontend/` is a React/Vite product workspace using `genlayer-js`. It
    discovers installed wallets through EIP-6963, reads canonical state, and
    requests real writes through the selected EIP-1193 provider. MetaMask
    mobile/QR is an explicit fallback.
@@ -140,7 +140,7 @@ The fail-fast release gate currently proves:
 - GenVM lint and contract schema validation;
 - 20 direct contract tests;
 - 9 deployment and receipt-parser tests;
-- 24 frontend tests;
+- 30 frontend tests;
 - frontend TypeScript validation;
 - production Vite build.
 
@@ -221,6 +221,6 @@ allowing rationale wording to differ. A finalized material violation
 quarantines the agent, disables can_execute(agent_id), and credits the
 designated user and challenger. Integrators can reuse seven view methods
 without copying adjudication logic. One contract, 20 direct tests, 9 script
-tests, and 24 frontend tests are verified. The production wallet picker
+tests, and 30 frontend tests are verified. The production wallet picker
 discovers EIP-6963 extensions and offers explicit MetaMask mobile/QR fallback;
 browser-signed transaction proof and external adoption remain pending.

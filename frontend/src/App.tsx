@@ -11,6 +11,7 @@ import { TransactionActivity } from "./components/TransactionActivity";
 import { WalletBar } from "./components/WalletBar";
 import { WalletDialog } from "./components/WalletDialog";
 import type { PublicConfig } from "./config";
+import { formatGenValue, parseGen } from "./presentation";
 import type { CanonicalSnapshot } from "./types";
 import { initialTxState, txReducer } from "./tx-state";
 import {
@@ -36,13 +37,13 @@ const DEFAULT_FIELDS: ActionFields = {
   origin: "https://raw.githubusercontent.com",
   policyUrl: `${REPO_RAW}/docs/evidence/public-fixtures/agent-policy.txt`,
   allowedPurpose: "public search research only",
-  operatorBond: "2000000000000000000",
-  penaltyAmount: "1000000000000000000",
-  minimumChallengeBond: "100000000000000000",
+  operatorBond: "2",
+  penaltyAmount: "1",
+  minimumChallengeBond: "0.1",
   caseId: DEFAULT_CASE_ID,
   targetUrl: `${REPO_RAW}/docs/evidence/public-fixtures/challenge-target/report.json`,
   receiptUrl: `${REPO_RAW}/docs/evidence/public-fixtures/case-1-receipt.json`,
-  challengeBond: "100000000000000000",
+  challengeBond: "0.1",
   withdrawAmount: ""
 };
 
@@ -118,7 +119,10 @@ export function App({ config }: { config: PublicConfig }) {
       });
       setSnapshot(next);
       if (next.credit !== "0") {
-        setFields((current) => ({ ...current, withdrawAmount: next.credit }));
+        setFields((current) => ({
+          ...current,
+          withdrawAmount: formatGenValue(next.credit)
+        }));
       }
       return next;
     } catch (error) {
@@ -216,10 +220,10 @@ export function App({ config }: { config: PublicConfig }) {
             values.origin.trim(),
             values.policyUrl.trim(),
             values.allowedPurpose.trim(),
-            BigInt(values.penaltyAmount),
-            BigInt(values.minimumChallengeBond)
+            parseGen(values.penaltyAmount),
+            parseGen(values.minimumChallengeBond)
           ],
-          value: BigInt(values.operatorBond)
+          value: parseGen(values.operatorBond)
         };
       case "accept_agent":
       case "propose_close":
@@ -234,7 +238,7 @@ export function App({ config }: { config: PublicConfig }) {
             values.targetUrl.trim(),
             values.receiptUrl.trim()
           ],
-          value: BigInt(values.challengeBond)
+          value: parseGen(values.challengeBond)
         };
       case "adjudicate_case":
       case "retry_case":
@@ -244,7 +248,11 @@ export function App({ config }: { config: PublicConfig }) {
       case "withdraw_credit":
         return {
           functionName: action,
-          args: [BigInt(values.withdrawAmount || snapshot?.credit || "0")],
+          args: [
+            values.withdrawAmount
+              ? parseGen(values.withdrawAmount)
+              : BigInt(snapshot?.credit || "0")
+          ],
           value: 0n
         };
     }
@@ -321,6 +329,7 @@ export function App({ config }: { config: PublicConfig }) {
         busy={
           txState.status === "submitted" || txState.status === "accepted"
         }
+        walletConnected={Boolean(account)}
       />
       <TransactionActivity
         state={txState}

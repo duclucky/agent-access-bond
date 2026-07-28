@@ -1,7 +1,10 @@
 import {
-  Activity,
-  Banknote,
   Check,
+  CheckCircle2,
+  ChevronRight,
+  CircleAlert,
+  Clock3,
+  ExternalLink,
   FileSearch,
   Gavel,
   HandCoins,
@@ -9,11 +12,24 @@ import {
   RefreshCw,
   RotateCcw,
   Search,
+  ShieldCheck,
   ShieldOff,
   UserCheck,
   X
 } from "lucide-react";
 
+import {
+  actionDescription,
+  formatGen,
+  friendlyAction,
+  friendlyCaseStatus,
+  friendlyStatus,
+  friendlyVerdict,
+  friendlyVerdictTone,
+  shortAddress,
+  urlLabel,
+  verdictSummary
+} from "../presentation";
 import type { CanonicalSnapshot } from "../types";
 import type { ContractAction } from "../workspace";
 
@@ -33,19 +49,6 @@ export type ActionFields = {
   withdrawAmount: string;
 };
 
-const ACTION_LABELS: Record<ContractAction, string> = {
-  create_agent: "Create agent",
-  accept_agent: "Accept agent",
-  open_access_case: "Open case",
-  adjudicate_case: "Adjudicate",
-  retry_case: "Retry case",
-  propose_case_cancel: "Propose cancel",
-  accept_case_cancel: "Accept cancel",
-  withdraw_credit: "Withdraw",
-  propose_close: "Propose close",
-  accept_close: "Accept close"
-};
-
 const ACTION_ICONS: Record<ContractAction, typeof Check> = {
   create_agent: LockKeyhole,
   accept_agent: UserCheck,
@@ -56,31 +59,167 @@ const ACTION_ICONS: Record<ContractAction, typeof Check> = {
   accept_case_cancel: X,
   withdraw_credit: HandCoins,
   propose_close: ShieldOff,
-  accept_close: X
+  accept_close: Check
 };
 
 function Field({
   label,
   value,
   onChange,
-  type = "text"
+  type = "text",
+  suffix,
+  hint
 }: {
   label: string;
   value: string;
   onChange: (value: string) => void;
-  type?: "text" | "url";
+  type?: "text" | "url" | "number";
+  suffix?: string;
+  hint?: string;
 }) {
   return (
     <label className="field">
       <span>{label}</span>
-      <input
-        type={type}
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        required
-      />
+      <span className="input-shell">
+        <input
+          type={type}
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          step={type === "number" ? "any" : undefined}
+          min={type === "number" ? "0" : undefined}
+          required
+        />
+        {suffix ? <strong>{suffix}</strong> : null}
+      </span>
+      {hint ? <small>{hint}</small> : null}
     </label>
   );
+}
+
+function ActionFieldsForm({
+  action,
+  fields,
+  onFieldChange
+}: {
+  action: ContractAction;
+  fields: ActionFields;
+  onFieldChange: (name: keyof ActionFields, value: string) => void;
+}) {
+  if (action === "create_agent") {
+    return (
+      <>
+        <Field
+          label="Designated user wallet"
+          value={fields.userAddress}
+          onChange={(value) => onFieldChange("userAddress", value)}
+        />
+        <Field
+          label="Agent name sent to websites"
+          value={fields.userAgent}
+          onChange={(value) => onFieldChange("userAgent", value)}
+        />
+        <Field
+          label="Protected website"
+          type="url"
+          value={fields.origin}
+          onChange={(value) => onFieldChange("origin", value)}
+        />
+        <Field
+          label="Policy URL"
+          type="url"
+          value={fields.policyUrl}
+          onChange={(value) => onFieldChange("policyUrl", value)}
+        />
+        <Field
+          label="Allowed purpose"
+          value={fields.allowedPurpose}
+          onChange={(value) => onFieldChange("allowedPurpose", value)}
+        />
+        <Field
+          label="Protection bond"
+          type="number"
+          suffix="GEN"
+          value={fields.operatorBond}
+          onChange={(value) => onFieldChange("operatorBond", value)}
+        />
+        <Field
+          label="Breach penalty"
+          type="number"
+          suffix="GEN"
+          value={fields.penaltyAmount}
+          onChange={(value) => onFieldChange("penaltyAmount", value)}
+        />
+        <Field
+          label="Minimum review bond"
+          type="number"
+          suffix="GEN"
+          value={fields.minimumChallengeBond}
+          onChange={(value) => onFieldChange("minimumChallengeBond", value)}
+        />
+      </>
+    );
+  }
+
+  if (action === "open_access_case") {
+    return (
+      <>
+        <Field
+          label="Review reference"
+          value={fields.caseId}
+          onChange={(value) => onFieldChange("caseId", value)}
+        />
+        <Field
+          label="Accessed URL"
+          type="url"
+          value={fields.targetUrl}
+          onChange={(value) => onFieldChange("targetUrl", value)}
+        />
+        <Field
+          label="Public receipt URL"
+          type="url"
+          value={fields.receiptUrl}
+          onChange={(value) => onFieldChange("receiptUrl", value)}
+        />
+        <Field
+          label="Review bond"
+          type="number"
+          suffix="GEN"
+          value={fields.challengeBond}
+          onChange={(value) => onFieldChange("challengeBond", value)}
+          hint="Returned or settled according to the final review."
+        />
+      </>
+    );
+  }
+
+  if (action === "withdraw_credit") {
+    return (
+      <Field
+        label="Amount to withdraw"
+        type="number"
+        suffix="GEN"
+        value={fields.withdrawAmount}
+        onChange={(value) => onFieldChange("withdrawAmount", value)}
+      />
+    );
+  }
+
+  if (
+    action === "adjudicate_case" ||
+    action === "retry_case" ||
+    action === "propose_case_cancel" ||
+    action === "accept_case_cancel"
+  ) {
+    return (
+      <Field
+        label="Review reference"
+        value={fields.caseId}
+        onChange={(value) => onFieldChange("caseId", value)}
+      />
+    );
+  }
+
+  return null;
 }
 
 export function AgentWorkspace({
@@ -96,7 +235,8 @@ export function AgentWorkspace({
   fields,
   onFieldChange,
   onSubmit,
-  busy
+  busy,
+  walletConnected = true
 }: {
   agentId: string;
   onAgentIdChange: (value: string) => void;
@@ -111,156 +251,165 @@ export function AgentWorkspace({
   onFieldChange: (name: keyof ActionFields, value: string) => void;
   onSubmit: () => void;
   busy: boolean;
+  walletConnected?: boolean;
 }) {
   const agent = snapshot?.agent;
   const caseRecord = snapshot?.case;
   const verdict = snapshot?.verdict;
+  const status = friendlyStatus(agent?.status, snapshot?.canExecute ?? false);
+  const StatusIcon =
+    status.tone === "success"
+      ? ShieldCheck
+      : status.tone === "danger"
+        ? CircleAlert
+        : Clock3;
 
   return (
     <main className="workspace">
-      <section className="lookup-band" aria-label="Agent lookup">
-        <div>
-          <p className="eyebrow">Canonical identity</p>
-          <h1>{agent?.agent_id ?? "Agent workspace"}</h1>
+      <section className="lookup-band" aria-label="Find an agent">
+        <div className="page-title">
+          <p className="eyebrow">Agent protection</p>
+          <h1>{agent?.agent_id ?? "Find an agent"}</h1>
         </div>
-        <div className="lookup-control">
-          <Search size={17} aria-hidden="true" />
-          <input
-            aria-label="Agent ID"
-            value={agentId}
-            onChange={(event) => onAgentIdChange(event.target.value)}
-          />
-          <button
-            className="icon-button"
-            type="button"
-            title="Refresh canonical state"
-            onClick={onRefresh}
-            disabled={loading}
-          >
-            <RefreshCw
-              size={17}
-              className={loading ? "spin" : undefined}
-              aria-hidden="true"
+        <label className="lookup-field">
+          <span>Agent ID</span>
+          <span className="lookup-control">
+            <Search size={18} aria-hidden="true" />
+            <input
+              value={agentId}
+              onChange={(event) => onAgentIdChange(event.target.value)}
             />
-            <span className="sr-only">Refresh canonical state</span>
-          </button>
-        </div>
+            <button
+              className="icon-button"
+              type="button"
+              title="Refresh agent"
+              aria-label="Refresh agent"
+              onClick={onRefresh}
+              disabled={loading}
+            >
+              <RefreshCw
+                size={18}
+                className={loading ? "spin" : undefined}
+                aria-hidden="true"
+              />
+            </button>
+          </span>
+        </label>
       </section>
 
-      {readError ? <p className="read-error">{readError}</p> : null}
+      {readError ? (
+        <p className="read-error" role="alert">
+          {readError}
+        </p>
+      ) : null}
 
-      <section className="state-band" aria-labelledby="state-title">
-        <div className="section-heading">
-          <div>
-            <p className="eyebrow">Canonical read</p>
-            <h2 id="state-title">Agent state</h2>
-          </div>
-          <span className={`status-badge status-${agent?.status.toLowerCase() ?? "idle"}`}>
-            <Activity size={14} aria-hidden="true" />
-            {agent?.status ?? "Not loaded"}
+      <section
+        className={`agent-overview tone-${status.tone}`}
+        aria-labelledby="agent-status-title"
+      >
+        <div className="status-message">
+          <span className="status-icon">
+            <StatusIcon size={24} aria-hidden="true" />
           </span>
+          <div>
+            <p className="eyebrow">Current status</p>
+            <h2 id="agent-status-title">{status.label}</h2>
+            <p>{status.summary}</p>
+          </div>
         </div>
 
-        <dl className="metric-grid">
+        <dl className="summary-metrics">
           <div>
-            <dt>Execution</dt>
-            <dd>{snapshot?.canExecute ? "Allowed" : "Blocked"}</dd>
+            <dt>Protection bond</dt>
+            <dd>{agent ? `${formatGen(agent.operator_bond)} locked` : "Not available"}</dd>
           </div>
           <div>
-            <dt>Operator bond</dt>
-            <dd>{agent ? String(agent.operator_bond) : "—"} wei</dd>
+            <dt>Available balance</dt>
+            <dd>{formatGen(snapshot?.credit ?? "0")}</dd>
           </div>
           <div>
-            <dt>Wallet credit</dt>
-            <dd>{snapshot?.credit ?? "0"} wei</dd>
-          </div>
-          <div>
-            <dt>Cases</dt>
-            <dd>{agent ? String(agent.case_count) : "—"}</dd>
+            <dt>Access reviews</dt>
+            <dd>{agent ? String(agent.case_count) : "0"}</dd>
           </div>
         </dl>
 
         {agent ? (
-          <dl className="detail-grid">
-            <div>
-              <dt>Operator</dt>
-              <dd><code>{agent.operator}</code></dd>
-            </div>
-            <div>
-              <dt>Designated user</dt>
-              <dd><code>{agent.user}</code></dd>
-            </div>
-            <div>
-              <dt>User agent</dt>
-              <dd>{agent.user_agent}</dd>
-            </div>
-            <div>
-              <dt>Policy</dt>
-              <dd><a href={agent.policy_url} target="_blank" rel="noreferrer">{agent.policy_url}</a></dd>
-            </div>
-          </dl>
+          <details className="technical-details">
+            <summary>
+              Technical details
+              <ChevronRight size={17} aria-hidden="true" />
+            </summary>
+            <dl className="detail-grid">
+              <div>
+                <dt>Operator</dt>
+                <dd title={agent.operator}>
+                  <code>{shortAddress(agent.operator)}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Designated user</dt>
+                <dd title={agent.user}>
+                  <code>{shortAddress(agent.user)}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Agent identifier</dt>
+                <dd>{agent.user_agent}</dd>
+              </div>
+              <div>
+                <dt>Raw contract status</dt>
+                <dd>
+                  <code>{agent.status}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Bond in wei</dt>
+                <dd>
+                  <code>{String(agent.operator_bond)}</code>
+                </dd>
+              </div>
+              <div>
+                <dt>Policy</dt>
+                <dd>
+                  <a href={agent.policy_url} target="_blank" rel="noreferrer">
+                    {urlLabel(agent.policy_url)}
+                    <ExternalLink size={13} aria-hidden="true" />
+                  </a>
+                </dd>
+              </div>
+            </dl>
+          </details>
         ) : null}
       </section>
 
-      <div className="content-columns">
-        <section className="evidence-panel" aria-labelledby="case-title">
-          <div className="section-heading">
-            <div>
-              <p className="eyebrow">Evidence case</p>
-              <h2 id="case-title">{caseRecord?.case_id ?? "No case selected"}</h2>
-            </div>
-            {caseRecord ? (
-              <span className={`status-badge status-${caseRecord.status.toLowerCase()}`}>
-                {caseRecord.status}
-              </span>
-            ) : null}
-          </div>
-
-          {caseRecord ? (
-            <dl className="stacked-details">
-              <div><dt>Target</dt><dd><a href={caseRecord.target_url} target="_blank" rel="noreferrer">{caseRecord.target_url}</a></dd></div>
-              <div><dt>Receipt</dt><dd><a href={caseRecord.receipt_url} target="_blank" rel="noreferrer">{caseRecord.receipt_url}</a></dd></div>
-              <div><dt>Attempt</dt><dd>{String(caseRecord.attempt_count)}</dd></div>
-              <div><dt>Bond settled</dt><dd>{caseRecord.bond_settled ? "Yes" : "No"}</dd></div>
-            </dl>
-          ) : (
-            <p className="empty-state">No canonical case for this query.</p>
-          )}
-
-          {verdict ? (
-            <div className="verdict-block">
-              <div className="verdict-heading">
-                <span className={`verdict-mark verdict-${verdict.applicability.toLowerCase()}`}>
-                  {verdict.applicability === "MATERIAL_VIOLATION" ? <X size={17} /> : <Check size={17} />}
-                </span>
-                <div>
-                  <strong>{verdict.applicability.replaceAll("_", " ")}</strong>
-                  <span>{verdict.required_action.replaceAll("_", " ")}</span>
-                </div>
-              </div>
-              <dl className="stacked-details compact">
-                <div><dt>Coverage</dt><dd>{verdict.source_coverage}</dd></div>
-                <div><dt>Violation</dt><dd>{verdict.violation_type}</dd></div>
-                <div><dt>Matched facts</dt><dd>{verdict.matched_fact_ids}</dd></div>
-              </dl>
-              <p className="rationale">{verdict.rationale}</p>
-            </div>
-          ) : null}
-        </section>
-
+      <div className="product-columns">
         <section className="action-panel" aria-labelledby="action-title">
           <div className="section-heading">
             <div>
-              <p className="eyebrow">Wallet command</p>
-              <h2 id="action-title">Contract action</h2>
+              <p className="eyebrow">Your next step</p>
+              <h2 id="action-title">
+                {selectedAction ? friendlyAction(selectedAction) : "No action needed"}
+              </h2>
             </div>
-            <Banknote size={20} aria-hidden="true" />
+            {selectedAction ? (
+              (() => {
+                const Icon = ACTION_ICONS[selectedAction];
+                return (
+                  <span className="section-icon">
+                    <Icon size={20} aria-hidden="true" />
+                  </span>
+                );
+              })()
+            ) : (
+              <span className="section-icon">
+                <CheckCircle2 size={20} aria-hidden="true" />
+              </span>
+            )}
           </div>
 
-          <div className="action-menu" role="tablist" aria-label="Available actions">
-            {actions.map((action) => {
-              const Icon = ACTION_ICONS[action];
-              return (
+          {actions.length > 1 ? (
+            <div className="action-menu" role="tablist" aria-label="Available actions">
+              {actions.map((action) => (
                 <button
                   key={action}
                   type="button"
@@ -269,12 +418,11 @@ export function AgentWorkspace({
                   className={selectedAction === action ? "active" : undefined}
                   onClick={() => onActionChange(action)}
                 >
-                  <Icon size={15} aria-hidden="true" />
-                  {ACTION_LABELS[action]}
+                  {friendlyAction(action)}
                 </button>
-              );
-            })}
-          </div>
+              ))}
+            </div>
+          ) : null}
 
           {selectedAction ? (
             <form
@@ -284,44 +432,143 @@ export function AgentWorkspace({
                 onSubmit();
               }}
             >
-              {selectedAction === "create_agent" ? (
-                <>
-                  <Field label="Designated user" value={fields.userAddress} onChange={(value) => onFieldChange("userAddress", value)} />
-                  <Field label="User agent" value={fields.userAgent} onChange={(value) => onFieldChange("userAgent", value)} />
-                  <Field label="Origin" type="url" value={fields.origin} onChange={(value) => onFieldChange("origin", value)} />
-                  <Field label="Policy URL" type="url" value={fields.policyUrl} onChange={(value) => onFieldChange("policyUrl", value)} />
-                  <Field label="Allowed purpose" value={fields.allowedPurpose} onChange={(value) => onFieldChange("allowedPurpose", value)} />
-                  <Field label="Operator bond (wei)" value={fields.operatorBond} onChange={(value) => onFieldChange("operatorBond", value)} />
-                  <Field label="Penalty (wei)" value={fields.penaltyAmount} onChange={(value) => onFieldChange("penaltyAmount", value)} />
-                  <Field label="Minimum challenge bond (wei)" value={fields.minimumChallengeBond} onChange={(value) => onFieldChange("minimumChallengeBond", value)} />
-                </>
-              ) : null}
-              {selectedAction === "open_access_case" ? (
-                <>
-                  <Field label="Case ID" value={fields.caseId} onChange={(value) => onFieldChange("caseId", value)} />
-                  <Field label="Target URL" type="url" value={fields.targetUrl} onChange={(value) => onFieldChange("targetUrl", value)} />
-                  <Field label="Receipt URL" type="url" value={fields.receiptUrl} onChange={(value) => onFieldChange("receiptUrl", value)} />
-                  <Field label="Challenge bond (wei)" value={fields.challengeBond} onChange={(value) => onFieldChange("challengeBond", value)} />
-                </>
-              ) : null}
-              {selectedAction === "withdraw_credit" ? (
-                <Field label="Amount (wei)" value={fields.withdrawAmount} onChange={(value) => onFieldChange("withdrawAmount", value)} />
-              ) : null}
-              {selectedAction === "adjudicate_case" ||
-              selectedAction === "retry_case" ||
-              selectedAction === "propose_case_cancel" ||
-              selectedAction === "accept_case_cancel" ? (
-                <Field label="Case ID" value={fields.caseId} onChange={(value) => onFieldChange("caseId", value)} />
-              ) : null}
-
+              <p className="action-description">
+                {actionDescription(selectedAction)}
+              </p>
+              <ActionFieldsForm
+                action={selectedAction}
+                fields={fields}
+                onFieldChange={onFieldChange}
+              />
               <button className="primary-button" type="submit" disabled={busy}>
-                {busy ? <RefreshCw className="spin" size={17} /> : <Check size={17} />}
-                {busy ? "Awaiting finality" : ACTION_LABELS[selectedAction]}
+                {busy ? (
+                  <RefreshCw className="spin" size={18} aria-hidden="true" />
+                ) : (
+                  <Check size={18} aria-hidden="true" />
+                )}
+                {busy ? "Waiting for confirmation" : friendlyAction(selectedAction)}
               </button>
             </form>
           ) : (
-            <p className="empty-state">No action is available for this wallet and state.</p>
+            <div className="empty-state">
+              <CheckCircle2 size={20} aria-hidden="true" />
+              <p>
+                {walletConnected
+                  ? "There is no action available for this wallet."
+                  : "Connect a wallet to see the actions available to you."}
+              </p>
+            </div>
           )}
+        </section>
+
+        <section className="review-panel" aria-labelledby="review-title">
+          <div className="section-heading">
+            <div>
+              <p className="eyebrow">Latest access review</p>
+              <h2 id="review-title">
+                {caseRecord
+                  ? friendlyCaseStatus(caseRecord.status)
+                  : "No reviews yet"}
+              </h2>
+            </div>
+            {caseRecord ? (
+              <span className={`review-status status-${caseRecord.status.toLowerCase()}`}>
+                {friendlyCaseStatus(caseRecord.status)}
+              </span>
+            ) : null}
+          </div>
+
+          {verdict ? (
+            <>
+              <div
+                className={`review-outcome tone-${friendlyVerdictTone(
+                  verdict.applicability
+                )}`}
+              >
+                <strong>{friendlyVerdict(verdict.applicability)}</strong>
+                <p>{verdictSummary(verdict.applicability)}</p>
+              </div>
+              <div className="decision-copy">
+                <span>Why this decision</span>
+                <p>{verdict.rationale}</p>
+              </div>
+            </>
+          ) : caseRecord ? (
+            <p className="review-copy">
+              This report is waiting for its next contract action.
+            </p>
+          ) : (
+            <div className="empty-state">
+              <FileSearch size={20} aria-hidden="true" />
+              <p>No access reports have been submitted for this agent.</p>
+            </div>
+          )}
+
+          {caseRecord ? (
+            <div className="review-links">
+              <a href={caseRecord.target_url} target="_blank" rel="noreferrer">
+                Accessed page
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+              <a href={caseRecord.receipt_url} target="_blank" rel="noreferrer">
+                Public receipt
+                <ExternalLink size={14} aria-hidden="true" />
+              </a>
+            </div>
+          ) : null}
+
+          {caseRecord ? (
+            <details className="technical-details review-technical">
+              <summary>
+                Review details
+                <ChevronRight size={17} aria-hidden="true" />
+              </summary>
+              <dl className="detail-grid">
+                <div>
+                  <dt>Review reference</dt>
+                  <dd>
+                    <code>{caseRecord.case_id}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Raw status</dt>
+                  <dd>
+                    <code>{caseRecord.status}</code>
+                  </dd>
+                </div>
+                <div>
+                  <dt>Attempts</dt>
+                  <dd>{String(caseRecord.attempt_count)}</dd>
+                </div>
+                <div>
+                  <dt>Review bond</dt>
+                  <dd>{formatGen(caseRecord.challenge_bond)}</dd>
+                </div>
+                {verdict ? (
+                  <>
+                    <div>
+                      <dt>Evidence coverage</dt>
+                      <dd>
+                        <code>{verdict.source_coverage}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Violation type</dt>
+                      <dd>
+                        <code>{verdict.violation_type}</code>
+                      </dd>
+                    </div>
+                    <div className="detail-wide">
+                      <dt>Matched evidence</dt>
+                      <dd>
+                        <code>{verdict.matched_fact_ids}</code>
+                      </dd>
+                    </div>
+                  </>
+                ) : null}
+              </dl>
+            </details>
+          ) : null}
         </section>
       </div>
     </main>

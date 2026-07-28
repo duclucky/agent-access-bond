@@ -6,14 +6,30 @@ import {
   XCircle
 } from "lucide-react";
 
+import { friendlyAction } from "../presentation";
 import type { TxState } from "../tx-state";
+import type { ContractAction } from "../workspace";
 
-const STATUS_LABELS: Record<TxState["status"], string> = {
-  idle: "No transaction",
-  submitted: "Submitted",
-  accepted: "Accepted",
-  finalized: "Finalized",
-  failed: "Failed"
+const STATUS_COPY: Record<
+  Exclude<TxState["status"], "idle">,
+  { title: string; description: string }
+> = {
+  submitted: {
+    title: "Transaction submitted",
+    description: "Your wallet approved the request."
+  },
+  accepted: {
+    title: "Request accepted",
+    description: "Studionet is processing the contract action."
+  },
+  finalized: {
+    title: "Transaction complete",
+    description: "The latest contract state is now displayed."
+  },
+  failed: {
+    title: "Transaction failed",
+    description: "No successful state change was recorded."
+  }
 };
 
 export function TransactionActivity({
@@ -25,6 +41,9 @@ export function TransactionActivity({
   explorerUrl: string;
   onRetry?: () => void;
 }) {
+  if (state.status === "idle") return null;
+
+  const copy = STATUS_COPY[state.status];
   const StatusIcon =
     state.status === "finalized"
       ? CheckCircle2
@@ -33,49 +52,52 @@ export function TransactionActivity({
         : CircleDashed;
 
   return (
-    <section className="activity-panel" aria-labelledby="activity-title">
-      <div className="section-heading">
-        <div>
-          <p className="eyebrow">Network activity</p>
-          <h2 id="activity-title">Transaction</h2>
-        </div>
-        <span className={`status-badge status-${state.status}`}>
-          <StatusIcon size={14} aria-hidden="true" />
-          {STATUS_LABELS[state.status]}
-        </span>
+    <section
+      className={`activity-panel activity-${state.status}`}
+      aria-live="polite"
+      aria-labelledby="activity-title"
+    >
+      <span className="activity-icon">
+        <StatusIcon
+          size={21}
+          className={
+            state.status === "submitted" || state.status === "accepted"
+              ? "spin"
+              : undefined
+          }
+          aria-hidden="true"
+        />
+      </span>
+      <div className="activity-copy">
+        <h2 id="activity-title">{copy.title}</h2>
+        <p>
+          {state.operation
+            ? friendlyAction(state.operation as ContractAction)
+            : copy.description}
+        </p>
+        {state.error ? <span className="inline-error">{state.error}</span> : null}
       </div>
-
-      <dl className="activity-details">
-        <div>
-          <dt>Operation</dt>
-          <dd>{state.operation ?? "—"}</dd>
-        </div>
-        <div>
-          <dt>Hash</dt>
-          <dd>
-            {state.hash ? (
-              <a
-                href={`${explorerUrl}/transactions/${state.hash}`}
-                target="_blank"
-                rel="noreferrer"
-              >
-                {state.hash}
-                <ExternalLink size={13} aria-hidden="true" />
-              </a>
-            ) : (
-              "—"
-            )}
-          </dd>
-        </div>
-      </dl>
-
-      {state.error ? <p className="inline-error">{state.error}</p> : null}
-      {state.status === "failed" && onRetry ? (
-        <button className="secondary-button" type="button" onClick={onRetry}>
-          <RotateCcw size={16} aria-hidden="true" />
-          Retry transaction
-        </button>
-      ) : null}
+      <div className="activity-actions">
+        <span className="activity-state">
+          {state.status.charAt(0).toUpperCase() + state.status.slice(1)}
+        </span>
+        {state.hash ? (
+          <a
+            href={`${explorerUrl}/transactions/${state.hash}`}
+            target="_blank"
+            rel="noreferrer"
+          >
+            <code>{state.hash}</code>
+            <ExternalLink size={14} aria-hidden="true" />
+          </a>
+        ) : null}
+        {state.status === "failed" && onRetry ? (
+          <button className="secondary-button" type="button" onClick={onRetry}>
+            <RotateCcw size={16} aria-hidden="true" />
+            Retry transaction
+          </button>
+        ) : null}
+      </div>
     </section>
   );
 }

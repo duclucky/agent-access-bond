@@ -18,6 +18,7 @@ describe("TransactionActivity", () => {
     );
 
     expect(screen.getByText("Submitted")).toBeInTheDocument();
+    expect(screen.getByText("Start review")).toBeInTheDocument();
     expect(screen.getByRole("link", { name: /0xabc/i })).toHaveAttribute(
       "href",
       "https://explorer.example/transactions/0xabc"
@@ -40,5 +41,21 @@ describe("TransactionActivity", () => {
 
     expect(screen.getByText("Signature rejected")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: /retry transaction/i })).toBeEnabled();
+  });
+
+  it("does not occupy the workspace before a transaction starts", () => {
+    const { container } = render(
+      <TransactionActivity
+        explorerUrl="https://explorer.example"
+        state={{
+          operation: null,
+          hash: null,
+          status: "idle",
+          error: null
+        }}
+      />
+    );
+
+    expect(container).toBeEmptyDOMElement();
   });
 });
