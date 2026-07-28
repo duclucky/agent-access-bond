@@ -1,6 +1,15 @@
 import react from "@vitejs/plugin-react";
-import { fileURLToPath, URL } from "node:url";
+import { dirname, resolve } from "node:path";
+import { createRequire } from "node:module";
 import { defineConfig } from "vitest/config";
+
+const require = createRequire(import.meta.url);
+const mobileWalletProtocolCore = resolve(
+  dirname(
+    require.resolve("@metamask/mobile-wallet-protocol-core/package.json")
+  ),
+  "dist/index.mjs"
+);
 
 export default defineConfig({
   plugins: [react()],
@@ -8,12 +17,7 @@ export default defineConfig({
     alias: {
       // The package ships ESM but does not declare it, so Rollup otherwise
       // wraps the CommonJS entry without the named exports used by Connect.
-      "@metamask/mobile-wallet-protocol-core": fileURLToPath(
-        new URL(
-          "../node_modules/@metamask/mobile-wallet-protocol-core/dist/index.mjs",
-          import.meta.url
-        )
-      )
+      "@metamask/mobile-wallet-protocol-core": mobileWalletProtocolCore
     }
   },
   build: {
