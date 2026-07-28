@@ -15,9 +15,101 @@ agent status, and bond accounting.
 - Production:
   [agent-access-bond.vercel.app](https://agent-access-bond.vercel.app)
 - Network: `Studionet` (`61999`)
-- Browser-wallet status: the production app discovers installed extensions
-  through EIP-6963 and keeps MetaMask mobile/QR as an explicit fallback; a
-  browser-signed transaction remains `PENDING_USER_WALLET_PROOF`
+- Browser-wallet status: an OKX extension connection has been verified on
+  production. The app discovers installed extensions through EIP-6963 and
+  keeps MetaMask mobile/QR as an explicit fallback; a browser-signed
+  transaction remains `PENDING_USER_WALLET_PROOF`.
+
+## How to Use the Web App
+
+### 1. Connect a wallet
+
+1. Open the [production app](https://agent-access-bond.vercel.app) and unlock
+   an installed EVM wallet such as OKX Wallet. MetaMask mobile/QR is available
+   as a fallback.
+2. Select **Connect Wallet**, choose the detected extension, and approve the
+   account request.
+3. Approve the request to add or switch to GenLayer Studionet if the wallet
+   asks. The app header then shows the shortened wallet address and
+   `Studionet Active`.
+
+Reading an existing agent is free and does not require a wallet signature.
+Creating an agent, accepting it, opening or adjudicating a case, closing an
+agent, and withdrawing credit are real Studionet transactions. The connected
+wallet must hold enough Studionet GEN for the transaction value and fees.
+
+### 2. Inspect an existing agent
+
+1. Open **Dashboard**.
+2. Enter the exact onchain Agent ID in **Inspect Agent Bond** and select
+   **Inspect**.
+3. Open the returned agent card to review its status, immutable identity and
+   policy, bond amounts, execution eligibility, cases, and finalized verdicts.
+
+The app deliberately starts with an empty agent list; it does not auto-load a
+demo or fixture agent. Inspecting an ID reads canonical state from the deployed
+contract and adds that agent to the current session.
+
+### 3. Register and activate an agent
+
+1. Connect the operator wallet and open **Register Agent**.
+2. Enter the protected origin, exact User-Agent string, designated user
+   address, publicly accessible policy URL, and allowed-purpose summary.
+3. Set the operator bond, penalty amount, and minimum challenge bond. The
+   operator bond must be at least `100 GEN`.
+4. Select **Create Agent Draft Bond** and approve the wallet transaction. The
+   contract creates the agent in `DRAFT` state and locks the operator bond.
+5. Connect the designated user wallet, inspect the new Agent ID, then select
+   **Approve Agent (Designated User)** and approve the transaction. The agent
+   becomes `ACTIVE` only after this second-party acceptance.
+
+Origin, User-Agent identity, policy URL, designated user, and financial terms
+are contract configuration. Verify them before signing because activation
+locks the agent configuration.
+
+### 4. Submit and adjudicate an access review
+
+1. Inspect the target Agent ID first, then open **Review Cases**.
+2. Select **Submit Evidence Challenge** and provide the target endpoint URL, a
+   publicly accessible action-receipt URL, the challenge bond, and an optional
+   explanation. The bond must satisfy the agent's displayed minimum.
+3. Select **Lock Bond & Open Case** and approve the transaction. The agent
+   enters `PENDING_REVIEW`, so new execution is paused while the case is open.
+4. Open the case, select **Review & Adjudicate**, and approve the adjudication
+   transaction. GenLayer validators fetch the bounded public evidence and
+   determine the verdict; the UI does not calculate or override it.
+5. Wait for finality. On completion, refresh or inspect the Agent ID again to
+   read the canonical case, verdict, agent status, and accounting state.
+
+A finalized material violation changes the agent to `QUARANTINED`, makes
+`can_execute(agent_id)` false, settles the configured penalty, refunds the
+challenge bond, and creates beneficiary credit. Other verdict classes follow
+their separate contract-defined recovery and accounting paths.
+
+### 5. Withdraw awarded credit
+
+1. Connect the designated beneficiary wallet and open **Credits**.
+2. Confirm the amount under **Your Claimable Credits**.
+3. Select **Claim & Withdraw to Wallet** and approve the transaction.
+4. After finality, the app refreshes the credit and protocol accounting from
+   the contract.
+
+### 6. Close an agent
+
+Open an inspected agent from **Dashboard**. Closing is bilateral: the operator
+or designated user selects **Propose Close** or **Propose Closure**, then the
+other party connects its wallet and selects **Accept Closure**. Do not treat a
+closure proposal as final until the agent's canonical status reads `CLOSED`.
+
+### Status reference
+
+| Status | Meaning |
+| --- | --- |
+| `DRAFT` | Operator created the bond; designated-user acceptance is pending. |
+| `ACTIVE` | Agent is accepted and may execute when no case blocks it. |
+| `PENDING_REVIEW` | A challenge is open and execution is paused. |
+| `QUARANTINED` | A finalized material violation blocks execution. |
+| `CLOSED` | Bilateral closure completed and the agent is no longer active. |
 
 ## Deployed Contract
 
