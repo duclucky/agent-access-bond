@@ -39,6 +39,8 @@ const ACTION_LABELS: Record<ContractAction, string> = {
   open_access_case: "Open case",
   adjudicate_case: "Adjudicate",
   retry_case: "Retry case",
+  propose_case_cancel: "Propose cancel",
+  accept_case_cancel: "Accept cancel",
   withdraw_credit: "Withdraw",
   propose_close: "Propose close",
   accept_close: "Accept close"
@@ -50,6 +52,8 @@ const ACTION_ICONS: Record<ContractAction, typeof Check> = {
   open_access_case: FileSearch,
   adjudicate_case: Gavel,
   retry_case: RotateCcw,
+  propose_case_cancel: ShieldOff,
+  accept_case_cancel: X,
   withdraw_credit: HandCoins,
   propose_close: ShieldOff,
   accept_close: X
@@ -303,7 +307,10 @@ export function AgentWorkspace({
               {selectedAction === "withdraw_credit" ? (
                 <Field label="Amount (wei)" value={fields.withdrawAmount} onChange={(value) => onFieldChange("withdrawAmount", value)} />
               ) : null}
-              {selectedAction === "adjudicate_case" || selectedAction === "retry_case" ? (
+              {selectedAction === "adjudicate_case" ||
+              selectedAction === "retry_case" ||
+              selectedAction === "propose_case_cancel" ||
+              selectedAction === "accept_case_cancel" ? (
                 <Field label="Case ID" value={fields.caseId} onChange={(value) => onFieldChange("caseId", value)} />
               ) : null}
 

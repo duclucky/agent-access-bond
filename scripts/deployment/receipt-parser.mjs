@@ -32,3 +32,18 @@ export function extractExecutionResult(receipt) {
   };
 }
 
+export function projectTerminalTransaction(transaction) {
+  return {
+    transactionHash: transaction?.hash ?? transaction?.tx_id ?? null,
+    status:
+      transaction?.statusName ??
+      transaction?.status_name ??
+      transaction?.status ??
+      "UNKNOWN",
+    resultName:
+      transaction?.resultName ??
+      transaction?.result_name ??
+      transaction?.tx_execution_result_name ??
+      "UNKNOWN"
+  };
+}

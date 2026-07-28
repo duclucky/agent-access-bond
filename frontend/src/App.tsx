@@ -210,6 +210,8 @@ export function App({ config }: { config: PublicConfig }) {
         };
       case "adjudicate_case":
       case "retry_case":
+      case "propose_case_cancel":
+      case "accept_case_cancel":
         return { functionName: action, args: [caseId], value: 0n };
       case "withdraw_credit":
         return {

@@ -108,3 +108,34 @@ def test_bilateral_close_returns_remaining_operator_bond(
     assert int(contract.get_credit(to_hex(direct_alice))) == OPERATOR_BOND
     assert int(contract.get_accounting()["locked_operator_bonds"]) == 0
 
+
+def test_bilateral_case_cancel_refunds_challenger_and_restores_execution(
+    direct_vm,
+    direct_deploy,
+    direct_alice,
+    direct_bob,
+    direct_charlie,
+):
+    contract = setup_active_case(
+        direct_deploy, direct_vm, direct_alice, direct_bob, direct_charlie
+    )
+
+    direct_vm.sender = direct_bob
+    with direct_vm.expect_revert("Only operator or opener can cancel"):
+        contract.propose_case_cancel("case-1")
+
+    direct_vm.sender = direct_alice
+    contract.propose_case_cancel("case-1")
+    with direct_vm.expect_revert("Cancel requires the other party"):
+        contract.accept_case_cancel("case-1")
+
+    direct_vm.sender = direct_charlie
+    contract.accept_case_cancel("case-1")
+
+    case = contract.get_case("case-1")
+    assert case.status == "CANCELED"
+    assert case.bond_settled is True
+    assert int(contract.get_credit(to_hex(direct_charlie))) == CHALLENGE_BOND
+    assert contract.get_agent_status("agent-alpha") == "ACTIVE"
+    assert contract.can_execute("agent-alpha") is True
+    assert int(contract.get_accounting()["locked_challenge_bonds"]) == 0

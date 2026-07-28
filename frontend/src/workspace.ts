@@ -6,6 +6,8 @@ export type ContractAction =
   | "open_access_case"
   | "adjudicate_case"
   | "retry_case"
+  | "propose_case_cancel"
+  | "accept_case_cancel"
   | "withdraw_credit"
   | "propose_close"
   | "accept_close";
@@ -37,6 +39,21 @@ export function availableActions(
     actions.push("open_access_case");
   }
   if (caseRecord?.status === "OPEN") actions.push("adjudicate_case");
+  if (
+    caseRecord &&
+    (caseRecord.status === "OPEN" || caseRecord.status === "RETRYABLE") &&
+    (isOperator || sameAddress(account, caseRecord.opened_by))
+  ) {
+    if (
+      caseRecord.cancel_proposed_by &&
+      !sameAddress(caseRecord.cancel_proposed_by, ZERO_ADDRESS) &&
+      !sameAddress(account, caseRecord.cancel_proposed_by)
+    ) {
+      actions.push("accept_case_cancel");
+    } else {
+      actions.push("propose_case_cancel");
+    }
+  }
   if (
     caseRecord?.status === "RETRYABLE" &&
     (isParty || sameAddress(account, caseRecord.opened_by))

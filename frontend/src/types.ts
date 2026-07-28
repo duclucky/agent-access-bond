@@ -27,6 +27,7 @@ export type CaseRecord = {
   attempt_count: string | number;
   verdict_id: string;
   bond_settled: boolean;
+  cancel_proposed_by: string;
 };
 
 export type VerdictRecord = {

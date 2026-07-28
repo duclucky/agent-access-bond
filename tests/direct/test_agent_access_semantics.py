@@ -61,6 +61,7 @@ def test_model_semantics_drive_normalized_verdict(
     )
     result = access_result(
         "COMPLIANT",
+        source_coverage="FAILED",
         matched_fact_ids=["TARGET_PATH", "RECEIPT", "UNTRUSTED_ACTION"],
     )
     mock_access_result(direct_vm, result)
@@ -69,8 +70,9 @@ def test_model_semantics_drive_normalized_verdict(
     verdict = contract.get_verdict(verdict_id)
 
     assert verdict.applicability == "COMPLIANT"
+    assert verdict.source_coverage == "SUFFICIENT"
     assert verdict.required_action == "KEEP_ACTIVE"
-    assert verdict.matched_fact_ids == "RECEIPT,TARGET_PATH"
+    assert verdict.matched_fact_ids == "RECEIPT,TARGET_PATH,USER_AGENT"
 
 
 def test_validator_ignores_rationale_but_rejects_changed_critical_meaning(
@@ -241,7 +243,7 @@ def test_prompt_injection_evidence_cannot_expand_consensus_enums(
 
     assert verdict.applicability == "COMPLIANT"
     assert verdict.required_action == "KEEP_ACTIVE"
-    assert verdict.matched_fact_ids == "RECEIPT,TARGET_PATH"
+    assert verdict.matched_fact_ids == "RECEIPT,TARGET_PATH,USER_AGENT"
 
 
 def test_validator_rejects_malformed_leader_shape(

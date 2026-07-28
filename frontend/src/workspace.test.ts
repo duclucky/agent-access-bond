@@ -63,13 +63,44 @@ describe("availableActions", () => {
         status: "OPEN",
         attempt_count: "0",
         verdict_id: "",
-        bond_settled: false
+        bond_settled: false,
+        cancel_proposed_by: "0x0000000000000000000000000000000000000000"
       },
       canExecute: false
     });
 
     expect(availableActions(openCase, OPERATOR)).toContain("adjudicate_case");
+    expect(availableActions(openCase, OPERATOR)).toContain("propose_case_cancel");
     expect(availableActions(openCase, OPERATOR)).not.toContain("retry_case");
+  });
+
+  it("lets the other case party accept a pending cancellation", () => {
+    const base = snapshot();
+    const pendingCancel = snapshot({
+      agent: {
+        ...base.agent!,
+        active_case_id: "case-1"
+      },
+      case: {
+        case_id: "case-1",
+        agent_id: "agent-alpha",
+        opened_by: USER,
+        target_url: "https://example.com/private",
+        receipt_url: "https://example.com/receipt",
+        challenge_bond: "10",
+        status: "OPEN",
+        attempt_count: "0",
+        verdict_id: "",
+        bond_settled: false,
+        cancel_proposed_by: OPERATOR
+      },
+      canExecute: false
+    });
+
+    expect(availableActions(pendingCancel, USER)).toContain("accept_case_cancel");
+    expect(availableActions(pendingCancel, USER)).not.toContain(
+      "propose_case_cancel"
+    );
   });
 });
 

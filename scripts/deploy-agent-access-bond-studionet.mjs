@@ -16,6 +16,7 @@ import {
   identitiesMatch,
   prepareActiveEvidence
 } from "./deployment/revision-evidence.mjs";
+import { projectTerminalTransaction } from "./deployment/receipt-parser.mjs";
 
 const SCRIPT_DIR = path.dirname(fileURLToPath(import.meta.url));
 const ROOT_DIR = path.resolve(SCRIPT_DIR, "..");
@@ -340,10 +341,64 @@ async function recoverSupersededRevision() {
   const persist = () => writeExistingEvidence({ recovery });
   let agent = await readView(operator.client, address, "get_agent", [AGENT_ID]);
 
-  if (agent.status !== "CLOSED") {
-    if (agent.active_case_id) {
-      throw new Error("Superseded agent still has an active case");
+  if (agent.active_case_id) {
+    const activeCaseId = agent.active_case_id;
+    if (recovery.transactions.proposeCaseCancel?.status !== "FINALIZED") {
+      recovery.transactions.proposeCaseCancel = await writeFinalized(
+        operator.client,
+        address,
+        "propose_case_cancel",
+        [activeCaseId],
+        0n,
+        recovery.transactions.proposeCaseCancel,
+        (pending) => {
+          recovery.transactions.proposeCaseCancel = pending;
+          persist();
+        }
+      );
+      persist();
     }
+    if (recovery.transactions.acceptCaseCancel?.status !== "FINALIZED") {
+      recovery.transactions.acceptCaseCancel = await writeFinalized(
+        user.client,
+        address,
+        "accept_case_cancel",
+        [activeCaseId],
+        0n,
+        recovery.transactions.acceptCaseCancel,
+        (pending) => {
+          recovery.transactions.acceptCaseCancel = pending;
+          persist();
+        }
+      );
+      persist();
+    }
+    const openerCredit = BigInt(
+      await readView(user.client, address, "get_credit", [user.account.address])
+    );
+    if (
+      openerCredit > 0n &&
+      recovery.transactions.withdrawOpenerCredit?.status !== "FINALIZED"
+    ) {
+      recovery.transactions.withdrawOpenerCredit = await writeFinalized(
+        user.client,
+        address,
+        "withdraw_credit",
+        [openerCredit],
+        0n,
+        recovery.transactions.withdrawOpenerCredit,
+        (pending) => {
+          recovery.transactions.withdrawOpenerCredit = pending;
+          persist();
+        }
+      );
+      persist();
+    }
+    agent = await readView(operator.client, address, "get_agent", [AGENT_ID]);
+  }
+
+  if (agent.status !== "CLOSED") {
+    if (agent.active_case_id) throw new Error("Superseded agent still has an active case");
     if (
       String(agent.close_proposed_by).toLowerCase() === ZERO_ADDRESS &&
       recovery.transactions.proposeClose?.status !== "FINALIZED"
@@ -576,19 +631,37 @@ async function runViolationDemo() {
     persist();
   }
   if (demo.transactions.adjudicateCase?.status !== "FINALIZED") {
-    demo.transactions.adjudicateCase = await writeFinalized(
-      operator.client,
-      address,
-      "adjudicate_case",
-      [CASE_ID],
-      0n,
-      demo.transactions.adjudicateCase,
-      (pending) => {
-        demo.transactions.adjudicateCase = pending;
+    try {
+      demo.transactions.adjudicateCase = await writeFinalized(
+        operator.client,
+        address,
+        "adjudicate_case",
+        [CASE_ID],
+        0n,
+        demo.transactions.adjudicateCase,
+        (pending) => {
+          demo.transactions.adjudicateCase = pending;
+          persist();
+        }
+      );
+      persist();
+    } catch (error) {
+      const hash = demo.transactions.adjudicateCase?.transactionHash;
+      if (hash) {
+        const transaction = await operator.client.getTransaction({ hash });
+        demo.transactions.adjudicateCase = {
+          ...demo.transactions.adjudicateCase,
+          ...projectTerminalTransaction(transaction),
+          observedAt: new Date().toISOString()
+        };
+        demo.failure = {
+          reason: String(error?.message ?? error),
+          retryPolicy: "STRUCTURAL_REVIEW_REQUIRED"
+        };
         persist();
       }
-    );
-    persist();
+      throw error;
+    }
   }
   const canonicalCase = await readView(
     operator.client,
