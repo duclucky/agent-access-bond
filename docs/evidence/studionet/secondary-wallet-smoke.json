@@ -1,0 +1,79 @@
+{
+  "network": "studionet",
+  "chainId": 61999,
+  "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
+  "agentId": "agent-secondary-wallet-smoke-20260728-01",
+  "wallets": {
+    "operatorAddress": "0xC495ef51618D03267A1f227aFe5b27B38c748272",
+    "secondaryAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db"
+  },
+  "transactions": {
+    "createAgent": {
+      "transactionHash": "0x7c3b75f59e97cdac1c645129ae881a7981a35a1d9278d5051c1ce5abecdc1050",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-28T09:13:23.679Z"
+    },
+    "acceptAgent": {
+      "transactionHash": "0xcc9a4a5fc459b7d7ac6cf1aa07943a306d6cf8e2952d0a69db983a0480abfe96",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-28T09:14:06.844Z"
+    },
+    "proposeClose": {
+      "transactionHash": "0x6b974a96d358e1cb238bd849c03703d60b2a654264c57ac021e17679d3043d27",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-28T09:14:50.156Z"
+    },
+    "acceptClose": {
+      "transactionHash": "0x922a5abda250e3566a14322c382c640959d36828ced356caf40036ab477014f2",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-28T09:15:27.931Z"
+    },
+    "withdrawCredit": {
+      "transactionHash": "0x81777ac7899c587eae4885119461dc73d4234a97407dfff7900306b23046866d",
+      "status": "FINALIZED",
+      "execution": "FINISHED_WITH_RETURN",
+      "finalizedAt": "2026-07-28T09:16:11.100Z"
+    }
+  },
+  "status": "VERIFIED",
+  "startedAt": "2026-07-28T09:12:37.667Z",
+  "baseline": {
+    "accounting": {
+      "locked_challenge_bonds": 0,
+      "locked_operator_bonds": "1000000000000000000",
+      "withdrawable_credits": 0
+    },
+    "operatorCreditWei": 0
+  },
+  "finalState": {
+    "agent": {
+      "accepted": true,
+      "active_case_id": "",
+      "agent_id": "agent-secondary-wallet-smoke-20260728-01",
+      "allowed_purpose": "secondary wallet lifecycle smoke",
+      "case_count": 0,
+      "close_proposed_by": "0x0000000000000000000000000000000000000000",
+      "minimum_challenge_bond": 1,
+      "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+      "operator_bond": 0,
+      "origin": "https://raw.githubusercontent.com",
+      "penalty_amount": 1,
+      "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+      "status": "CLOSED",
+      "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+      "user_agent": "AgentAccessSmoke/1.0"
+    },
+    "operatorCreditWei": 0,
+    "secondaryCreditWei": 0,
+    "accounting": {
+      "locked_challenge_bonds": 0,
+      "locked_operator_bonds": "1000000000000000000",
+      "withdrawable_credits": 0
+    }
+  },
+  "completedAt": "2026-07-28T09:16:37.609Z"
+}

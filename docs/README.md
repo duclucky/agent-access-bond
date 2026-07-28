@@ -224,9 +224,14 @@ Script-signed evidence and browser-wallet evidence are intentionally separate.
 `docs/evidence/studionet/browser-wallet.json` remains
 `PENDING_USER_WALLET_PROOF`.
 
+`docs/evidence/studionet/secondary-wallet-smoke.json` records a separate
+script-signed lifecycle in which the authorized secondary wallet accepts an
+agent and proposes closure. All five transactions finalized, the agent closed,
+credits returned to zero, and contract accounting returned to its baseline.
+
 Frontend hosting evidence is recorded in
 `docs/evidence/studionet/frontend-hosting.json`. Vercel deployment
-`dpl_A5y1ZWZWn6z1YhviL5jkipfLZwku` is `READY`; the production alias returned
+`dpl_Ff3V3Sz8CC1n2KHE7hqK3SXneAyd` is `READY`; the production alias returned
 HTTP 200 and its JavaScript bundle contains the active contract address.
 
 ## Honest Limitations

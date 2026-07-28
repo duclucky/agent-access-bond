@@ -30,6 +30,8 @@ Historical revisions are retained under
 [`docs/evidence/studionet/revisions/`](docs/evidence/studionet/revisions/).
 Vercel deployment evidence is stored in
 [`docs/evidence/studionet/frontend-hosting.json`](docs/evidence/studionet/frontend-hosting.json).
+The bounded script-signed secondary-wallet smoke lifecycle is stored in
+[`docs/evidence/studionet/secondary-wallet-smoke.json`](docs/evidence/studionet/secondary-wallet-smoke.json).
 
 ## Product
 

@@ -14,6 +14,7 @@
     "test:deployment": "node --test tests/scripts/*.test.mjs",
     "test:frontend": "npm --workspace frontend test",
     "deploy:studionet": "node scripts/deploy-agent-access-bond-studionet.mjs",
+    "smoke:secondary-wallet": "node scripts/smoke-secondary-wallet-studionet.mjs",
     "lint": "npm --workspace frontend run lint",
     "build": "npm --workspace frontend run build",
     "check": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/check.ps1"
