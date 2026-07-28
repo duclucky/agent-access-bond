@@ -1,7 +1,19 @@
 $ErrorActionPreference = "Stop"
-npm run lint:contracts
-npm run test:direct
-npm run test:deployment
-npm run lint
-npm run build
 
+function Invoke-CheckedNpmScript {
+  param(
+    [Parameter(Mandatory = $true)]
+    [string] $Name
+  )
+
+  & npm.cmd run $Name
+  if ($LASTEXITCODE -ne 0) {
+    exit $LASTEXITCODE
+  }
+}
+
+Invoke-CheckedNpmScript "lint:contracts"
+Invoke-CheckedNpmScript "test:direct"
+Invoke-CheckedNpmScript "test:deployment"
+Invoke-CheckedNpmScript "lint"
+Invoke-CheckedNpmScript "build"
