@@ -82,7 +82,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
         </div>
       )}
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      <form noValidate onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6">
         {/* Left Column: Form Fields */}
         <div className="lg:col-span-8 space-y-6">
           {/* Identity & Origin Parameters Module */}

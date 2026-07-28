@@ -60,6 +60,39 @@ describe("live product UI", () => {
     expect(screen.queryByText("v1.0.4-GENLAYER")).not.toBeInTheDocument();
   });
 
+  it("uses English application validation instead of localized browser prompts", async () => {
+    render(<App config={config} />);
+
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Register Agent" })[0]
+    );
+    const registerButton = screen.getByRole("button", {
+      name: /create agent draft bond/i
+    });
+    expect(registerButton.closest("form")).toHaveAttribute("novalidate");
+
+    await userEvent.click(registerButton);
+    expect(
+      screen.getByText("Please fill in all required agent identity and policy fields.")
+    ).toBeVisible();
+
+    await userEvent.click(
+      screen.getAllByRole("button", { name: "Review Cases" })[0]
+    );
+    await userEvent.click(
+      screen.getByRole("button", { name: /submit evidence challenge/i })
+    );
+    const challengeButton = screen.getByRole("button", {
+      name: /lock bond & open case/i
+    });
+    expect(challengeButton.closest("form")).toHaveAttribute("novalidate");
+
+    await userEvent.click(challengeButton);
+    expect(
+      screen.getByText("Enter the target URL and public action receipt URL.")
+    ).toBeVisible();
+  });
+
   it("reads the searched agent from canonical contract views", async () => {
     vi.mocked(readCanonicalSnapshot).mockResolvedValueOnce({
       agent: {

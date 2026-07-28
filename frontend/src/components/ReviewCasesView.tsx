@@ -56,9 +56,16 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
   const handleOpenChallengeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!targetUrl.trim() || !receiptUrl.trim()) return;
+    if (!targetUrl.trim() || !receiptUrl.trim()) {
+      setErrorMsg('Enter the target URL and public action receipt URL.');
+      return;
+    }
     if (!targetAgentId.trim()) {
       setErrorMsg('Load an agent before opening an access challenge.');
+      return;
+    }
+    if (challengeBond < 10) {
+      setErrorMsg('Challenge bond must be at least 10 GEN.');
       return;
     }
 
@@ -409,7 +416,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               </p>
             </div>
 
-            <form onSubmit={handleOpenChallengeSubmit} className="space-y-4">
+            <form noValidate onSubmit={handleOpenChallengeSubmit} className="space-y-4">
               <div>
                 <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Target Agent ID
