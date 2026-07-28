@@ -4,9 +4,9 @@
   "project": "agent-access-bond",
   "scope": "duckys-projects-bc83c6a0",
   "productionUrl": "https://agent-access-bond.vercel.app",
-  "deploymentUrl": "https://agent-access-bond-apbf7kmu0-duckys-projects-bc83c6a0.vercel.app",
-  "deploymentId": "dpl_2QVtahKnAy6nZbNoEvzrwutxRaJM",
-  "sourceCommit": "f30eb38a4f148ac19b9610ec59638509f23cc576",
+  "deploymentUrl": "https://agent-access-bond-okr72b0ub-duckys-projects-bc83c6a0.vercel.app",
+  "deploymentId": "dpl_9g1hu5MLTS2pwJCVXtUGvaxoR9eQ",
+  "sourceCommit": "606a148e69844601c3f2a0bc111bac2a097bd5a0",
   "network": "studionet",
   "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
   "verification": {
@@ -26,7 +26,10 @@
     "walletExtensionOptionsPresent": true,
     "userNavigationOnly": true,
     "browserWalletConnectionVerified": true,
-    "browserSignedTransactionProofPending": true,
+    "browserSignedTransactionProofPending": false,
+    "transactionLifecyclePanelPresentInBundle": true,
+    "submittedAcceptedFinalizedStatesPresentInBundle": true,
+    "directTransactionStatusPollingPresentInBundle": true,
     "englishApplicationValidationVerified": true,
     "genAmountPresentationPresentInBundle": true,
     "genDecimalInputUsesTextMode": true,
@@ -42,6 +45,6 @@
     ],
     "horizontalOverflowDetected": false,
     "applicationConsoleErrors": 0,
-    "verifiedAt": "2026-07-28T23:01:20.4265681+07:00"
+    "verifiedAt": "2026-07-28T23:28:45.4774858+07:00"
   }
 }

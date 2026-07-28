@@ -17,8 +17,8 @@ agent status, and bond accounting.
 - Network: `Studionet` (`61999`)
 - Browser-wallet status: an OKX extension connection has been verified on
   production. The app discovers installed extensions through EIP-6963 and
-  keeps MetaMask mobile/QR as an explicit fallback; a browser-signed
-  transaction remains `PENDING_USER_WALLET_PROOF`.
+  keeps MetaMask mobile/QR as an explicit fallback. Two browser-initiated
+  `create_agent` transactions are captured as finalized Studionet evidence.
 
 ## How to Use the Web App
 
@@ -282,8 +282,9 @@ npm run smoke:secondary-wallet
 
 ## Honest Limitations
 
-- Browser connection UI is verified on production, but no user-approved,
-  browser-signed transaction has been captured for this revision.
+- Browser-signed registration is verified on Studionet. The captured attempts
+  created two distinct draft agents because the previous frontend did not
+  surface finality promptly; revision `606a148` fixes that tracking defect.
 - The verified network is Studionet only.
 - Public receipts prove inspectable content, not cryptographic runner
   attestation.
@@ -298,8 +299,8 @@ npm run smoke:secondary-wallet
 - Title: `AgentAccessBond: Validator-Enforced Web Agent Accountability`
 - Primary contract: the Studionet explorer link above
 - Consumer contract: `N/A` - integrators call the seven view methods directly
-- Demo: production app above; canonical reads verified, browser write proof
-  pending
+- Demo: production app above; canonical reads and browser-signed registration
+  writes verified
 - Successful CI: GitHub Actions workflow above
 
 **Portal description (894 characters):**
@@ -315,4 +316,5 @@ designated user and challenger. Integrators can reuse seven view methods
 without copying adjudication logic. One contract, 20 direct tests, 9 script
 tests, and 45 frontend tests are verified. The production wallet picker
 discovers EIP-6963 extensions and offers explicit MetaMask mobile/QR fallback;
-browser-signed transaction proof and external adoption remain pending.
+browser-signed registration proof is captured; external adoption remains
+pending.

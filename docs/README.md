@@ -41,7 +41,7 @@ lifecycle evidence.
 | Differentiation | `PASS` | The evidence, actors, agent identity consequence, and web-access protocol differ from prior workspace ideas. |
 | Claim-to-code | `PASS` | The matrix below maps every active claim to state, reads, tests, and evidence. |
 | Full lifecycle | `PASS` | Current revision finalized activation, violation adjudication, quarantine, credit, withdrawal, and canonical verification. |
-| Scope honesty | `PASS` | Production hosting and public CI are verified; browser-wallet transaction signing and external-adoption evidence remain explicitly pending. |
+| Scope honesty | `PASS` | Production hosting, public CI, and browser-signed registration are verified; external-adoption evidence remains explicitly pending. |
 
 ## Trust and Evidence Model
 
@@ -167,7 +167,7 @@ The production deployment is
 | Bonds settle deterministically | verdict ledger transition | `get_credit`, `get_accounting` | accounting tests; withdrawal tx |
 | Bad evidence does not slash | validation before state write | `get_case`, `get_agent_status` | malformed/source tests |
 | Failed consensus can be recovered | bilateral case cancellation | case/credit/accounting views | cancellation/refund test |
-| Browser app uses canonical state | frontend SDK reads/writes | all seven contract views | 45 frontend tests; browser transaction proof pending |
+| Browser app uses canonical state | frontend SDK reads/writes | all seven contract views | 45 frontend tests; two finalized browser registration transactions |
 | Revisions are attributable | deployment identity manifest | evidence file | 9 deployment/script tests |
 
 ## Verification
@@ -224,8 +224,8 @@ Revision history:
   represented as recovered.
 
 Script-signed evidence and browser-wallet evidence are intentionally separate.
-`docs/evidence/studionet/browser-wallet.json` remains
-`PENDING_USER_WALLET_PROOF`.
+`docs/evidence/studionet/browser-wallet.json` records two finalized
+browser-initiated `create_agent` transactions and their canonical draft agents.
 
 `docs/evidence/studionet/secondary-wallet-smoke.json` records a separate
 script-signed lifecycle in which the authorized secondary wallet accepts an
@@ -234,7 +234,7 @@ credits returned to zero, and contract accounting returned to its baseline.
 
 Frontend hosting evidence is recorded in
 `docs/evidence/studionet/frontend-hosting.json`. Vercel deployment
-`dpl_6QoBnpxkiPQcrBQzKjk1f28RBdTT` is `READY`; the production alias returned
+`dpl_9g1hu5MLTS2pwJCVXtUGvaxoR9eQ` is `READY`; the production alias returned
 HTTP 200 and its JavaScript bundle contains the active contract address,
 EIP-6963 discovery request, app-owned wallet picker, and product-workspace
 copy. Browser checks found no horizontal overflow at the recorded responsive
