@@ -17,7 +17,7 @@ settle operator and challenge bonds, and make `can_execute(agent_id)` return
 - Canonical consequence: agent `QUARANTINED`, case `RESOLVED`,
   `can_execute=false`, user credit withdrawn
 - Local verification: 20 direct contract tests, 9 deployment/script tests,
-  16 frontend tests, contract lint, TypeScript, and production build
+  20 frontend tests, contract lint, TypeScript, and production build
 - Production frontend:
   [`https://agent-access-bond.vercel.app`](https://agent-access-bond.vercel.app)
 - Browser-wallet proof: `PENDING_USER_WALLET_PROOF`

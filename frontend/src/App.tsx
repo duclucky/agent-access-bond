@@ -13,6 +13,10 @@ import type { PublicConfig } from "./config";
 import type { CanonicalSnapshot } from "./types";
 import { initialTxState, txReducer } from "./tx-state";
 import {
+  connectStudionetWallet,
+  type Eip1193Provider
+} from "./wallet";
+import {
   availableActions,
   executeAndRefresh,
   type ContractAction
@@ -39,11 +43,7 @@ const DEFAULT_FIELDS: ActionFields = {
   withdrawAmount: ""
 };
 
-type BrowserProvider = WalletProvider & {
-  request: (args: { method: string; params?: unknown[] }) => Promise<unknown>;
-  on?: (event: string, listener: (...args: unknown[]) => void) => void;
-  removeListener?: (event: string, listener: (...args: unknown[]) => void) => void;
-};
+type BrowserProvider = WalletProvider & Eip1193Provider;
 
 type WriteRequest = {
   functionName: string;
@@ -61,6 +61,8 @@ export function App({ config }: { config: PublicConfig }) {
   const [writeClient, setWriteClient] = useState<
     ReturnType<typeof createAgentAccessClients>["writeClient"]
   >(null);
+  const [walletProvider, setWalletProvider] =
+    useState<BrowserProvider | null>(null);
   const [snapshot, setSnapshot] = useState<CanonicalSnapshot | null>(null);
   const [readError, setReadError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
@@ -119,31 +121,25 @@ export function App({ config }: { config: PublicConfig }) {
   }, [actions.join("|"), selectedAction]);
 
   const connectWallet = async () => {
-    const provider = window.ethereum;
-    if (!provider) {
-      setReadError("No compatible browser wallet was found.");
-      return;
-    }
     setConnecting(true);
     setReadError(null);
     try {
-      const accounts = (await provider.request({
-        method: "eth_requestAccounts"
-      })) as string[];
-      const nextAccount = accounts[0] as `0x${string}` | undefined;
-      if (!nextAccount) throw new Error("Wallet returned no account.");
+      const connection = await connectStudionetWallet({
+        injectedProvider: window.ethereum
+      });
+      const provider = connection.provider as BrowserProvider;
       const clients = createAgentAccessClients({
         config,
-        account: nextAccount,
+        account: connection.account,
         provider
       });
       if (!clients.writeClient) throw new Error("Wallet client is unavailable.");
-      await clients.writeClient.connect("studionet");
-      setAccount(nextAccount);
+      setAccount(connection.account);
+      setWalletProvider(provider);
       setWriteClient(clients.writeClient);
       setFields((current) => ({
         ...current,
-        userAddress: current.userAddress || nextAccount
+        userAddress: current.userAddress || connection.account
       }));
       await refresh(agentId, fields.caseId);
     } catch (error) {
@@ -154,13 +150,23 @@ export function App({ config }: { config: PublicConfig }) {
   };
 
   useEffect(() => {
-    const provider = window.ethereum;
+    const provider = walletProvider;
     if (!provider?.on) return;
     const accountChanged = (...args: unknown[]) => {
       const accounts = args[0] as string[] | undefined;
       const next = accounts?.[0] as `0x${string}` | undefined;
       setAccount(next ?? null);
-      if (!next) setWriteClient(null);
+      if (next) {
+        setWriteClient(
+          createAgentAccessClients({
+            config,
+            account: next,
+            provider
+          }).writeClient
+        );
+      } else {
+        setWriteClient(null);
+      }
       void refresh(agentId, fields.caseId);
     };
     const chainChanged = () => void refresh(agentId, fields.caseId);
@@ -170,7 +176,7 @@ export function App({ config }: { config: PublicConfig }) {
       provider.removeListener?.("accountsChanged", accountChanged);
       provider.removeListener?.("chainChanged", chainChanged);
     };
-  }, [agentId, fields.caseId]);
+  }, [agentId, config, fields.caseId, walletProvider]);
 
   const requestFor = (
     action: ContractAction,

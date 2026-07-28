@@ -164,7 +164,7 @@ The production deployment is
 | Bonds settle deterministically | verdict ledger transition | `get_credit`, `get_accounting` | accounting tests; withdrawal tx |
 | Bad evidence does not slash | validation before state write | `get_case`, `get_agent_status` | malformed/source tests |
 | Failed consensus can be recovered | bilateral case cancellation | case/credit/accounting views | cancellation/refund test |
-| Browser app uses canonical state | frontend SDK reads/writes | all seven views | 16 frontend tests; browser proof pending |
+| Browser app uses canonical state | frontend SDK reads/writes | all seven views | 20 frontend tests; browser proof pending |
 | Revisions are attributable | deployment identity manifest | evidence file | 9 deployment/script tests |
 
 ## Verification
@@ -180,7 +180,7 @@ It fails on the first unsuccessful stage and covers:
 - GenVM lint and contract schema validation;
 - 20 direct-mode contract tests;
 - 9 deployment and verification-script tests;
-- 16 frontend tests;
+- 20 frontend tests;
 - frontend TypeScript checks;
 - production Vite build.
 
