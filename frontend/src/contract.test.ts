@@ -93,9 +93,9 @@ describe("submitWriteAndFinalize", () => {
       writeContract: vi.fn(async () => "0xabc")
     };
     const readClient = {
-      waitForTransactionReceipt: vi.fn(async () => ({ status: "ACCEPTED" })),
       request: vi
         .fn()
+        .mockResolvedValueOnce("PENDING")
         .mockResolvedValueOnce("ACCEPTED")
         .mockResolvedValueOnce("FINALIZED")
     };
@@ -115,13 +115,41 @@ describe("submitWriteAndFinalize", () => {
     expect(statuses).toEqual(["submitted", "accepted", "finalized"]);
   });
 
+  it("keeps polling when Studionet has not indexed a submitted hash yet", async () => {
+    const statuses: string[] = [];
+    const writeClient = {
+      writeContract: vi.fn(async () => "0xabc")
+    };
+    const readClient = {
+      request: vi
+        .fn()
+        .mockRejectedValueOnce(new Error("Transaction not found: 0xabc"))
+        .mockResolvedValueOnce("ACCEPTED")
+        .mockResolvedValueOnce("FINALIZED")
+    };
+
+    await expect(
+      submitWriteAndFinalize({
+        writeClient: writeClient as never,
+        readClient: readClient as never,
+        address: CONTRACT,
+        functionName: "create_agent",
+        args: ["agent-alpha"],
+        value: 100n,
+        pollIntervalMs: 0,
+        onStatus: (status) => statuses.push(status)
+      })
+    ).resolves.toBe("0xabc");
+
+    expect(statuses).toEqual(["submitted", "accepted", "finalized"]);
+  });
+
   it("throws a terminal consensus failure without reporting finalization", async () => {
     const statuses: string[] = [];
     const writeClient = {
       writeContract: vi.fn(async () => "0xdef")
     };
     const readClient = {
-      waitForTransactionReceipt: vi.fn(async () => ({ status: "ACCEPTED" })),
       request: vi.fn(async () => "VALIDATORS_TIMEOUT")
     };
 
@@ -137,6 +165,6 @@ describe("submitWriteAndFinalize", () => {
         onStatus: (status) => statuses.push(status)
       })
     ).rejects.toThrow("VALIDATORS_TIMEOUT");
-    expect(statuses).toEqual(["submitted", "accepted"]);
+    expect(statuses).toEqual(["submitted"]);
   });
 });

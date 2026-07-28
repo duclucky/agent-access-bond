@@ -8,7 +8,7 @@ interface RegisterAgentViewProps {
 }
 
 export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess, onCancel }) => {
-  const { registerAgent, wallet } = useContract();
+  const { registerAgent, transactionState, wallet } = useContract();
 
   const [origin, setOrigin] = useState('');
   const [userAgent, setUserAgent] = useState('');
@@ -20,6 +20,15 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
   const [penaltyAmount, setPenaltyAmount] = useState<number>(250);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMsg, setErrorMsg] = useState('');
+
+  const submittingLabel =
+    transactionState.status === 'submitted'
+      ? 'Transaction submitted...'
+      : transactionState.status === 'accepted'
+        ? 'Awaiting finalization...'
+        : transactionState.status === 'finalized'
+          ? 'Syncing contract state...'
+          : 'Confirm in wallet...';
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -296,7 +305,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
               {isSubmitting ? (
                 <>
                   <Icon name="sync" className="text-sm animate-spin" />
-                  <span>Signing & Broadcasting Bond...</span>
+                  <span>{submittingLabel}</span>
                 </>
               ) : (
                 <>

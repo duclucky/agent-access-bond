@@ -7,10 +7,13 @@ import { Header } from "./components/Header";
 import { RegisterAgentView } from "./components/RegisterAgentView";
 import { ReviewCasesView } from "./components/ReviewCasesView";
 import { Sidebar } from "./components/Sidebar";
+import { TransactionActivity } from "./components/TransactionActivity";
 import { ContractProvider } from "./context/ContractContext";
+import { useContract } from "./context/ContractContext";
 import type { PublicConfig } from "./config";
 
-function AppContent() {
+function AppContent({ explorerUrl }: { explorerUrl: string }) {
+  const { transactionState } = useContract();
   const [currentTab, setCurrentTab] = useState("dashboard");
   const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
   const [challengeTargetAgentId, setChallengeTargetAgentId] = useState<string | undefined>();
@@ -45,6 +48,10 @@ function AppContent() {
       <main className="flex-1 lg:ml-64 p-4 pb-24 md:p-8 md:pb-24 pt-20 lg:pt-8 lg:pb-8 relative min-h-screen overflow-y-auto">
         <div className="absolute inset-0 grid-pattern opacity-15 pointer-events-none z-0" />
         <div className="relative z-10">
+          <TransactionActivity
+            state={transactionState}
+            explorerUrl={explorerUrl}
+          />
           {currentTab === "dashboard" && (
             <DashboardView onSelectAgent={handleSelectAgent} onNavigate={handleNavigate} />
           )}
@@ -77,7 +84,7 @@ function AppContent() {
 export function App({ config }: { config: PublicConfig }) {
   return (
     <ContractProvider config={config}>
-      <AppContent />
+      <AppContent explorerUrl={config.explorerUrl} />
     </ContractProvider>
   );
 }

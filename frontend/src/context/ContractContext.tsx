@@ -4,6 +4,7 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useReducer,
   useState,
   type ReactNode
 } from "react";
@@ -17,6 +18,7 @@ import {
 import type { PublicConfig } from "../config";
 import { WalletDialog } from "../components/WalletDialog";
 import { formatGenValue, parseGen } from "../presentation";
+import { initialTxState, txReducer, type TxState } from "../tx-state";
 import {
   connectStudionetWallet,
   requestInjectedWallets,
@@ -67,6 +69,7 @@ interface ContractContextType {
   loading: boolean;
   lastError: string | null;
   lastTransactionHash: string | null;
+  transactionState: TxState;
   refreshAgent: (agentId: string, caseId?: string) => Promise<AgentBond | undefined>;
   get_agent: (agentId: string) => AgentBond | undefined;
   get_agent_status: (agentId: string) => AgentStatus | undefined;
@@ -317,7 +320,10 @@ export function ContractProvider({
   const [connectingId, setConnectingId] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [lastError, setLastError] = useState<string | null>(null);
-  const [lastTransactionHash, setLastTransactionHash] = useState<string | null>(null);
+  const [transactionState, dispatchTransaction] = useReducer(
+    txReducer,
+    initialTxState
+  );
 
   const { readClient } = useMemo(
     () => createAgentAccessClients({ config }),
@@ -407,15 +413,30 @@ export function ContractProvider({
         throw new Error("Connect a Studionet wallet before sending a transaction.");
       }
       setLastError(null);
-      await submitWriteAndFinalize({
-        writeClient,
-        readClient,
-        address: config.contractAddress,
-        functionName,
-        args,
-        value,
-        onStatus: (_status, hash) => setLastTransactionHash(hash)
-      });
+      try {
+        await submitWriteAndFinalize({
+          writeClient,
+          readClient,
+          address: config.contractAddress,
+          functionName,
+          args,
+          value,
+          onStatus: (status, hash) => {
+            if (status === "submitted") {
+              dispatchTransaction({
+                type: "submitted",
+                operation: functionName,
+                hash
+              });
+            } else {
+              dispatchTransaction({ type: status });
+            }
+          }
+        });
+      } catch (error) {
+        dispatchTransaction({ type: "failed", error: errorMessage(error) });
+        throw error;
+      }
       if (refreshAgentId) await refreshAgent(refreshAgentId, refreshCaseId);
     },
     [config.contractAddress, readClient, refreshAgent, writeClient]
@@ -495,7 +516,8 @@ export function ContractProvider({
       networkName: NETWORK_NAME,
       loading,
       lastError,
-      lastTransactionHash,
+      lastTransactionHash: transactionState.hash,
+      transactionState,
       refreshAgent,
       get_agent,
       get_agent_status: (agentId) => get_agent(agentId)?.status,
@@ -611,10 +633,10 @@ export function ContractProvider({
       get_agent,
       get_case,
       lastError,
-      lastTransactionHash,
       loading,
       refreshAgent,
       sendWrite,
+      transactionState,
       userCredits,
       wallet
     ]

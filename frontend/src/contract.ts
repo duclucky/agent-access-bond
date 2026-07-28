@@ -1,6 +1,5 @@
 import { createClient } from "genlayer-js";
 import { studionet } from "genlayer-js/chains";
-import { type Hash, TransactionStatus } from "genlayer-js/types";
 
 import type { PublicConfig } from "./config";
 import type {
@@ -163,27 +162,35 @@ export async function submitWriteAndFinalize({
   );
   onStatus("submitted", hash);
 
-  await readClient.waitForTransactionReceipt({
-    hash: hash as Hash,
-    status: TransactionStatus.ACCEPTED,
-    interval: pollIntervalMs,
-    retries: maxPolls
-  });
-  onStatus("accepted", hash);
+  let accepted = false;
 
   for (let attempt = 0; attempt < maxPolls; attempt += 1) {
-    const status = String(
-      await readClient.request({
-        method: "gen_getTransactionStatus",
-        params: [hash]
-      } as never)
-    );
-    if (status === "FINALIZED") {
-      onStatus("finalized", hash);
-      return hash;
-    }
-    if (TERMINAL_FAILURES.has(status)) {
-      throw new Error(`Transaction reached ${status}`);
+    try {
+      const status = String(
+        await readClient.request({
+          method: "gen_getTransactionStatus",
+          params: [hash]
+        } as never)
+      ).toUpperCase();
+      if ((status === "ACCEPTED" || status === "FINALIZED") && !accepted) {
+        accepted = true;
+        onStatus("accepted", hash);
+      }
+      if (status === "FINALIZED") {
+        onStatus("finalized", hash);
+        return hash;
+      }
+      if (TERMINAL_FAILURES.has(status)) {
+        throw new Error(`Transaction reached ${status}`);
+      }
+    } catch (error) {
+      if (
+        error instanceof Error &&
+        error.message.startsWith("Transaction reached ")
+      ) {
+        throw error;
+      }
+      // Studionet can briefly return "not found" while indexing a wallet hash.
     }
     await wait(pollIntervalMs);
   }
