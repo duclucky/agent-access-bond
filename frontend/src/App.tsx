@@ -26,7 +26,6 @@ import {
   type ContractAction
 } from "./workspace";
 
-const DEFAULT_AGENT_ID = "agent-fixture-policy-001";
 const DEFAULT_CASE_ID = "case-fixture-private-001";
 const REPO_RAW =
   "https://raw.githubusercontent.com/duclucky/agent-access-bond/main";
@@ -60,7 +59,7 @@ function errorMessage(error: unknown) {
 }
 
 export function App({ config }: { config: PublicConfig }) {
-  const [agentId, setAgentId] = useState(DEFAULT_AGENT_ID);
+  const [agentId, setAgentId] = useState("");
   const [account, setAccount] = useState<`0x${string}` | null>(null);
   const [writeClient, setWriteClient] = useState<
     ReturnType<typeof createAgentAccessClients>["writeClient"]
@@ -133,10 +132,6 @@ export function App({ config }: { config: PublicConfig }) {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    void refresh(DEFAULT_AGENT_ID, DEFAULT_CASE_ID);
-  }, [readClient]);
 
   const actions = availableActions(snapshot, account ?? undefined);
   useEffect(() => {
