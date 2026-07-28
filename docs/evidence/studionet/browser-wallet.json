@@ -8,34 +8,45 @@
   "connectionUiVerification": {
     "eip6963RequestPresentInBundle": true,
     "appWalletPickerOpened": true,
-    "detectedExtensionCountInTestBrowser": 0,
-    "legacyProviderInjected": false,
+    "detectedExtensionCountInTestBrowser": 1,
+    "detectedExtensionNamesInTestBrowser": [
+      "OKX Wallet"
+    ],
+    "legacyProviderInjected": true,
     "installedExtensionsSectionPresent": true,
     "metaMaskMobileQrFallbackPresent": true,
     "metaMaskFallbackInvokedExplicitly": true,
+    "browserWalletOptionPresent": true,
     "mobileViewport": {
       "width": 390,
       "height": 844,
       "dialogWidth": 335,
       "horizontalOverflow": false
     },
-    "verifiedAt": "2026-07-28T09:39:01.1247180Z"
+    "verifiedAt": "2026-07-28T12:23:16.6662420Z"
   },
   "productUiVerification": {
     "plainLanguageAgentStatus": true,
     "genAmountsDisplayed": true,
     "technicalDetailsCollapsedByDefault": true,
+    "operatorDashboardShellPresent": true,
+    "accessReviewTimelinePresent": true,
+    "genDecimalInputUsesTextMode": true,
     "canonicalAgentReadVisible": true,
     "walletPickerStillOpens": true,
     "responsiveWidthsVerified": [
       375,
-      753,
-      1009,
+      768,
       1440
+    ],
+    "measuredClientWidths": [
+      360,
+      753,
+      1425
     ],
     "horizontalOverflowDetected": false,
     "applicationConsoleErrors": 0,
-    "verifiedAt": "2026-07-28T10:00:57.0632319Z"
+    "verifiedAt": "2026-07-28T12:23:16.6662420Z"
   },
-  "reason": "The production app-owned picker and explicit MetaMask mobile/QR fallback were verified in a browser without installed wallet extensions. EIP-6963 multi-provider discovery is covered by frontend tests, but no user-approved extension connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
+  "reason": "The production app-owned picker was verified in Chrome with an installed wallet extension option and an explicit MetaMask mobile/QR fallback. EIP-6963 multi-provider discovery is covered by frontend tests, but no user-approved extension connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
 }
