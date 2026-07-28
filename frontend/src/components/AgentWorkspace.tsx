@@ -1,17 +1,28 @@
+import { useId } from "react";
+
 import {
+  BookOpen,
+  Bot,
   Check,
   CheckCircle2,
   ChevronRight,
   CircleAlert,
   Clock3,
+  FileClock,
   ExternalLink,
   FileSearch,
   Gavel,
+  Globe2,
   HandCoins,
+  History,
+  LayoutDashboard,
+  ListChecks,
   LockKeyhole,
   RefreshCw,
   RotateCcw,
   Search,
+  Settings,
+  Shield,
   ShieldCheck,
   ShieldOff,
   UserCheck,
@@ -62,6 +73,55 @@ const ACTION_ICONS: Record<ContractAction, typeof Check> = {
   accept_close: Check
 };
 
+const NAV_ITEMS = [
+  { label: "Overview", Icon: LayoutDashboard, active: true },
+  { label: "My Agents", Icon: Bot, active: false },
+  { label: "Access Reviews", Icon: Gavel, active: false },
+  { label: "Rules & Policies", Icon: ListChecks, active: false },
+  { label: "Activity Log", Icon: History, active: false }
+];
+
+function DashboardNav() {
+  return (
+    <nav className="product-nav" aria-label="Product sections">
+      <div className="product-nav-brand">
+        <span className="product-nav-mark">
+          <ShieldCheck size={24} aria-hidden="true" />
+        </span>
+        <div>
+          <strong>AgentAccessBond</strong>
+          <span>Accountability</span>
+        </div>
+      </div>
+
+      <div className="product-nav-links">
+        {NAV_ITEMS.map(({ label, Icon, active }) => (
+          <a
+            key={label}
+            href="#"
+            className={active ? "active" : undefined}
+            aria-current={active ? "page" : undefined}
+          >
+            <Icon size={20} aria-hidden="true" />
+            <span>{label}</span>
+          </a>
+        ))}
+      </div>
+
+      <div className="product-nav-footer">
+        <a href="#">
+          <Settings size={20} aria-hidden="true" />
+          <span>Settings</span>
+        </a>
+        <a href="#">
+          <BookOpen size={20} aria-hidden="true" />
+          <span>Documentation</span>
+        </a>
+      </div>
+    </nav>
+  );
+}
+
 function Field({
   label,
   value,
@@ -77,22 +137,24 @@ function Field({
   suffix?: string;
   hint?: string;
 }) {
+  const inputId = useId();
+  const renderedType = type === "number" ? "text" : type;
   return (
-    <label className="field">
-      <span>{label}</span>
+    <div className="field">
+      <label htmlFor={inputId}>{label}</label>
       <span className="input-shell">
         <input
-          type={type}
+          id={inputId}
+          type={renderedType}
+          inputMode={type === "number" ? "decimal" : undefined}
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          step={type === "number" ? "any" : undefined}
-          min={type === "number" ? "0" : undefined}
           required
         />
         {suffix ? <strong>{suffix}</strong> : null}
       </span>
       {hint ? <small>{hint}</small> : null}
-    </label>
+    </div>
   );
 }
 
@@ -222,6 +284,162 @@ function ActionFieldsForm({
   return null;
 }
 
+function AgentProfile({
+  agent
+}: {
+  agent: CanonicalSnapshot["agent"] | null | undefined;
+}) {
+  if (!agent) {
+    return (
+      <section className="agent-profile-card" aria-labelledby="profile-title">
+        <div className="empty-state compact">
+          <Bot size={20} aria-hidden="true" />
+          <p>Enter an agent ID to load its profile, policy, and latest review.</p>
+        </div>
+      </section>
+    );
+  }
+
+  return (
+    <section className="agent-profile-card" aria-labelledby="profile-title">
+      <div className="agent-profile-heading">
+        <span className="agent-avatar">
+          <Bot size={30} aria-hidden="true" />
+        </span>
+        <div>
+          <p className="eyebrow">Agent profile</p>
+          <h1 id="profile-title">{agent.user_agent}</h1>
+          <p>DID: did:ethr:{shortAddress(agent.user)}</p>
+        </div>
+      </div>
+
+      <div className="agent-profile-grid">
+        <article className="profile-tile">
+          <div>
+            <span className="tile-icon">
+              <LockKeyhole size={18} aria-hidden="true" />
+            </span>
+            <h2>Protection bond</h2>
+            <p>Locked stake securing this agent's access.</p>
+          </div>
+          <strong>{formatGen(agent.operator_bond)}</strong>
+        </article>
+
+        <article className="profile-tile">
+          <div>
+            <span className="tile-icon">
+              <Globe2 size={18} aria-hidden="true" />
+            </span>
+            <h2>Origin</h2>
+            <p>The protected site this agent represents.</p>
+          </div>
+          <a href={agent.origin} target="_blank" rel="noreferrer">
+            View official website
+            <ExternalLink size={14} aria-hidden="true" />
+          </a>
+        </article>
+
+        <article className="profile-tile tile-wide">
+          <div>
+            <span className="tile-icon">
+              <Shield size={18} aria-hidden="true" />
+            </span>
+            <h2>Allowed purpose</h2>
+            <p>{agent.allowed_purpose}</p>
+          </div>
+          <a href={agent.policy_url} target="_blank" rel="noreferrer">
+            Read rules
+            <ExternalLink size={14} aria-hidden="true" />
+          </a>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function ReviewTimeline({
+  caseRecord,
+  verdict
+}: {
+  caseRecord: CanonicalSnapshot["case"] | null | undefined;
+  verdict: CanonicalSnapshot["verdict"] | null | undefined;
+}) {
+  return (
+    <section className="timeline-panel" aria-labelledby="timeline-title">
+      <div className="section-heading">
+        <div>
+          <p className="eyebrow">History</p>
+          <h2 id="timeline-title">Access Reviews</h2>
+        </div>
+        <span className="section-icon">
+          <FileClock size={20} aria-hidden="true" />
+        </span>
+      </div>
+
+      {caseRecord ? (
+        <ol className="review-timeline">
+          <li className={`timeline-item tone-${verdict ? friendlyVerdictTone(verdict.applicability) : "warning"}`}>
+            <span className="timeline-dot" aria-hidden="true" />
+            <div>
+              <div className="timeline-title-row">
+                <h3>
+                  {verdict
+                    ? `Verdict: ${friendlyVerdict(verdict.applicability)}`
+                    : friendlyCaseStatus(caseRecord.status)}
+                </h3>
+                <span>Review {caseRecord.case_id}</span>
+              </div>
+              <p>
+                {verdict
+                  ? verdict.rationale
+                  : "This report is waiting for its next contract action."}
+              </p>
+              <dl className="timeline-facts">
+                <div>
+                  <dt>Status</dt>
+                  <dd>{friendlyCaseStatus(caseRecord.status)}</dd>
+                </div>
+                <div>
+                  <dt>Review bond</dt>
+                  <dd>{formatGen(caseRecord.challenge_bond)}</dd>
+                </div>
+                <div>
+                  <dt>Attempts</dt>
+                  <dd>{caseRecord.attempt_count}</dd>
+                </div>
+              </dl>
+            </div>
+          </li>
+          <li className="timeline-item tone-neutral">
+            <span className="timeline-dot" aria-hidden="true" />
+            <div>
+              <div className="timeline-title-row">
+                <h3>Access report submitted</h3>
+                <span>Public evidence</span>
+              </div>
+              <div className="review-links">
+                <a href={caseRecord.target_url} target="_blank" rel="noreferrer">
+                  Accessed page
+                  <ExternalLink size={14} aria-hidden="true" />
+                </a>
+                <a href={caseRecord.receipt_url} target="_blank" rel="noreferrer">
+                  Public receipt
+                  <ExternalLink size={14} aria-hidden="true" />
+                </a>
+              </div>
+            </div>
+          </li>
+        </ol>
+      ) : (
+        <div className="empty-state">
+          <FileSearch size={20} aria-hidden="true" />
+          <p>No access reports have been submitted for this agent.</p>
+        </div>
+      )}
+    </section>
+  );
+}
+
 export function AgentWorkspace({
   agentId,
   onAgentIdChange,
@@ -265,125 +483,134 @@ export function AgentWorkspace({
         : Clock3;
 
   return (
-    <main className="workspace">
-      <section className="lookup-band" aria-label="Find an agent">
-        <div className="page-title">
-          <p className="eyebrow">Agent protection</p>
-          <h1>{agent?.agent_id ?? "Find an agent"}</h1>
-        </div>
-        <label className="lookup-field">
-          <span>Agent ID</span>
-          <span className="lookup-control">
-            <Search size={18} aria-hidden="true" />
-            <input
-              value={agentId}
-              onChange={(event) => onAgentIdChange(event.target.value)}
-            />
-            <button
-              className="icon-button"
-              type="button"
-              title="Refresh agent"
-              aria-label="Refresh agent"
-              onClick={onRefresh}
-              disabled={loading}
-            >
-              <RefreshCw
-                size={18}
-                className={loading ? "spin" : undefined}
-                aria-hidden="true"
+    <div className="dashboard-shell">
+      <DashboardNav />
+
+      <main className="workspace">
+        <section className="lookup-band" aria-label="Find an agent">
+          <div className="page-title">
+            <p className="eyebrow">Agent protection</p>
+            <h1>{agent?.agent_id ?? "Find an agent"}</h1>
+            <p>Monitor policy, bond, and access reviews from the live contract.</p>
+          </div>
+          <label className="lookup-field">
+            <span>Agent ID</span>
+            <span className="lookup-control">
+              <Search size={18} aria-hidden="true" />
+              <input
+                value={agentId}
+                onChange={(event) => onAgentIdChange(event.target.value)}
               />
-            </button>
-          </span>
-        </label>
-      </section>
+              <button
+                className="icon-button"
+                type="button"
+                title="Refresh agent"
+                aria-label="Refresh agent"
+                onClick={onRefresh}
+                disabled={loading}
+              >
+                <RefreshCw
+                  size={18}
+                  className={loading ? "spin" : undefined}
+                  aria-hidden="true"
+                />
+              </button>
+            </span>
+          </label>
+        </section>
 
-      {readError ? (
-        <p className="read-error" role="alert">
-          {readError}
-        </p>
-      ) : null}
-
-      <section
-        className={`agent-overview tone-${status.tone}`}
-        aria-labelledby="agent-status-title"
-      >
-        <div className="status-message">
-          <span className="status-icon">
-            <StatusIcon size={24} aria-hidden="true" />
-          </span>
-          <div>
-            <p className="eyebrow">Current status</p>
-            <h2 id="agent-status-title">{status.label}</h2>
-            <p>{status.summary}</p>
-          </div>
-        </div>
-
-        <dl className="summary-metrics">
-          <div>
-            <dt>Protection bond</dt>
-            <dd>{agent ? `${formatGen(agent.operator_bond)} locked` : "Not available"}</dd>
-          </div>
-          <div>
-            <dt>Available balance</dt>
-            <dd>{formatGen(snapshot?.credit ?? "0")}</dd>
-          </div>
-          <div>
-            <dt>Access reviews</dt>
-            <dd>{agent ? String(agent.case_count) : "0"}</dd>
-          </div>
-        </dl>
-
-        {agent ? (
-          <details className="technical-details">
-            <summary>
-              Technical details
-              <ChevronRight size={17} aria-hidden="true" />
-            </summary>
-            <dl className="detail-grid">
-              <div>
-                <dt>Operator</dt>
-                <dd title={agent.operator}>
-                  <code>{shortAddress(agent.operator)}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Designated user</dt>
-                <dd title={agent.user}>
-                  <code>{shortAddress(agent.user)}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Agent identifier</dt>
-                <dd>{agent.user_agent}</dd>
-              </div>
-              <div>
-                <dt>Raw contract status</dt>
-                <dd>
-                  <code>{agent.status}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Bond in wei</dt>
-                <dd>
-                  <code>{String(agent.operator_bond)}</code>
-                </dd>
-              </div>
-              <div>
-                <dt>Policy</dt>
-                <dd>
-                  <a href={agent.policy_url} target="_blank" rel="noreferrer">
-                    {urlLabel(agent.policy_url)}
-                    <ExternalLink size={13} aria-hidden="true" />
-                  </a>
-                </dd>
-              </div>
-            </dl>
-          </details>
+        {readError ? (
+          <p className="read-error" role="alert">
+            {readError}
+          </p>
         ) : null}
-      </section>
 
-      <div className="product-columns">
-        <section className="action-panel" aria-labelledby="action-title">
+        <div className="workspace-grid">
+          <div className="workspace-primary">
+            <section
+              className={`agent-overview tone-${status.tone}`}
+              aria-labelledby="agent-status-title"
+            >
+              <div className="status-message">
+                <span className="status-icon">
+                  <StatusIcon size={24} aria-hidden="true" />
+                </span>
+                <div>
+                  <p className="eyebrow">Current status</p>
+                  <h2 id="agent-status-title">{status.label}</h2>
+                  <p>{status.summary}</p>
+                </div>
+              </div>
+
+              <dl className="summary-metrics">
+                <div>
+                  <dt>Bond locked</dt>
+                  <dd>{agent ? `${formatGen(agent.operator_bond)} locked` : "Not available"}</dd>
+                </div>
+                <div>
+                  <dt>Available balance</dt>
+                  <dd>{formatGen(snapshot?.credit ?? "0")}</dd>
+                </div>
+                <div>
+                  <dt>Access reviews</dt>
+                  <dd>{agent ? String(agent.case_count) : "0"}</dd>
+                </div>
+              </dl>
+
+              {agent ? (
+                <details className="technical-details">
+                  <summary>
+                    Technical details
+                    <ChevronRight size={17} aria-hidden="true" />
+                  </summary>
+                  <dl className="detail-grid">
+                    <div>
+                      <dt>Operator</dt>
+                      <dd title={agent.operator}>
+                        <code>{shortAddress(agent.operator)}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Designated user</dt>
+                      <dd title={agent.user}>
+                        <code>{shortAddress(agent.user)}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Agent identifier</dt>
+                      <dd>{agent.user_agent}</dd>
+                    </div>
+                    <div>
+                      <dt>Raw contract status</dt>
+                      <dd>
+                        <code>{agent.status}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Bond in wei</dt>
+                      <dd>
+                        <code>{String(agent.operator_bond)}</code>
+                      </dd>
+                    </div>
+                    <div>
+                      <dt>Policy</dt>
+                      <dd>
+                        <a href={agent.policy_url} target="_blank" rel="noreferrer">
+                          {urlLabel(agent.policy_url)}
+                          <ExternalLink size={13} aria-hidden="true" />
+                        </a>
+                      </dd>
+                    </div>
+                  </dl>
+                </details>
+              ) : null}
+            </section>
+
+            <AgentProfile agent={agent} />
+          </div>
+
+          <div className="workspace-secondary">
+            <section className="action-panel" aria-labelledby="action-title">
           <div className="section-heading">
             <div>
               <p className="eyebrow">Your next step</p>
@@ -459,9 +686,11 @@ export function AgentWorkspace({
               </p>
             </div>
           )}
-        </section>
+            </section>
 
-        <section className="review-panel" aria-labelledby="review-title">
+            <ReviewTimeline caseRecord={caseRecord} verdict={verdict} />
+
+            <section className="review-panel" aria-labelledby="review-title">
           <div className="section-heading">
             <div>
               <p className="eyebrow">Latest access review</p>
@@ -569,8 +798,10 @@ export function AgentWorkspace({
               </dl>
             </details>
           ) : null}
-        </section>
-      </div>
-    </main>
+            </section>
+          </div>
+        </div>
+      </main>
+    </div>
   );
 }

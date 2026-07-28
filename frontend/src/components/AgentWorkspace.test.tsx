@@ -81,6 +81,36 @@ const snapshot: CanonicalSnapshot = {
 afterEach(cleanup);
 
 describe("AgentWorkspace product experience", () => {
+  it("renders an operator dashboard shell instead of a judge-facing contract page", () => {
+    render(
+      <AgentWorkspace
+        agentId="agent-alpha"
+        onAgentIdChange={vi.fn()}
+        onRefresh={vi.fn()}
+        snapshot={snapshot}
+        loading={false}
+        readError={null}
+        actions={["propose_close"]}
+        selectedAction="propose_close"
+        onActionChange={vi.fn()}
+        fields={fields}
+        onFieldChange={vi.fn()}
+        onSubmit={vi.fn()}
+        busy={false}
+      />
+    );
+
+    expect(
+      screen.getByRole("navigation", { name: "Product sections" })
+    ).toBeVisible();
+    expect(screen.getByRole("link", { name: /Overview/ })).toBeVisible();
+    expect(screen.getByRole("link", { name: /My Agents/ })).toBeVisible();
+    expect(screen.getByRole("heading", { name: "AgentAccessBot/1.0" })).toBeVisible();
+    expect(screen.getByText("Protection bond")).toBeVisible();
+    expect(screen.getByText("Origin")).toBeVisible();
+    expect(screen.getByRole("link", { name: /View official website/ })).toBeVisible();
+  });
+
   it("leads with plain-language status and GEN balances", () => {
     render(
       <AgentWorkspace
@@ -136,5 +166,56 @@ describe("AgentWorkspace product experience", () => {
     expect(details).not.toBeNull();
     expect(details).not.toHaveAttribute("open");
     expect(screen.getByText("Technical details")).toBeInTheDocument();
+  });
+
+  it("shows the latest review as a user timeline item", () => {
+    render(
+      <AgentWorkspace
+        agentId="agent-alpha"
+        onAgentIdChange={vi.fn()}
+        onRefresh={vi.fn()}
+        snapshot={snapshot}
+        loading={false}
+        readError={null}
+        actions={[]}
+        selectedAction={null}
+        onActionChange={vi.fn()}
+        fields={fields}
+        onFieldChange={vi.fn()}
+        onSubmit={vi.fn()}
+        busy={false}
+      />
+    );
+
+    expect(
+      screen.getByRole("heading", { name: "Access Reviews" })
+    ).toBeVisible();
+    expect(screen.getByText("Verdict: Policy breach confirmed")).toBeVisible();
+    expect(screen.getByText("Review case-1")).toBeVisible();
+  });
+
+  it("uses text decimal inputs for GEN amounts so browser locale does not rewrite dots", () => {
+    render(
+      <AgentWorkspace
+        agentId="agent-alpha"
+        onAgentIdChange={vi.fn()}
+        onRefresh={vi.fn()}
+        snapshot={null}
+        loading={false}
+        readError={null}
+        actions={["create_agent"]}
+        selectedAction="create_agent"
+        onActionChange={vi.fn()}
+        fields={{ ...fields, minimumChallengeBond: "0.1" }}
+        onFieldChange={vi.fn()}
+        onSubmit={vi.fn()}
+        busy={false}
+      />
+    );
+
+    const minimumBond = screen.getByLabelText("Minimum review bond");
+    expect(minimumBond).toHaveAttribute("type", "text");
+    expect(minimumBond).toHaveAttribute("inputmode", "decimal");
+    expect(minimumBond).toHaveValue("0.1");
   });
 });
