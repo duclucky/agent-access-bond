@@ -5,5 +5,12 @@
   "capturedTransactions": [],
   "canonicalReadsCaptured": false,
   "productionFrontendUrl": "https://agent-access-bond.vercel.app",
-  "reason": "The production frontend is deployed, but no transaction signed through an injected browser wallet has been captured for this revision. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
+  "connectionUiVerification": {
+    "providerInjected": false,
+    "metaMaskConnectModalOpened": true,
+    "extensionOptionPresent": true,
+    "mobileQrOptionPresent": true,
+    "verifiedAt": "2026-07-28T08:54:00.134Z"
+  },
+  "reason": "MetaMask Connect onboarding was verified on the production frontend without an injected provider, but no user-approved wallet connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
 }
