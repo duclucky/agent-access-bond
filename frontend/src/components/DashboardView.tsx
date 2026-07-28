@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 
 interface DashboardViewProps {
@@ -41,13 +42,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
         <div className="relative z-10 flex flex-col items-center w-full">
           {/* Hero Icon Badge */}
           <div className="w-16 h-16 rounded-2xl border border-orange-500/30 bg-slate-950 flex items-center justify-center mb-5 relative group shadow-inner">
-            <span className="material-symbols-outlined text-3xl text-orange-500" style={{ fontVariationSettings: "'wght' 300" }}>
-              policy
-            </span>
+            <Icon name="policy" className="text-3xl text-orange-500" />
           </div>
 
           <div className="space-y-2 mb-6">
-            <h2 className="font-headline text-3xl font-black tracking-tighter text-white uppercase">
+            <h2 className="font-headline text-3xl font-black text-white uppercase">
               Inspect Agent Bond
             </h2>
             <p className="font-sans text-sm text-slate-400 max-w-lg mx-auto leading-relaxed">
@@ -58,20 +57,18 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
           {/* Search Bar */}
           <form onSubmit={handleSearchSubmit} className="w-full max-w-md relative">
             <div className="relative flex items-center">
-              <span className="material-symbols-outlined absolute left-4 text-slate-500 text-lg">
-                search
-              </span>
+              <Icon name="search" className="absolute left-4 text-slate-500 text-lg" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Enter Agent ID"
-                className="w-full bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs pl-11 pr-28 py-3.5 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-slate-600"
+                className="w-full bg-slate-950 border border-slate-800 text-slate-200 font-sans text-sm pl-11 pr-28 py-3.5 rounded-xl focus:outline-none focus:border-orange-500 focus:ring-1 focus:ring-orange-500 transition-all placeholder:text-slate-500"
               />
               <button
                 type="submit"
                 disabled={loading}
-                className="absolute right-1.5 bg-orange-500 text-slate-950 font-mono text-xs font-bold px-4 py-2 rounded-lg hover:bg-orange-400 transition-colors uppercase tracking-wider shadow-sm"
+                className="absolute right-1.5 bg-orange-500 text-slate-950 font-sans text-xs font-bold px-4 py-2 rounded-lg hover:bg-orange-400 transition-colors uppercase shadow-sm"
               >
                 {loading ? 'Reading' : 'Inspect'}
               </button>
@@ -94,11 +91,9 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
           {/* Secondary CTA */}
           <button
             onClick={() => onNavigate('register')}
-            className="border border-slate-800 bg-slate-950 text-slate-200 font-mono text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl hover:bg-slate-800 hover:border-orange-500/40 transition-all flex items-center gap-2 shadow-sm"
+            className="border border-slate-800 bg-slate-950 text-slate-200 font-sans text-xs font-bold uppercase px-5 py-2.5 rounded-xl hover:bg-slate-800 hover:border-orange-500/40 transition-all flex items-center gap-2 shadow-sm"
           >
-            <span className="material-symbols-outlined text-base text-orange-500">
-              add_circle
-            </span>
+            <Icon name="add_circle" className="text-base text-orange-500" />
             <span>Register New Agent Bond</span>
           </button>
 
@@ -106,11 +101,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
           <div className="pt-6 flex items-center gap-6 justify-center w-full">
             <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-              <span className="font-mono text-[11px] text-slate-500">Validator Consensus Active</span>
+              <span className="font-sans text-xs text-slate-500">Validator Consensus Active</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="material-symbols-outlined text-xs text-slate-500">lock</span>
-              <span className="font-mono text-[11px] text-slate-500">Immutable Access Ledger</span>
+              <Icon name="lock" className="text-xs text-slate-500" />
+              <span className="font-sans text-xs text-slate-500">Immutable Access Ledger</span>
             </div>
           </div>
         </div>
@@ -120,8 +115,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 border-l-4 border-l-orange-500 glow-hover">
           <div className="flex justify-between items-start mb-2">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 tracking-widest">Total Locked Bonds</span>
-            <span className="material-symbols-outlined text-lg text-orange-500">account_balance</span>
+            <span className="font-mono text-[10px] uppercase font-bold text-slate-500">Total Locked Bonds</span>
+            <Icon name="account_balance" className="text-lg text-orange-500" />
           </div>
           <div className="font-mono text-2xl font-black text-white">
             {accounting.total_locked_operator_bonds.toLocaleString()} <span className="text-xs text-orange-500 font-bold">GEN</span>
@@ -133,8 +128,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 border-l-4 border-l-amber-500 glow-hover">
           <div className="flex justify-between items-start mb-2">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 tracking-widest">Active Challenge Bonds</span>
-            <span className="material-symbols-outlined text-lg text-amber-500">gavel</span>
+            <span className="font-mono text-[10px] uppercase font-bold text-slate-500">Active Challenge Bonds</span>
+            <Icon name="gavel" className="text-lg text-amber-500" />
           </div>
           <div className="font-mono text-2xl font-black text-amber-400">
             {accounting.total_active_challenge_bonds.toLocaleString()} <span className="text-xs text-slate-500 font-bold">GEN</span>
@@ -146,8 +141,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 border-l-4 border-l-red-500 glow-hover">
           <div className="flex justify-between items-start mb-2">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 tracking-widest">Total Slashed Penalties</span>
-            <span className="material-symbols-outlined text-lg text-red-500">shield_with_heart</span>
+            <span className="font-mono text-[10px] uppercase font-bold text-slate-500">Total Slashed Penalties</span>
+            <Icon name="shield_with_heart" className="text-lg text-red-500" />
           </div>
           <div className="font-mono text-2xl font-black text-red-400">
             {accounting.total_slashed_penalties.toLocaleString()} <span className="text-xs text-slate-500 font-bold">GEN</span>
@@ -159,8 +154,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
 
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 border-l-4 border-l-emerald-500 glow-hover">
           <div className="flex justify-between items-start mb-2">
-            <span className="font-mono text-[10px] uppercase font-bold text-slate-500 tracking-widest">Contract Vault Balance</span>
-            <span className="material-symbols-outlined text-lg text-emerald-400">savings</span>
+            <span className="font-mono text-[10px] uppercase font-bold text-slate-500">Contract Vault Balance</span>
+            <Icon name="savings" className="text-lg text-emerald-400" />
           </div>
           <div className="font-mono text-2xl font-black text-white">
             {accounting.contract_balance.toLocaleString()} <span className="text-xs text-emerald-400 font-bold">GEN</span>
@@ -175,8 +170,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-4">
           <div>
-            <h3 className="font-headline text-xl font-black tracking-tighter text-white uppercase flex items-center gap-2">
-              <span className="material-symbols-outlined text-orange-500">view_list</span>
+            <h3 className="font-headline text-xl font-black text-white uppercase flex items-center gap-2">
+              <Icon name="view_list" className="text-orange-500" />
               Contract-backed Agent Bonds
             </h3>
             <p className="font-sans text-xs text-slate-400">
@@ -222,25 +217,25 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
                       </span>
                       {agent.status === 'ACTIVE' && (
                         <span className="px-2 py-0.5 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-[10px] font-bold flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">check_circle</span>
+                          <Icon name="check_circle" className="text-[12px]" />
                           ACTIVE
                         </span>
                       )}
                       {agent.status === 'QUARANTINED' && (
                         <span className="px-2 py-0.5 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-mono text-[10px] font-bold flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">warning</span>
+                          <Icon name="warning" className="text-[12px]" />
                           QUARANTINED
                         </span>
                       )}
                       {agent.status === 'PENDING_REVIEW' && (
                         <span className="px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-[10px] font-bold flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">pending</span>
+                          <Icon name="pending" className="text-[12px]" />
                           PENDING_REVIEW
                         </span>
                       )}
                       {agent.status === 'DRAFT' && (
                         <span className="px-2 py-0.5 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono text-[10px] font-bold flex items-center gap-1">
-                          <span className="material-symbols-outlined text-[12px]">edit_note</span>
+                          <Icon name="edit_note" className="text-[12px]" />
                           DRAFT
                         </span>
                       )}
@@ -256,11 +251,11 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
 
                   <div className="space-y-2 mb-4 font-mono text-xs">
                     <div>
-                      <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Protected Origin</span>
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold">Protected Origin</span>
                       <span className="text-slate-300 truncate block font-medium">{agent.origin}</span>
                     </div>
                     <div>
-                      <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Allowed Purpose</span>
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold">Allowed Purpose</span>
                       <p className="font-sans text-xs text-slate-400 line-clamp-2 leading-relaxed">
                         {agent.allowed_purpose}
                       </p>
@@ -273,8 +268,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
                     <span>Bond: <strong className="text-white">{agent.operator_bond} GEN</strong></span>
                     <span>Penalty: <strong className="text-amber-400">{agent.penalty_amount} GEN</strong></span>
                   </div>
-                  <span className="text-orange-500 flex items-center gap-0.5 text-xs font-bold uppercase tracking-wider">
-                    Inspect <span className="material-symbols-outlined text-sm">chevron_right</span>
+                  <span className="text-orange-500 flex items-center gap-0.5 text-xs font-bold uppercase">
+                    Inspect <Icon name="chevron_right" className="text-sm" />
                   </span>
                 </div>
               </div>

@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 import { AccessCase } from '../types';
 
@@ -102,8 +103,8 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
       {/* Header */}
       <header className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
-          <h2 className="font-headline text-2xl md:text-3xl font-black uppercase tracking-tighter text-white mb-1 flex items-center gap-2">
-            <span className="material-symbols-outlined text-orange-500 text-2xl">gavel</span>
+          <h2 className="font-headline text-2xl md:text-3xl font-black uppercase text-white mb-1 flex items-center gap-2">
+            <Icon name="gavel" className="text-orange-500 text-2xl" />
             Access Cases & Validator Reviews
           </h2>
           <p className="font-sans text-xs md:text-sm text-slate-400">
@@ -113,9 +114,9 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
         <button
           onClick={() => setShowChallengeModal(true)}
-          className="bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider px-4 py-2.5 rounded-xl hover:bg-orange-400 transition-colors shadow-md flex items-center gap-2 shrink-0"
+          className="bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase px-4 py-2.5 rounded-xl hover:bg-orange-400 transition-colors shadow-md flex items-center gap-2 shrink-0"
         >
-          <span className="material-symbols-outlined text-sm">add_alert</span>
+          <Icon name="add_alert" className="text-sm" />
           <span>Submit Evidence Challenge</span>
         </button>
       </header>
@@ -132,7 +133,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
         <div className="flex items-center gap-2 bg-slate-900 p-1 rounded-xl border border-slate-800 font-mono text-xs">
           <button
             onClick={() => setFilterStatus('ALL')}
-            className={`px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-bold uppercase transition-colors ${
               filterStatus === 'ALL' ? 'bg-orange-500 text-slate-950' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -140,7 +141,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatus('OPEN')}
-            className={`px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-bold uppercase transition-colors ${
               filterStatus === 'OPEN' ? 'bg-amber-500 text-slate-950' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -148,7 +149,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
           </button>
           <button
             onClick={() => setFilterStatus('RESOLVED')}
-            className={`px-3 py-1.5 rounded-lg font-bold uppercase tracking-wider transition-colors ${
+            className={`px-3 py-1.5 rounded-lg font-bold uppercase transition-colors ${
               filterStatus === 'RESOLVED' ? 'bg-emerald-500 text-slate-950' : 'text-slate-400 hover:text-white'
             }`}
           >
@@ -199,12 +200,12 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
                 <div className="space-y-2 mb-4 font-mono text-xs">
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Target URL Inspected</span>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Target URL Inspected</span>
                     <span className="text-slate-200 font-medium break-all">{c.target_url}</span>
                   </div>
 
                   <div>
-                    <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">Public Action Receipt</span>
+                    <span className="text-slate-500 block text-[10px] uppercase font-bold">Public Action Receipt</span>
                     <a
                       href={c.receipt_url}
                       target="_blank"
@@ -212,13 +213,13 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                       className="text-orange-400 hover:underline flex items-center gap-1 truncate text-[11px] font-bold"
                     >
                       {c.receipt_url}
-                      <span className="material-symbols-outlined text-[10px]">open_in_new</span>
+                      <Icon name="open_in_new" className="text-[10px]" />
                     </a>
                   </div>
 
                   {c.verdict && (
                     <div className="pt-2">
-                      <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">Finalized Verdict</span>
+                      <span className="text-slate-500 block text-[10px] uppercase font-bold mb-1">Finalized Verdict</span>
                       <span
                         className={`inline-block px-2 py-0.5 rounded-full text-[11px] font-bold uppercase ${
                           c.verdict.applicability === 'MATERIAL_VIOLATION'
@@ -242,10 +243,10 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
                 <button
                   onClick={() => setSelectedCase(c)}
-                  className="bg-slate-950 hover:bg-slate-800 text-slate-200 font-bold uppercase tracking-wider px-3 py-1.5 rounded-xl border border-slate-800 transition-colors flex items-center gap-1"
+                  className="bg-slate-950 hover:bg-slate-800 text-slate-200 font-bold uppercase px-3 py-1.5 rounded-xl border border-slate-800 transition-colors flex items-center gap-1"
                 >
                   <span>{c.status === 'OPEN' ? 'Review & Adjudicate' : 'View Verdict'}</span>
-                  <span className="material-symbols-outlined text-sm">chevron_right</span>
+                  <Icon name="chevron_right" className="text-sm" />
                 </button>
               </div>
             </div>
@@ -261,7 +262,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               onClick={() => setSelectedCase(null)}
               className="absolute top-4 right-4 text-slate-500 hover:text-white"
             >
-              <span className="material-symbols-outlined">close</span>
+              <Icon name="close" className="" />
             </button>
 
             <div className="border-b border-slate-800 pb-3">
@@ -276,16 +277,16 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
             {/* Evidence Comparison Table */}
             <div className="space-y-3 font-mono text-xs bg-slate-950 p-4 rounded-2xl border border-slate-800">
-              <h4 className="text-orange-400 font-bold uppercase text-[11px] tracking-wider">Public Evidence Inspected by Validators</h4>
+              <h4 className="text-orange-400 font-bold uppercase text-[11px]">Public Evidence Inspected by Validators</h4>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2">
                 <div>
-                  <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider">Target URL Alleged</span>
+                  <span className="text-slate-500 text-[10px] block uppercase font-bold">Target URL Alleged</span>
                   <code className="text-slate-200 bg-slate-900 p-2 rounded-xl border border-slate-800 block break-all mt-1">
                     {selectedCase.target_url}
                   </code>
                 </div>
                 <div>
-                  <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider">Public Action Receipt URL</span>
+                  <span className="text-slate-500 text-[10px] block uppercase font-bold">Public Action Receipt URL</span>
                   <code className="text-slate-200 bg-slate-900 p-2 rounded-xl border border-slate-800 block break-all mt-1">
                     {selectedCase.receipt_url}
                   </code>
@@ -294,7 +295,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
               {selectedCase.description && (
                 <div className="pt-2 border-t border-slate-800">
-                  <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider">Challenger Claim Description</span>
+                  <span className="text-slate-500 text-[10px] block uppercase font-bold">Challenger Claim Description</span>
                   <p className="font-sans text-xs text-slate-300 mt-1">{selectedCase.description}</p>
                 </div>
               )}
@@ -305,7 +306,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               <div className="space-y-4 bg-slate-950 p-5 rounded-2xl border border-slate-800">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <span className="font-mono text-xs text-emerald-400 font-bold flex items-center gap-1.5 uppercase">
-                    <span className="material-symbols-outlined text-base">verified</span>
+                    <Icon name="verified" className="text-base" />
                     Canonical Verdict Finalized
                   </span>
                   <span className="font-mono text-xs text-slate-500">
@@ -315,7 +316,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
                 <div className="grid grid-cols-2 gap-4 font-mono text-xs">
                   <div>
-                    <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider">Applicability Class</span>
+                    <span className="text-slate-500 text-[10px] block uppercase font-bold">Applicability Class</span>
                     <span className={`px-2 py-0.5 rounded-full text-xs font-bold inline-block uppercase mt-1 ${
                       selectedCase.verdict.applicability === 'MATERIAL_VIOLATION'
                         ? 'bg-red-500/10 text-red-400 border border-red-500/20'
@@ -326,13 +327,13 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                   </div>
 
                   <div>
-                    <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider">Violation Type</span>
+                    <span className="text-slate-500 text-[10px] block uppercase font-bold">Violation Type</span>
                     <span className="text-white font-bold block mt-1">{selectedCase.verdict.violation_type}</span>
                   </div>
                 </div>
 
                 <div className="space-y-1 font-sans text-xs">
-                  <span className="font-mono text-[10px] text-slate-500 uppercase font-bold tracking-wider block">Consensus Rationale</span>
+                  <span className="font-mono text-[10px] text-slate-500 uppercase font-bold block">Consensus Rationale</span>
                   <p className="text-slate-300 bg-slate-900 p-3 rounded-xl border border-slate-800 leading-relaxed">
                     {selectedCase.verdict.rationale}
                   </p>
@@ -343,7 +344,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               <div className="space-y-4 bg-slate-950 p-5 rounded-2xl border border-slate-800">
                 <div className="border-b border-slate-800 pb-2">
                   <h4 className="font-headline text-base font-black uppercase text-white flex items-center gap-2">
-                    <span className="material-symbols-outlined text-amber-500">auto_mode</span>
+                    <Icon name="auto_mode" className="text-amber-500" />
                     Run GenLayer Validator Adjudication Consensus
                   </h4>
                   <p className="font-sans text-xs text-slate-400">
@@ -358,18 +359,16 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                 <button
                   onClick={() => void handleRunAdjudication(selectedCase.case_id)}
                   disabled={isAdjudicating}
-                  className="w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
+                  className="w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
                 >
                   {isAdjudicating ? (
                     <>
-                      <span className="material-symbols-outlined text-base animate-spin">
-                        sync
-                      </span>
+                      <Icon name="sync" className="text-base animate-spin" />
                       <span>Validators Executing Equivalence Consensus...</span>
                     </>
                   ) : (
                     <>
-                      <span className="material-symbols-outlined text-base">gavel</span>
+                      <Icon name="gavel" className="text-base" />
                       <span>Execute Validator Consensus Adjudication</span>
                     </>
                   )}
@@ -397,12 +396,12 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               onClick={() => setShowChallengeModal(false)}
               className="absolute top-4 right-4 text-slate-500 hover:text-white"
             >
-              <span className="material-symbols-outlined">close</span>
+              <Icon name="close" className="" />
             </button>
 
             <div className="border-b border-slate-800 pb-3">
               <h3 className="font-headline text-xl font-black uppercase text-white flex items-center gap-2">
-                <span className="material-symbols-outlined text-amber-500">add_alert</span>
+                <Icon name="add_alert" className="text-amber-500" />
                 Submit Public Evidence Challenge
               </h3>
               <p className="font-sans text-xs text-slate-400 mt-1">
@@ -412,7 +411,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
             <form onSubmit={handleOpenChallengeSubmit} className="space-y-4">
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Target Agent ID
                 </label>
                 <select
@@ -430,7 +429,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Target Endpoint URL Alleged
                 </label>
                 <input
@@ -444,7 +443,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Public Action Receipt URL
                 </label>
                 <input
@@ -458,7 +457,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Challenge Bond Amount (GEN)
                 </label>
                 <input
@@ -472,7 +471,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Breach Description / Rationale
                 </label>
                 <textarea
@@ -495,13 +494,11 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                 <button
                   type="submit"
                   disabled={isSubmittingChallenge}
-                  className="px-5 py-2 rounded-xl bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider hover:bg-orange-400 transition-colors flex items-center gap-2"
+                  className="px-5 py-2 rounded-xl bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase hover:bg-orange-400 transition-colors flex items-center gap-2"
                 >
                   {isSubmittingChallenge ? (
                     <>
-                      <span className="material-symbols-outlined text-sm animate-spin">
-                        sync
-                      </span>
+                      <Icon name="sync" className="text-sm animate-spin" />
                       <span>Locking Challenge Bond...</span>
                     </>
                   ) : (

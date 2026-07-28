@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 
 interface RegisterAgentViewProps {
@@ -60,7 +61,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-end justify-between gap-4 border-b border-slate-800 pb-4">
         <div>
-          <h2 className="font-headline text-2xl md:text-3xl font-black uppercase tracking-tighter text-white mb-1">
+          <h2 className="font-headline text-2xl md:text-3xl font-black uppercase text-white mb-1">
             Register New Web Agent Bond
           </h2>
           <p className="font-sans text-xs md:text-sm text-slate-400 max-w-2xl">
@@ -69,14 +70,14 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
         </div>
 
         <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-900 rounded-xl border border-slate-800 text-slate-300 font-mono text-xs shrink-0">
-          <span className="material-symbols-outlined text-sm text-orange-500">warning</span>
+          <Icon name="warning" className="text-sm text-orange-500" />
           <span>Requires GenLayer wallet signature</span>
         </div>
       </header>
 
       {errorMsg && (
         <div className="p-4 rounded-2xl bg-red-500/10 border border-red-500/30 text-red-400 font-sans text-xs flex items-center gap-2">
-          <span className="material-symbols-outlined text-base">error</span>
+          <Icon name="error" className="text-base" />
           <span>{errorMsg}</span>
         </div>
       )}
@@ -87,24 +88,24 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
           {/* Identity & Origin Parameters Module */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 relative overflow-hidden">
             <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-              <span className="material-symbols-outlined text-9xl">fingerprint</span>
+              <Icon name="fingerprint" className="text-9xl" />
             </div>
 
             <div className="flex items-center gap-3 mb-5 border-b border-slate-800 pb-3">
-              <span className="material-symbols-outlined text-orange-500">badge</span>
-              <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white">
+              <Icon name="badge" className="text-orange-500" />
+              <h3 className="font-headline text-lg font-black uppercase text-white">
                 Identity & Origin Parameters
               </h3>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                   Protected Origin URL <span className="text-red-400">*</span>
                 </label>
                 <div className="relative">
                   <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-500">
-                    <span className="material-symbols-outlined text-sm">link</span>
+                    <Icon name="link" className="text-sm" />
                   </span>
                   <input
                     type="text"
@@ -122,7 +123,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
-                  <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+                  <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                     User-Agent String <span className="text-red-400">*</span>
                   </label>
                   <input
@@ -136,7 +137,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
                 </div>
 
                 <div>
-                  <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+                  <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                     Designated User Address (Beneficiary)
                   </label>
                   <input
@@ -154,15 +155,15 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
           {/* Behavioral Policy Module */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6">
             <div className="flex items-center gap-3 mb-5 border-b border-slate-800 pb-3">
-              <span className="material-symbols-outlined text-orange-500">policy</span>
-              <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white">
+              <Icon name="policy" className="text-orange-500" />
+              <h3 className="font-headline text-lg font-black uppercase text-white">
                 Behavioral Access Policy
               </h3>
             </div>
 
             <div className="space-y-4">
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                   Policy Document URL (Publicly Inspectable) <span className="text-red-400">*</span>
                 </label>
                 <input
@@ -179,7 +180,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
               </div>
 
               <div>
-                <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+                <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                   Allowed Purpose (Plaintext Operational Summary) <span className="text-red-400">*</span>
                 </label>
                 <textarea
@@ -200,14 +201,14 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
           {/* Operator Financial Bond Module */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
             <div className="flex items-center gap-3 mb-2 border-b border-slate-800 pb-3">
-              <span className="material-symbols-outlined text-amber-500">account_balance</span>
-              <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white">
+              <Icon name="account_balance" className="text-amber-500" />
+              <h3 className="font-headline text-lg font-black uppercase text-white">
                 Operator Bond
               </h3>
             </div>
 
             <div>
-              <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+              <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                 Initial Bond Collateral (GEN)
               </label>
               <div className="relative">
@@ -226,7 +227,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
             </div>
 
             <div>
-              <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+              <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                 Penalty Amount Slashed per Breach
               </label>
               <div className="relative">
@@ -243,7 +244,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
             </div>
 
             <div>
-              <label className="block font-mono text-xs text-slate-400 uppercase font-bold tracking-wider mb-1.5">
+              <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
                 Minimum Challenge Bond
               </label>
               <div className="relative">
@@ -262,31 +263,25 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
 
           {/* Projected Security Summary */}
           <div className="bg-slate-900 rounded-2xl border border-slate-800 p-6 space-y-4">
-            <h4 className="font-mono text-xs text-slate-500 uppercase tracking-wider border-b border-slate-800 pb-2 font-bold">
+            <h4 className="font-mono text-xs text-slate-500 uppercase border-b border-slate-800 pb-2 font-bold">
               Projected Security Summary
             </h4>
 
             <ul className="space-y-3 font-sans text-xs text-slate-300">
               <li className="flex gap-2.5 items-start">
-                <span className="material-symbols-outlined text-emerald-400 text-base shrink-0">
-                  check_circle
-                </span>
+                <Icon name="check_circle" className="text-emerald-400 text-base shrink-0" />
                 <span>
                   Bond locks <strong className="font-mono text-orange-400">immutable constraints</strong> on agent behavior.
                 </span>
               </li>
               <li className="flex gap-2.5 items-start">
-                <span className="material-symbols-outlined text-emerald-400 text-base shrink-0">
-                  check_circle
-                </span>
+                <Icon name="check_circle" className="text-emerald-400 text-base shrink-0" />
                 <span>
                   Policy breaches confirmed via Access Reviews trigger automated <strong className="text-amber-400">slashing events</strong>.
                 </span>
               </li>
               <li className="flex gap-2.5 items-start">
-                <span className="material-symbols-outlined text-slate-500 text-base shrink-0">
-                  lock
-                </span>
+                <Icon name="lock" className="text-slate-500 text-base shrink-0" />
                 <span>
                   Origin and Policy URL cannot be modified post-deployment.
                 </span>
@@ -296,25 +291,23 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-xl hover:bg-orange-400 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
+              className="w-full bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-orange-400 transition-colors flex items-center justify-center gap-2 shadow-md disabled:opacity-50 cursor-pointer"
             >
               {isSubmitting ? (
                 <>
-                  <span className="material-symbols-outlined text-sm animate-spin">
-                    sync
-                  </span>
+                  <Icon name="sync" className="text-sm animate-spin" />
                   <span>Signing & Broadcasting Bond...</span>
                 </>
               ) : (
                 <>
-                  <span className="material-symbols-outlined text-sm">edit_document</span>
+                  <Icon name="edit_document" className="text-sm" />
                   <span>Create Agent Draft Bond</span>
                 </>
               )}
             </button>
 
             <p className="text-center text-[10px] font-mono text-slate-500 flex items-center justify-center gap-1">
-              <span className="material-symbols-outlined text-xs">account_balance_wallet</span>
+              <Icon name="account_balance_wallet" className="text-xs" />
               <span>Prompts wallet signature on GenLayer Studionet</span>
             </p>
           </div>

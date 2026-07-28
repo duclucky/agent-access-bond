@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 import { AccessCase, Verdict } from '../types';
 
@@ -40,7 +41,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
   if (!agent) {
     return (
       <div className="p-8 text-center space-y-4 max-w-lg mx-auto bg-slate-900 border border-slate-800 rounded-2xl my-12">
-        <span className="material-symbols-outlined text-5xl text-slate-500">{loading ? 'sync' : 'search_off'}</span>
+        <Icon name={loading ? 'sync' : 'search_off'} className={`text-5xl text-slate-500 ${loading ? 'animate-spin' : ''}`} />
         <h3 className="font-headline text-xl text-white font-bold uppercase">
           {loading ? 'Reading Contract State' : 'Agent Not Found'}
         </h3>
@@ -66,7 +67,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
       {/* Navigation Breadcrumb */}
       <div className="flex items-center gap-2 font-mono text-xs text-slate-500">
         <button onClick={onBack} className="hover:text-white transition-colors flex items-center gap-1">
-          <span className="material-symbols-outlined text-sm">arrow_back</span>
+          <Icon name="arrow_back" className="text-sm" />
           Dashboard
         </button>
         <span>/</span>
@@ -76,41 +77,41 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
       {/* Header */}
       <header className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
         <div className="flex flex-col md:flex-row md:items-center gap-3">
-          <h2 className="font-headline text-3xl font-black tracking-tighter text-white uppercase">
+          <h2 className="font-headline text-3xl font-black text-white uppercase">
             {agent.agent_id}
           </h2>
 
           {agent.status === 'ACTIVE' && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 font-mono text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">check_circle</span>
+              <Icon name="check_circle" className="text-sm" />
               ACTIVE
             </div>
           )}
 
           {agent.status === 'QUARANTINED' && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-red-500/10 border border-red-500/20 text-red-400 font-mono text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">warning</span>
+              <Icon name="warning" className="text-sm" />
               QUARANTINED
             </div>
           )}
 
           {agent.status === 'PENDING_REVIEW' && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-amber-500/10 border border-amber-500/20 text-amber-400 font-mono text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">pending</span>
+              <Icon name="pending" className="text-sm" />
               PENDING_REVIEW
             </div>
           )}
 
           {agent.status === 'DRAFT' && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 border border-slate-700 text-slate-400 font-mono text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">edit_note</span>
+              <Icon name="edit_note" className="text-sm" />
               DRAFT (Awaiting Approval)
             </div>
           )}
 
           {agent.status === 'CLOSED' && (
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-slate-800 text-slate-500 font-mono text-xs font-bold">
-              <span className="material-symbols-outlined text-sm">lock</span>
+              <Icon name="lock" className="text-sm" />
               CLOSED
             </div>
           )}
@@ -122,7 +123,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
               onClick={() => void approveAgent(agent.agent_id)}
               className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase hover:bg-emerald-400 transition-colors shadow-sm flex items-center gap-1.5"
             >
-              <span className="material-symbols-outlined text-sm">verified</span>
+              <Icon name="verified" className="text-sm" />
               Approve Agent (Designated User)
             </button>
           )}
@@ -140,7 +141,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             onClick={() => onOpenChallengeForAgent(agent.agent_id)}
             className="px-4 py-2 rounded-xl bg-orange-500 text-slate-950 hover:bg-orange-400 transition-colors font-mono text-xs font-bold uppercase shadow-sm flex items-center gap-1.5"
           >
-            <span className="material-symbols-outlined text-sm">gavel</span>
+            <Icon name="gavel" className="text-sm" />
             Open Challenge
           </button>
 
@@ -157,9 +158,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
       {/* Warning Banner for Quarantined or Pending Review */}
       {agent.status === 'QUARANTINED' && (
         <div className="bg-red-500/10 border border-red-500/30 p-5 rounded-2xl flex gap-4 items-start shadow-lg">
-          <span className="material-symbols-outlined text-red-400 text-2xl shrink-0 mt-0.5">
-            gavel
-          </span>
+          <Icon name="gavel" className="text-red-400 text-2xl shrink-0 mt-0.5" />
           <div>
             <h3 className="font-headline text-lg font-black uppercase text-red-300 mb-1">
               Execution Pause: Validator Verdict Finalized a Material Violation
@@ -176,9 +175,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
 
       {agent.status === 'PENDING_REVIEW' && (
         <div className="bg-amber-500/10 border border-amber-500/30 p-5 rounded-2xl flex gap-4 items-start shadow-lg">
-          <span className="material-symbols-outlined text-amber-400 text-2xl shrink-0 mt-0.5">
-            hourglass_top
-          </span>
+          <Icon name="hourglass_top" className="text-amber-400 text-2xl shrink-0 mt-0.5" />
           <div>
             <h3 className="font-headline text-lg font-black uppercase text-amber-300 mb-1">
               Adjudication Pending: Challenge Case Under Validator Inspection
@@ -194,16 +191,14 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Agent Identity Card */}
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4 glow-hover">
-          <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white border-b border-slate-800 pb-3 flex items-center gap-2">
-            <span className="material-symbols-outlined text-orange-500 text-xl">
-              fingerprint
-            </span>
+          <h3 className="font-headline text-lg font-black uppercase text-white border-b border-slate-800 pb-3 flex items-center gap-2">
+            <Icon name="fingerprint" className="text-orange-500 text-xl" />
             Agent Identity
           </h3>
 
           <div className="space-y-3 font-mono text-xs">
             <div>
-              <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">
+              <span className="text-slate-500 block text-[10px] uppercase font-bold mb-1">
                 User-Agent String
               </span>
               <code className="block text-slate-200 bg-slate-950 px-3 py-2 rounded-xl border border-slate-800 break-all leading-relaxed">
@@ -213,7 +208,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">
+                <span className="text-slate-500 block text-[10px] uppercase font-bold mb-1">
                   Protected Origin URL
                 </span>
                 <a
@@ -223,12 +218,12 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                   className="text-orange-400 hover:underline flex items-center gap-1 font-bold truncate"
                 >
                   {agent.origin}
-                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  <Icon name="open_in_new" className="text-xs" />
                 </a>
               </div>
 
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider mb-1">
+                <span className="text-slate-500 block text-[10px] uppercase font-bold mb-1">
                   Policy URL
                 </span>
                 <a
@@ -238,14 +233,14 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                   className="text-orange-400 hover:underline flex items-center gap-1 font-bold truncate"
                 >
                   {agent.policy_url}
-                  <span className="material-symbols-outlined text-xs">open_in_new</span>
+                  <Icon name="open_in_new" className="text-xs" />
                 </a>
               </div>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-slate-800">
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">
                   Operator Address
                 </span>
                 <span className="text-slate-300 truncate block">
@@ -253,7 +248,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                 </span>
               </div>
               <div>
-                <span className="text-slate-500 block text-[10px] uppercase font-bold tracking-wider">
+                <span className="text-slate-500 block text-[10px] uppercase font-bold">
                   Designated User Address
                 </span>
                 <span className="text-slate-300 truncate block">
@@ -267,19 +262,17 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
         {/* Bond Accounting Card */}
         <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col gap-4 glow-hover relative overflow-hidden">
           <div className="absolute top-0 right-0 p-4 opacity-5 pointer-events-none">
-            <span className="material-symbols-outlined text-9xl">account_balance</span>
+            <Icon name="account_balance" className="text-9xl" />
           </div>
 
-          <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white border-b border-slate-800 pb-3 flex items-center gap-2 relative z-10">
-            <span className="material-symbols-outlined text-orange-500 text-xl">
-              account_balance_wallet
-            </span>
+          <h3 className="font-headline text-lg font-black uppercase text-white border-b border-slate-800 pb-3 flex items-center gap-2 relative z-10">
+            <Icon name="account_balance_wallet" className="text-orange-500 text-xl" />
             Bond Accounting
           </h3>
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 relative z-10 h-full">
             <div className="flex flex-col justify-center bg-slate-950 p-4 rounded-xl border border-slate-800 border-l-4 border-l-orange-500">
-              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">
+              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold mb-1">
                 Operator Bond
               </span>
               <span className="font-mono text-xl font-black text-white">
@@ -289,7 +282,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             </div>
 
             <div className="flex flex-col justify-center bg-slate-950 p-4 rounded-xl border border-slate-800 border-l-4 border-l-amber-500">
-              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">
+              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold mb-1">
                 Penalty Reserve
               </span>
               <span className="font-mono text-xl font-black text-amber-400">
@@ -299,7 +292,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             </div>
 
             <div className="flex flex-col justify-center bg-slate-950 p-4 rounded-xl border border-slate-800 border-l-4 border-l-slate-700">
-              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold tracking-wider mb-1">
+              <span className="font-mono text-[10px] text-slate-500 uppercase font-bold mb-1">
                 Min Challenge Bond
               </span>
               <span className="font-mono text-xl font-black text-slate-300">
@@ -313,10 +306,8 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
 
       {/* Allowed Purpose Card */}
       <section className="bg-slate-900 border border-slate-800 rounded-2xl p-6 glow-hover">
-        <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white mb-3 flex items-center gap-2">
-          <span className="material-symbols-outlined text-orange-500 text-xl">
-            policy
-          </span>
+        <h3 className="font-headline text-lg font-black uppercase text-white mb-3 flex items-center gap-2">
+          <Icon name="policy" className="text-orange-500 text-xl" />
           Allowed Purpose (Immutable Scope)
         </h3>
         <p className="font-sans text-sm text-slate-300 leading-relaxed max-w-4xl bg-slate-950 p-4 rounded-xl border border-slate-800">
@@ -327,16 +318,14 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
       {/* Access Review Timeline / Cases Table */}
       <section className="space-y-4">
         <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-          <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-orange-500 text-xl">
-              history
-            </span>
+          <h3 className="font-headline text-lg font-black uppercase text-white flex items-center gap-2">
+            <Icon name="history" className="text-orange-500 text-xl" />
             Access Review Timeline ({agent.cases.length} Cases)
           </h3>
 
           <button
             onClick={() => onOpenChallengeForAgent(agent.agent_id)}
-            className="text-orange-400 font-mono text-xs hover:underline flex items-center gap-1 font-bold uppercase tracking-wider"
+            className="text-orange-400 font-mono text-xs hover:underline flex items-center gap-1 font-bold uppercase"
           >
             + Submit Evidence Challenge
           </button>
@@ -350,7 +339,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
           <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950">
             <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="bg-slate-900 font-mono text-xs text-slate-500 uppercase tracking-wider border-b border-slate-800">
+                <tr className="bg-slate-900 font-mono text-xs text-slate-500 uppercase border-b border-slate-800">
                   <th className="p-3.5 whitespace-nowrap">Case ID</th>
                   <th className="p-3.5 whitespace-nowrap">Target URL</th>
                   <th className="p-3.5 whitespace-nowrap">Case Status</th>
@@ -392,7 +381,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                       ) : (
                         <button
                           onClick={() => void adjudicateCase(c.case_id)}
-                          className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-mono text-[10px] font-bold hover:bg-amber-400 uppercase tracking-wider transition-colors"
+                          className="px-2.5 py-1 rounded-lg bg-amber-500 text-slate-950 font-mono text-[10px] font-bold hover:bg-amber-400 uppercase transition-colors"
                         >
                           Run Validator Adjudication
                         </button>
@@ -408,9 +397,9 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                             setSelectedVerdict(c.verdict!);
                             setSelectedCase(c);
                           }}
-                          className="text-orange-400 hover:underline font-mono text-xs inline-flex items-center gap-1 font-bold uppercase tracking-wider"
+                          className="text-orange-400 hover:underline font-mono text-xs inline-flex items-center gap-1 font-bold uppercase"
                         >
-                          View Verdict <span className="material-symbols-outlined text-sm">chevron_right</span>
+                          View Verdict <Icon name="chevron_right" className="text-sm" />
                         </button>
                       ) : (
                         <span className="text-slate-500 font-mono text-[11px] uppercase">In Review</span>
@@ -431,18 +420,16 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
         className="group bg-slate-950 border border-slate-800 rounded-2xl overflow-hidden transition-all"
       >
         <summary className="cursor-pointer p-4 font-mono text-xs text-slate-400 bg-slate-900 hover:bg-slate-800/80 transition-colors flex items-center justify-between select-none">
-          <div className="flex items-center gap-2 font-bold uppercase tracking-wider">
-            <span className="material-symbols-outlined text-base">terminal</span>
+          <div className="flex items-center gap-2 font-bold uppercase">
+            <Icon name="terminal" className="text-base" />
             <span>Technical Details (Raw Contract State)</span>
           </div>
-          <span className="material-symbols-outlined transform group-open:rotate-180 transition-transform">
-            expand_more
-          </span>
+          <Icon name="expand_more" className="transform group-open:rotate-180 transition-transform" />
         </summary>
 
         <div className="p-5 border-t border-slate-800 bg-slate-950 space-y-4">
           <div className="flex flex-col gap-1 font-mono text-xs">
-            <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+            <span className="text-slate-500 text-[10px] uppercase font-bold">
               GenLayer Contract Address
             </span>
             <span className="text-orange-400 break-all font-bold">
@@ -451,7 +438,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
           </div>
 
           <div className="flex flex-col gap-1 font-mono text-xs">
-            <span className="text-slate-500 text-[10px] uppercase font-bold tracking-wider">
+            <span className="text-slate-500 text-[10px] uppercase font-bold">
               Raw State JSON (`get_agent("{agent.agent_id}")`)
             </span>
             <pre className="bg-slate-900 p-4 rounded-xl border border-slate-800 overflow-x-auto text-[11px] text-slate-300 leading-relaxed">
@@ -472,7 +459,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
               }}
               className="absolute top-4 right-4 text-slate-500 hover:text-white"
             >
-              <span className="material-symbols-outlined">close</span>
+              <Icon name="close" className="" />
             </button>
 
             <div className="border-b border-slate-800 pb-3">
@@ -487,7 +474,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
 
             <div className="grid grid-cols-2 gap-4 font-mono text-xs bg-slate-950 p-4 rounded-xl border border-slate-800">
               <div>
-                <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider mb-1">Applicability</span>
+                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Applicability</span>
                 <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold inline-block uppercase ${
                   selectedVerdict.applicability === 'MATERIAL_VIOLATION'
                     ? 'bg-red-500/10 text-red-400'
@@ -498,17 +485,17 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider mb-1">Violation Type</span>
+                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Violation Type</span>
                 <span className="text-white font-bold">{selectedVerdict.violation_type}</span>
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider mb-1">Source Coverage</span>
+                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Source Coverage</span>
                 <span className="text-slate-300">{selectedVerdict.source_coverage}</span>
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] block uppercase font-bold tracking-wider mb-1">Validator Consensus</span>
+                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Validator Consensus</span>
                 <span className="text-emerald-400 font-bold">
                   {selectedVerdict.validator_signatures}/{selectedVerdict.total_validators} Nodes Agreed (100%)
                 </span>
@@ -516,14 +503,14 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             </div>
 
             <div className="space-y-2">
-              <span className="font-mono text-xs text-slate-500 block uppercase font-bold tracking-wider">Target URL Inspected</span>
+              <span className="font-mono text-xs text-slate-500 block uppercase font-bold">Target URL Inspected</span>
               <code className="block font-mono text-xs bg-slate-950 p-2.5 rounded-xl border border-slate-800 text-orange-400 break-all">
                 {selectedVerdict.target_url}
               </code>
             </div>
 
             <div className="space-y-2">
-              <span className="font-mono text-xs text-slate-500 block uppercase font-bold tracking-wider">Validator Consensus Rationale</span>
+              <span className="font-mono text-xs text-slate-500 block uppercase font-bold">Validator Consensus Rationale</span>
               <p className="font-sans text-xs text-slate-300 bg-slate-950 p-3.5 rounded-xl border border-slate-800 leading-relaxed">
                 {selectedVerdict.rationale}
               </p>

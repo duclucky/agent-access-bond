@@ -1,16 +1,27 @@
+@import "@fontsource-variable/inter";
+@import "@fontsource-variable/space-grotesk";
+@import "@fontsource-variable/jetbrains-mono";
 @import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter Variable", "Segoe UI", Arial, sans-serif;
+  --font-headline: "Space Grotesk Variable", "Inter Variable", "Segoe UI", Arial, sans-serif;
+  --font-mono: "JetBrains Mono Variable", "Cascadia Code", Consolas, monospace;
+}
 
 @layer base {
   :root {
-    --font-headline: 'IBM Plex Sans', sans-serif;
-    --font-body: 'Inter', sans-serif;
-    --font-mono: 'JetBrains Mono', monospace;
+    --font-body: var(--font-sans);
   }
 
   body {
-    font-family: var(--font-body);
+    margin: 0;
+    font-family: var(--font-sans);
     background-color: #020617; /* slate-950 */
     color: #e2e8f0; /* slate-200 */
+    line-height: 1.5;
+    text-rendering: optimizeLegibility;
+    -webkit-font-smoothing: antialiased;
   }
 
   h1, h2, h3, h4, .font-headline {
@@ -19,6 +30,13 @@
 
   code, pre, .font-mono, .font-label-mono, .font-data-value {
     font-family: var(--font-mono);
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
   }
 }
 
@@ -56,4 +74,3 @@
 ::-webkit-scrollbar-thumb:hover {
   background: #334155;
 }
-

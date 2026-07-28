@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 
 export const IntegratorApiView: React.FC = () => {
@@ -96,8 +97,8 @@ else:
     <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn">
       {/* Header */}
       <header className="border-b border-slate-800 pb-4">
-        <h2 className="font-headline text-2xl md:text-3xl font-black uppercase tracking-tighter text-white mb-1 flex items-center gap-2">
-          <span className="material-symbols-outlined text-orange-500 text-2xl">code</span>
+        <h2 className="font-headline text-2xl md:text-3xl font-black uppercase text-white mb-1 flex items-center gap-2">
+          <Icon name="code" className="text-orange-500 text-2xl" />
           Canonical Read Interface for Integrators
         </h2>
         <p className="font-sans text-xs md:text-sm text-slate-400">
@@ -109,7 +110,7 @@ else:
         {/* Left Column: Method Selector & Inputs */}
         <div className="lg:col-span-5 space-y-4">
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-4 glow-hover">
-            <h3 className="font-headline text-base font-black uppercase text-white tracking-wider border-b border-slate-800 pb-2">
+            <h3 className="font-headline text-base font-black uppercase text-white border-b border-slate-800 pb-2">
               Select Canonical Contract View Method
             </h3>
 
@@ -143,7 +144,7 @@ else:
 
           {/* Dynamic Input Parameters */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 font-mono text-xs glow-hover">
-            <h4 className="text-slate-500 uppercase text-[10px] font-bold tracking-wider">Query Parameters</h4>
+            <h4 className="text-slate-500 uppercase text-[10px] font-bold">Query Parameters</h4>
 
             {(activeMethod === 'can_execute' || activeMethod === 'get_agent' || activeMethod === 'get_agent_status') && (
               <div>
@@ -210,7 +211,7 @@ else:
           {/* Live State Output */}
           <div className="bg-slate-950 border border-slate-800 rounded-2xl p-5 space-y-3 glow-hover">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2 font-mono text-xs">
-              <span className="text-emerald-400 font-bold flex items-center gap-1.5 uppercase tracking-wider">
+              <span className="text-emerald-400 font-bold flex items-center gap-1.5 uppercase">
                 <span className="w-2 h-2 rounded-full bg-emerald-400 animate-ping"></span>
                 Live GenLayer Response Output
               </span>
@@ -225,8 +226,8 @@ else:
           {/* Integration Code Snippet */}
           <div className="bg-slate-900 border border-slate-800 rounded-2xl p-5 space-y-3 glow-hover">
             <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-              <h4 className="font-mono text-xs text-white font-bold flex items-center gap-2 uppercase tracking-wider">
-                <span className="material-symbols-outlined text-sm text-orange-500">terminal</span>
+              <h4 className="font-mono text-xs text-white font-bold flex items-center gap-2 uppercase">
+                <Icon name="terminal" className="text-sm text-orange-500" />
                 GenLayer Python / SDK Integration Snippet
               </h4>
 
@@ -234,9 +235,7 @@ else:
                 onClick={handleCopyCode}
                 className="font-mono text-[11px] px-3 py-1 rounded-lg bg-slate-950 border border-slate-800 text-slate-300 hover:bg-slate-800 flex items-center gap-1"
               >
-                <span className="material-symbols-outlined text-xs">
-                  {copied ? 'done' : 'content_copy'}
-                </span>
+                <Icon name={copied ? 'done' : 'content_copy'} className="text-xs" />
                 <span>{copied ? 'Copied' : 'Copy'}</span>
               </button>
             </div>

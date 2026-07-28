@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 
 export const CreditsView: React.FC = () => {
@@ -27,8 +28,8 @@ export const CreditsView: React.FC = () => {
     <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn">
       {/* Header */}
       <header className="border-b border-slate-800 pb-4">
-        <h2 className="font-headline text-2xl md:text-3xl font-black uppercase tracking-tighter text-white mb-1 flex items-center gap-2">
-          <span className="material-symbols-outlined text-emerald-400 text-2xl">payments</span>
+        <h2 className="font-headline text-2xl md:text-3xl font-black uppercase text-white mb-1 flex items-center gap-2">
+          <Icon name="payments" className="text-emerald-400 text-2xl" />
           Bond Slashes & User Credits Ledger
         </h2>
         <p className="font-sans text-xs md:text-sm text-slate-400">
@@ -39,7 +40,7 @@ export const CreditsView: React.FC = () => {
       {claimedAmount !== null && (
         <div className="p-4 rounded-2xl bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 font-mono text-xs flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <span className="material-symbols-outlined text-base">task_alt</span>
+            <Icon name="task_alt" className="text-base" />
             <span>
               Successfully claimed <strong>{claimedAmount} GEN</strong> to wallet {wallet.address.substring(0, 8)}...
             </span>
@@ -59,10 +60,10 @@ export const CreditsView: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between border-l-4 border-l-emerald-500 glow-hover shadow-xl">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-mono text-xs text-slate-500 uppercase font-bold tracking-wider">
+              <span className="font-mono text-xs text-slate-500 uppercase font-bold">
                 Your Claimable Credits
               </span>
-              <span className="material-symbols-outlined text-emerald-400 text-xl">account_balance_wallet</span>
+              <Icon name="account_balance_wallet" className="text-emerald-400 text-xl" />
             </div>
             <div className="font-mono text-3xl font-black text-emerald-400 mb-2">
               {userCredits} <span className="text-base text-slate-500">GEN</span>
@@ -75,9 +76,9 @@ export const CreditsView: React.FC = () => {
           <button
             onClick={() => void handleClaim()}
             disabled={userCredits <= 0}
-            className="mt-6 w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
+            className="mt-6 w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-40 disabled:cursor-not-allowed shadow-md"
           >
-            <span className="material-symbols-outlined text-base">download</span>
+            <Icon name="download" className="text-base" />
             <span>Claim & Withdraw to Wallet</span>
           </button>
         </div>
@@ -86,10 +87,10 @@ export const CreditsView: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between border-l-4 border-l-red-500 glow-hover">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-mono text-xs text-slate-500 uppercase font-bold tracking-wider">
+              <span className="font-mono text-xs text-slate-500 uppercase font-bold">
                 Total Slashed Penalties
               </span>
-              <span className="material-symbols-outlined text-red-400 text-xl">gavel</span>
+              <Icon name="gavel" className="text-red-400 text-xl" />
             </div>
             <div className="font-mono text-3xl font-black text-red-400 mb-2">
               {accounting.total_slashed_penalties} <span className="text-base text-slate-500">GEN</span>
@@ -108,10 +109,10 @@ export const CreditsView: React.FC = () => {
         <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 flex flex-col justify-between border-l-4 border-l-orange-500 glow-hover">
           <div>
             <div className="flex items-center justify-between mb-3">
-              <span className="font-mono text-xs text-slate-500 uppercase font-bold tracking-wider">
+              <span className="font-mono text-xs text-slate-500 uppercase font-bold">
                 GenLayer Contract Vault
               </span>
-              <span className="material-symbols-outlined text-orange-500 text-xl">savings</span>
+              <Icon name="savings" className="text-orange-500 text-xl" />
             </div>
             <div className="font-mono text-3xl font-black text-white mb-2">
               {accounting.contract_balance} <span className="text-base text-orange-500">GEN</span>
@@ -129,8 +130,8 @@ export const CreditsView: React.FC = () => {
 
       {/* Slashed Penalties Audit Log Table */}
       <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 glow-hover">
-        <h3 className="font-headline text-lg font-black uppercase tracking-tighter text-white mb-4 flex items-center gap-2">
-          <span className="material-symbols-outlined text-red-400">shield_with_heart</span>
+        <h3 className="font-headline text-lg font-black uppercase text-white mb-4 flex items-center gap-2">
+          <Icon name="shield_with_heart" className="text-red-400" />
           Slashed Bond Credit Settlements Audit Log
         </h3>
 
@@ -142,7 +143,7 @@ export const CreditsView: React.FC = () => {
           <div className="overflow-x-auto rounded-2xl border border-slate-800 bg-slate-950">
             <table className="w-full text-left border-collapse font-sans text-xs">
               <thead>
-                <tr className="bg-slate-900 font-mono text-xs text-slate-500 uppercase tracking-wider border-b border-slate-800">
+                <tr className="bg-slate-900 font-mono text-xs text-slate-500 uppercase border-b border-slate-800">
                   <th className="p-3.5">Case ID</th>
                   <th className="p-3.5">Agent ID</th>
                   <th className="p-3.5">Violation Type</th>

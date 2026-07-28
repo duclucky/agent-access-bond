@@ -1,4 +1,5 @@
 import React from 'react';
+import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 
 interface SettingsModalProps {
@@ -23,12 +24,12 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
           onClick={onClose}
           className="absolute top-4 right-4 text-slate-500 hover:text-white"
         >
-          <span className="material-symbols-outlined">close</span>
+          <Icon name="close" className="" />
         </button>
 
         <div className="border-b border-slate-800 pb-3">
           <h3 className="font-headline text-xl font-black uppercase text-white flex items-center gap-2">
-            <span className="material-symbols-outlined text-orange-500">settings</span>
+            <Icon name="settings" className="text-orange-500" />
             Protocol Settings & Role Switcher
           </h3>
           <p className="font-sans text-xs text-slate-400 mt-1">
@@ -59,7 +60,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
 
         {/* Role Switcher */}
         <div className="space-y-2 font-mono text-xs">
-          <label className="text-slate-400 font-bold uppercase text-[11px] tracking-wider block">
+          <label className="text-slate-400 font-bold uppercase text-[11px] block">
             Switch Active Persona Role
           </label>
           <div className="grid grid-cols-2 gap-2.5">
@@ -91,7 +92,7 @@ export const SettingsModal: React.FC<SettingsModalProps> = ({ isOpen, onClose })
         <div className="pt-2 flex justify-end">
           <button
             onClick={onClose}
-            className="bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase tracking-wider px-5 py-2.5 rounded-xl hover:bg-orange-400 transition-colors"
+            className="bg-orange-500 text-slate-950 font-mono text-xs font-bold uppercase px-5 py-2.5 rounded-xl hover:bg-orange-400 transition-colors"
           >
             Apply & Close
           </button>
