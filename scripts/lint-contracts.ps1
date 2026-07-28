@@ -1,8 +1,8 @@
 $ErrorActionPreference = "Stop"
 $env:PYTHONUTF8 = "1"
 
-$linter = Join-Path $PSScriptRoot "..\.venv\Scripts\genvm-lint.exe"
-if (-not (Test-Path $linter)) {
+$python = Join-Path $PSScriptRoot "..\.venv\Scripts\python.exe"
+if (-not (Test-Path $python)) {
   throw "Missing .venv. Run npm run setup first."
 }
 
@@ -16,7 +16,7 @@ if ($contracts.Count -eq 0) {
 }
 
 foreach ($contract in $contracts) {
-  & $linter check $contract.FullName
+  & $python -m genvm_linter.cli check $contract.FullName
   if ($LASTEXITCODE -ne 0) {
     throw "Contract lint failed: $($contract.FullName)"
   }

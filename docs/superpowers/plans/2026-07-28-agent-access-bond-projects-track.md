@@ -104,12 +104,16 @@ Expected: all deployment/check script tests pass.
 Add assertions that:
 
 ```python
-assert contract_class.name == "Contract"
+assert contract_class.name == "AgentAccessBond"
 assert "TreeMap[str, u256]" in contract_source
 assert "gl.nondet.exec_prompt" in contract_source
 assert "gl.vm.run_nondet(" in contract_source
 assert "run_nondet_unsafe" not in contract_source
 ```
+
+`genvm-linter 0.10.0` excludes a class literally named `Contract` while
+reflecting the contract schema, so the existing explicit class name remains the
+verified compatibility choice for this pinned toolchain.
 
 Add direct tests proving unknown fact IDs are discarded, fact IDs are sorted,
 invalid applicability/action combinations revert, prompt-injection source text
@@ -129,7 +133,8 @@ class naming.
 
 - [ ] **Step 3: Implement semantic leader evaluation**
 
-Rename the class to `Contract`, normalize credit keys with:
+Keep the linter-compatible `AgentAccessBond` class name and normalize credit
+keys with:
 
 ```python
 def _address_key(value: Address) -> str:
