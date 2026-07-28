@@ -234,9 +234,11 @@ credits returned to zero, and contract accounting returned to its baseline.
 
 Frontend hosting evidence is recorded in
 `docs/evidence/studionet/frontend-hosting.json`. Vercel deployment
-`dpl_8sE1zKupqxR5waNzBg3a8jdhRR3c` is `READY`; the production alias returned
+`dpl_6QoBnpxkiPQcrBQzKjk1f28RBdTT` is `READY`; the production alias returned
 HTTP 200 and its JavaScript bundle contains the active contract address,
-EIP-6963 discovery request, and app-owned wallet picker.
+EIP-6963 discovery request, app-owned wallet picker, and product-workspace
+copy. Browser checks found no horizontal overflow at the recorded responsive
+widths.
 
 ## Honest Limitations
 

@@ -21,5 +21,21 @@
     },
     "verifiedAt": "2026-07-28T09:39:01.1247180Z"
   },
+  "productUiVerification": {
+    "plainLanguageAgentStatus": true,
+    "genAmountsDisplayed": true,
+    "technicalDetailsCollapsedByDefault": true,
+    "canonicalAgentReadVisible": true,
+    "walletPickerStillOpens": true,
+    "responsiveWidthsVerified": [
+      375,
+      753,
+      1009,
+      1440
+    ],
+    "horizontalOverflowDetected": false,
+    "applicationConsoleErrors": 0,
+    "verifiedAt": "2026-07-28T10:00:57.0632319Z"
+  },
   "reason": "The production app-owned picker and explicit MetaMask mobile/QR fallback were verified in a browser without installed wallet extensions. EIP-6963 multi-provider discovery is covered by frontend tests, but no user-approved extension connection or browser-signed transaction has been captured. Script-signed Studionet lifecycle evidence remains separate in deployment.json."
 }

@@ -4,9 +4,9 @@
   "project": "agent-access-bond",
   "scope": "duckys-projects-bc83c6a0",
   "productionUrl": "https://agent-access-bond.vercel.app",
-  "deploymentUrl": "https://agent-access-bond-9phvcuujc-duckys-projects-bc83c6a0.vercel.app",
-  "deploymentId": "dpl_8sE1zKupqxR5waNzBg3a8jdhRR3c",
-  "sourceCommit": "4e2c413b8714d347c736c30c806268f5587027d7",
+  "deploymentUrl": "https://agent-access-bond-fdi2f781g-duckys-projects-bc83c6a0.vercel.app",
+  "deploymentId": "dpl_6QoBnpxkiPQcrBQzKjk1f28RBdTT",
+  "sourceCommit": "1f3d8a10e3c6025fc8fe64ee7377b442d473c36a",
   "network": "studionet",
   "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
   "verification": {
@@ -16,6 +16,16 @@
     "eip6963DiscoveryPresentInBundle": true,
     "walletPickerPresentInBundle": true,
     "metaMaskConnectFallbackPresentInBundle": true,
-    "verifiedAt": "2026-07-28T09:39:01.1247180Z"
+    "productWorkspaceCopyPresentInBundle": true,
+    "genAmountPresentationPresentInBundle": true,
+    "responsiveWidthsVerified": [
+      375,
+      753,
+      1009,
+      1440
+    ],
+    "horizontalOverflowDetected": false,
+    "applicationConsoleErrors": 0,
+    "verifiedAt": "2026-07-28T10:00:57.0632319Z"
   }
 }
