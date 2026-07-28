@@ -12,6 +12,7 @@
     "lint:contracts": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/lint-contracts.ps1",
     "test:direct": ".venv\\Scripts\\python.exe -m pytest tests/direct -q",
     "test:deployment": "node --test tests/scripts/*.test.mjs",
+    "test:frontend": "npm --workspace frontend test",
     "deploy:studionet": "node scripts/deploy-agent-access-bond-studionet.mjs",
     "lint": "npm --workspace frontend run lint",
     "build": "npm --workspace frontend run build",

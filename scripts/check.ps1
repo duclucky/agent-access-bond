@@ -15,5 +15,6 @@ function Invoke-CheckedNpmScript {
 Invoke-CheckedNpmScript "lint:contracts"
 Invoke-CheckedNpmScript "test:direct"
 Invoke-CheckedNpmScript "test:deployment"
+Invoke-CheckedNpmScript "test:frontend"
 Invoke-CheckedNpmScript "lint"
 Invoke-CheckedNpmScript "build"
