@@ -41,7 +41,7 @@ lifecycle evidence.
 | Differentiation | `PASS` | The evidence, actors, agent identity consequence, and web-access protocol differ from prior workspace ideas. |
 | Claim-to-code | `PASS` | The matrix below maps every active claim to state, reads, tests, and evidence. |
 | Full lifecycle | `PASS` | Current revision finalized activation, violation adjudication, quarantine, credit, withdrawal, and canonical verification. |
-| Scope honesty | `PASS` | Production hosting is verified; browser-wallet, current CI, and external-adoption evidence remain explicitly pending. |
+| Scope honesty | `PASS` | Production hosting and public CI are verified; browser-wallet transaction signing and external-adoption evidence remain explicitly pending. |
 
 ## Trust and Evidence Model
 
@@ -238,7 +238,7 @@ HTTP 200 and its JavaScript bundle contains the active contract address.
 - Integrators must read the primitive before routing offchain work.
 - The superseded failed-consensus revision has funds locked because its
   historical contract lacks a cancellation path.
-- Browser-wallet signing, current-revision public CI, and external adoption are
-  not yet evidenced.
+- Browser-wallet transaction signing and external adoption are not yet
+  evidenced.
 - `genlayer-js@1.1.8` currently brings transitive npm audit findings for which
   the installed dependency tree has no available upstream fix.

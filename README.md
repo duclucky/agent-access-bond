@@ -21,7 +21,8 @@ settle operator and challenge bonds, and make `can_execute(agent_id)` return
 - Production frontend:
   [`https://agent-access-bond.vercel.app`](https://agent-access-bond.vercel.app)
 - Browser-wallet proof: `PENDING_USER_WALLET_PROOF`
-- Current-revision CI: pending
+- Current-revision CI:
+  [`Check`](https://github.com/duclucky/agent-access-bond/actions/workflows/check.yml)
 
 The active revision and safe projected lifecycle evidence are stored in
 [`docs/evidence/studionet/deployment.json`](docs/evidence/studionet/deployment.json).
@@ -32,7 +33,8 @@ Vercel deployment evidence is stored in
 
 ## Product
 
-The React application in `frontend/` connects an injected wallet, enforces
+The React application in `frontend/` connects an EIP-1193 injected wallet or
+MetaMask Connect, enforces
 Studionet configuration, signs real contract writes, tracks submitted,
 accepted, finalized, failed, and retry states, and refreshes canonical contract
 views after finalization. It does not use local storage as canonical state or
