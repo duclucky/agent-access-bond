@@ -11,3 +11,11 @@ dist/
 build/
 *.log
 docs/evidence/**/private*
+
+# Local design-prototype import. The production app lives in frontend/.
+/.env.example
+/index.html
+/metadata.json
+/src/
+/tsconfig.json
+/vite.config.ts

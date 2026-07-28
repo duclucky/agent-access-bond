@@ -1,343 +1,90 @@
-import { useEffect, useMemo, useReducer, useRef, useState } from "react";
+import { useState } from "react";
 
-import {
-  createAgentAccessClients,
-  readCanonicalSnapshot,
-  submitWriteAndFinalize,
-  type WalletProvider
-} from "./contract";
-import { AgentWorkspace, type ActionFields } from "./components/AgentWorkspace";
-import { TransactionActivity } from "./components/TransactionActivity";
-import { WalletBar } from "./components/WalletBar";
-import { WalletDialog } from "./components/WalletDialog";
+import { AgentDetailView } from "./components/AgentDetailView";
+import { CreditsView } from "./components/CreditsView";
+import { DashboardView } from "./components/DashboardView";
+import { Header } from "./components/Header";
+import { IntegratorApiView } from "./components/IntegratorApiView";
+import { RegisterAgentView } from "./components/RegisterAgentView";
+import { ReviewCasesView } from "./components/ReviewCasesView";
+import { SettingsModal } from "./components/SettingsModal";
+import { Sidebar } from "./components/Sidebar";
+import { ContractProvider } from "./context/ContractContext";
 import type { PublicConfig } from "./config";
-import { formatGenValue, parseGen } from "./presentation";
-import type { CanonicalSnapshot } from "./types";
-import { initialTxState, txReducer } from "./tx-state";
-import {
-  connectStudionetWallet,
-  subscribeToInjectedWallets,
-  type Eip1193Provider,
-  type InjectedWallet
-} from "./wallet";
-import {
-  availableActions,
-  executeAndRefresh,
-  type ContractAction
-} from "./workspace";
 
-const DEFAULT_CASE_ID = "case-fixture-private-001";
-const REPO_RAW =
-  "https://raw.githubusercontent.com/duclucky/agent-access-bond/main";
+function AppContent() {
+  const [currentTab, setCurrentTab] = useState("dashboard");
+  const [selectedAgentId, setSelectedAgentId] = useState<string | null>(null);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [challengeTargetAgentId, setChallengeTargetAgentId] = useState<string | undefined>();
 
-const DEFAULT_FIELDS: ActionFields = {
-  userAddress: "",
-  userAgent: "AgentAccessBot/1.0",
-  origin: "https://raw.githubusercontent.com",
-  policyUrl: `${REPO_RAW}/docs/evidence/public-fixtures/agent-policy.txt`,
-  allowedPurpose: "public search research only",
-  operatorBond: "2",
-  penaltyAmount: "1",
-  minimumChallengeBond: "0.1",
-  caseId: DEFAULT_CASE_ID,
-  targetUrl: `${REPO_RAW}/docs/evidence/public-fixtures/challenge-target/report.json`,
-  receiptUrl: `${REPO_RAW}/docs/evidence/public-fixtures/case-1-receipt.json`,
-  challengeBond: "0.1",
-  withdrawAmount: ""
-};
-
-type BrowserProvider = WalletProvider & Eip1193Provider;
-
-type WriteRequest = {
-  functionName: string;
-  args: Array<string | bigint>;
-  value: bigint;
-};
-
-function errorMessage(error: unknown) {
-  return error instanceof Error ? error.message : String(error);
-}
-
-export function App({ config }: { config: PublicConfig }) {
-  const [agentId, setAgentId] = useState("");
-  const [account, setAccount] = useState<`0x${string}` | null>(null);
-  const [writeClient, setWriteClient] = useState<
-    ReturnType<typeof createAgentAccessClients>["writeClient"]
-  >(null);
-  const [walletProvider, setWalletProvider] =
-    useState<BrowserProvider | null>(null);
-  const [injectedWallets, setInjectedWallets] = useState<InjectedWallet[]>([]);
-  const [walletDialogOpen, setWalletDialogOpen] = useState(false);
-  const [snapshot, setSnapshot] = useState<CanonicalSnapshot | null>(null);
-  const [readError, setReadError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [connecting, setConnecting] = useState(false);
-  const [fields, setFields] = useState<ActionFields>(DEFAULT_FIELDS);
-  const [selectedAction, setSelectedAction] = useState<ContractAction | null>(null);
-  const [txState, dispatchTx] = useReducer(txReducer, initialTxState);
-  const lastAttempt = useRef<{
-    action: ContractAction;
-    fields: ActionFields;
-  } | null>(null);
-
-  const { readClient } = useMemo(
-    () => createAgentAccessClients({ config }),
-    [config]
-  );
-
-  useEffect(
-    () =>
-      subscribeToInjectedWallets((wallet) => {
-        setInjectedWallets((current) =>
-          current.some(
-            (item) =>
-              item.info.uuid === wallet.info.uuid ||
-              item.provider === wallet.provider
-          )
-            ? current
-            : [...current, wallet]
-        );
-      }),
-    []
-  );
-
-  const refresh = async (
-    requestedAgentId = agentId,
-    requestedCaseId = fields.caseId
-  ) => {
-    if (!requestedAgentId.trim()) return null;
-    setLoading(true);
-    setReadError(null);
-    try {
-      const next = await readCanonicalSnapshot({
-        client: readClient,
-        contractAddress: config.contractAddress,
-        agentId: requestedAgentId.trim(),
-        caseId: requestedCaseId.trim() || undefined,
-        account: account ?? undefined
-      });
-      setSnapshot(next);
-      if (next.credit !== "0") {
-        setFields((current) => ({
-          ...current,
-          withdrawAmount: formatGenValue(next.credit)
-        }));
-      }
-      return next;
-    } catch (error) {
-      setSnapshot(null);
-      setReadError(errorMessage(error));
-      return null;
-    } finally {
-      setLoading(false);
-    }
+  const handleSelectAgent = (agentId: string) => {
+    setSelectedAgentId(agentId);
+    setCurrentTab("agent-detail");
   };
 
-  const actions = availableActions(snapshot, account ?? undefined);
-  useEffect(() => {
-    if (!selectedAction || !actions.includes(selectedAction)) {
-      setSelectedAction(actions[0] ?? null);
-    }
-  }, [actions.join("|"), selectedAction]);
-
-  const connectWallet = async (selectedWallet?: InjectedWallet) => {
-    setWalletDialogOpen(false);
-    setConnecting(true);
-    setReadError(null);
-    try {
-      const connection = await connectStudionetWallet({
-        injectedProvider: selectedWallet?.provider
-      });
-      const provider = connection.provider as BrowserProvider;
-      const clients = createAgentAccessClients({
-        config,
-        account: connection.account,
-        provider
-      });
-      if (!clients.writeClient) throw new Error("Wallet client is unavailable.");
-      setAccount(connection.account);
-      setWalletProvider(provider);
-      setWriteClient(clients.writeClient);
-      setFields((current) => ({
-        ...current,
-        userAddress: current.userAddress || connection.account
-      }));
-      await refresh(agentId, fields.caseId);
-    } catch (error) {
-      setReadError(errorMessage(error));
-    } finally {
-      setConnecting(false);
-    }
+  const handleOpenChallengeForAgent = (agentId: string) => {
+    setChallengeTargetAgentId(agentId);
+    setCurrentTab("cases");
   };
 
-  useEffect(() => {
-    const provider = walletProvider;
-    if (!provider?.on) return;
-    const accountChanged = (...args: unknown[]) => {
-      const accounts = args[0] as string[] | undefined;
-      const next = accounts?.[0] as `0x${string}` | undefined;
-      setAccount(next ?? null);
-      if (next) {
-        setWriteClient(
-          createAgentAccessClients({
-            config,
-            account: next,
-            provider
-          }).writeClient
-        );
-      } else {
-        setWriteClient(null);
-      }
-      void refresh(agentId, fields.caseId);
-    };
-    const chainChanged = () => void refresh(agentId, fields.caseId);
-    provider.on("accountsChanged", accountChanged);
-    provider.on("chainChanged", chainChanged);
-    return () => {
-      provider.removeListener?.("accountsChanged", accountChanged);
-      provider.removeListener?.("chainChanged", chainChanged);
-    };
-  }, [agentId, config, fields.caseId, walletProvider]);
-
-  const requestFor = (
-    action: ContractAction,
-    values: ActionFields
-  ): WriteRequest => {
-    const caseId = values.caseId.trim() || snapshot?.case?.case_id || "";
-    switch (action) {
-      case "create_agent":
-        return {
-          functionName: action,
-          args: [
-            agentId.trim(),
-            values.userAddress.trim(),
-            values.userAgent.trim(),
-            values.origin.trim(),
-            values.policyUrl.trim(),
-            values.allowedPurpose.trim(),
-            parseGen(values.penaltyAmount),
-            parseGen(values.minimumChallengeBond)
-          ],
-          value: parseGen(values.operatorBond)
-        };
-      case "accept_agent":
-      case "propose_close":
-      case "accept_close":
-        return { functionName: action, args: [agentId.trim()], value: 0n };
-      case "open_access_case":
-        return {
-          functionName: action,
-          args: [
-            caseId,
-            agentId.trim(),
-            values.targetUrl.trim(),
-            values.receiptUrl.trim()
-          ],
-          value: parseGen(values.challengeBond)
-        };
-      case "adjudicate_case":
-      case "retry_case":
-      case "propose_case_cancel":
-      case "accept_case_cancel":
-        return { functionName: action, args: [caseId], value: 0n };
-      case "withdraw_credit":
-        return {
-          functionName: action,
-          args: [
-            values.withdrawAmount
-              ? parseGen(values.withdrawAmount)
-              : BigInt(snapshot?.credit || "0")
-          ],
-          value: 0n
-        };
-    }
-  };
-
-  const executeAction = async (
-    action: ContractAction,
-    values: ActionFields
-  ) => {
-    if (!writeClient) {
-      dispatchTx({ type: "failed", error: "Connect a Studionet wallet first." });
-      return;
-    }
-    lastAttempt.current = { action, fields: values };
-    try {
-      const request = requestFor(action, values);
-      await executeAndRefresh({
-        submit: () =>
-          submitWriteAndFinalize({
-            writeClient,
-            readClient,
-            address: config.contractAddress,
-            ...request,
-            onStatus: (status, hash) => {
-              if (status === "submitted") {
-                dispatchTx({ type: "submitted", operation: action, hash });
-              } else {
-                dispatchTx({ type: status });
-              }
-            }
-          }),
-        refresh: () => refresh(agentId, values.caseId)
-      });
-    } catch (error) {
-      dispatchTx({ type: "failed", error: errorMessage(error) });
+  const handleNavigate = (tab: string) => {
+    setCurrentTab(tab);
+    if (tab !== "agent-detail") {
+      setSelectedAgentId(null);
     }
   };
 
   return (
-    <div className="app-shell">
-      <WalletBar
-        account={account}
-        contractAddress={config.contractAddress}
-        explorerUrl={config.explorerUrl}
-        connecting={connecting}
-        onConnect={() => setWalletDialogOpen(true)}
+    <div className="bg-slate-950 text-slate-200 font-sans min-h-screen flex selection:bg-orange-500 selection:text-black">
+      <Sidebar
+        currentTab={currentTab}
+        onNavigate={handleNavigate}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
-      {walletDialogOpen && (
-        <WalletDialog
-          wallets={injectedWallets}
-          connectingId={null}
-          onClose={() => setWalletDialogOpen(false)}
-          onSelect={(wallet) => void connectWallet(wallet)}
-          onMetaMaskConnect={() => void connectWallet()}
-        />
-      )}
-      <AgentWorkspace
-        agentId={agentId}
-        onAgentIdChange={setAgentId}
-        onRefresh={() => void refresh()}
-        snapshot={snapshot}
-        loading={loading}
-        readError={readError}
-        actions={actions}
-        selectedAction={selectedAction}
-        onActionChange={setSelectedAction}
-        fields={fields}
-        onFieldChange={(name, value) =>
-          setFields((current) => ({ ...current, [name]: value }))
-        }
-        onSubmit={() => {
-          if (selectedAction) void executeAction(selectedAction, { ...fields });
-        }}
-        busy={
-          txState.status === "submitted" || txState.status === "accepted"
-        }
-        walletConnected={Boolean(account)}
+      <Header
+        currentTab={currentTab}
+        onNavigate={handleNavigate}
+        onOpenSettings={() => setIsSettingsOpen(true)}
       />
-      <TransactionActivity
-        state={txState}
-        explorerUrl={config.explorerUrl}
-        onRetry={
-          lastAttempt.current
-            ? () => {
-                const attempt = lastAttempt.current;
-                if (attempt) void executeAction(attempt.action, attempt.fields);
-              }
-            : undefined
-        }
-      />
+      <main className="flex-1 lg:ml-64 p-4 md:p-8 pt-20 lg:pt-8 relative min-h-screen overflow-y-auto">
+        <div className="absolute inset-0 grid-pattern opacity-15 pointer-events-none z-0" />
+        <div className="relative z-10">
+          {currentTab === "dashboard" && (
+            <DashboardView onSelectAgent={handleSelectAgent} onNavigate={handleNavigate} />
+          )}
+          {currentTab === "agent-detail" && selectedAgentId && (
+            <AgentDetailView
+              agentId={selectedAgentId}
+              onBack={() => handleNavigate("dashboard")}
+              onOpenChallengeForAgent={handleOpenChallengeForAgent}
+            />
+          )}
+          {currentTab === "register" && (
+            <RegisterAgentView
+              onSuccess={handleSelectAgent}
+              onCancel={() => handleNavigate("dashboard")}
+            />
+          )}
+          {currentTab === "cases" && (
+            <ReviewCasesView
+              onSelectAgent={handleSelectAgent}
+              initialAgentIdForChallenge={challengeTargetAgentId}
+            />
+          )}
+          {currentTab === "credits" && <CreditsView />}
+          {currentTab === "api" && <IntegratorApiView />}
+        </div>
+      </main>
+      <SettingsModal isOpen={isSettingsOpen} onClose={() => setIsSettingsOpen(false)} />
     </div>
+  );
+}
+
+export function App({ config }: { config: PublicConfig }) {
+  return (
+    <ContractProvider config={config}>
+      <AppContent />
+    </ContractProvider>
   );
 }

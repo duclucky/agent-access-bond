@@ -63,3 +63,99 @@ export type CanonicalSnapshot = {
   canExecute: boolean;
   readAt: string;
 };
+
+export type AgentStatus =
+  | "DRAFT"
+  | "ACTIVE"
+  | "PENDING_REVIEW"
+  | "QUARANTINED"
+  | "CLOSED";
+
+export type CaseStatus = "OPEN" | "RETRYABLE" | "RESOLVED" | "CANCELLED";
+
+export type ApplicabilityClass =
+  | "MATERIAL_VIOLATION"
+  | "COMPLIANT"
+  | "UNVERIFIABLE";
+
+export type ViolationType =
+  | "DISALLOWED_PATH"
+  | "RATE_LIMIT_EXCEEDED"
+  | "ROBOTS_TXT_BYPASS"
+  | "UNAUTHORIZED_DATA_SCRAPING"
+  | "FORM_SUBMISSION_VIOLATION"
+  | "NONE";
+
+export interface Verdict {
+  verdict_id: string;
+  case_id: string;
+  agent_id: string;
+  target_url: string;
+  applicability: ApplicabilityClass;
+  source_coverage: string;
+  violation_type: ViolationType;
+  required_action: string;
+  matched_fact_ids: string[];
+  rationale: string;
+  previous_agent_status: AgentStatus;
+  new_agent_status: AgentStatus;
+  user_credit_amount: number;
+  operator_credit_amount: number;
+  attempt: number;
+  timestamp: string;
+  validator_signatures: number;
+  total_validators: number;
+}
+
+export interface AccessCase {
+  case_id: string;
+  agent_id: string;
+  opened_by: string;
+  target_url: string;
+  receipt_url: string;
+  challenge_bond: number;
+  status: CaseStatus;
+  attempt_count: number;
+  verdict_id?: string;
+  verdict?: Verdict;
+  bond_settled: boolean;
+  cancel_proposed_by?: string;
+  created_at: string;
+  description?: string;
+}
+
+export interface AgentBond {
+  agent_id: string;
+  operator: string;
+  user: string;
+  user_agent: string;
+  origin: string;
+  policy_url: string;
+  allowed_purpose: string;
+  operator_bond: number;
+  minimum_challenge_bond: number;
+  penalty_amount: number;
+  status: AgentStatus;
+  accepted: boolean;
+  active_case_id?: string;
+  case_count: number;
+  close_proposed_by?: string;
+  cases: AccessCase[];
+  created_at: string;
+}
+
+export interface WalletState {
+  isConnected: boolean;
+  address: string;
+  balanceGEN: number;
+  network: string;
+  role: "operator" | "user" | "challenger" | "integrator";
+}
+
+export interface AccountingSummary {
+  total_locked_operator_bonds: number;
+  total_active_challenge_bonds: number;
+  total_slashed_penalties: number;
+  total_claimed_user_credits: number;
+  contract_balance: number;
+}

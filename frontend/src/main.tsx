@@ -4,7 +4,7 @@ import { createRoot } from "react-dom/client";
 
 import { App } from "./App";
 import { loadPublicConfig } from "./config";
-import "./styles.css";
+import "./index.css";
 
 function Root() {
   try {

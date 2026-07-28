@@ -1,3 +1,4 @@
+import tailwindcss from "@tailwindcss/vite";
 import react from "@vitejs/plugin-react";
 import { dirname, resolve } from "node:path";
 import { createRequire } from "node:module";
@@ -12,7 +13,7 @@ const mobileWalletProtocolCore = resolve(
 );
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
       // The package ships ESM but does not declare it, so Rollup otherwise

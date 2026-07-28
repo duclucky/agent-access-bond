@@ -34,8 +34,10 @@ describe("App startup", () => {
   it("does not auto-load the public fixture agent on first render", async () => {
     render(<App config={config} />);
 
-    expect(screen.getByLabelText("Agent ID")).toHaveValue("");
-    expect(screen.getByRole("heading", { name: "Find an agent" })).toBeVisible();
+    expect(screen.getByPlaceholderText("Enter Agent ID")).toHaveValue("");
+    expect(
+      screen.getByRole("heading", { name: /inspect agent bond/i })
+    ).toBeVisible();
     expect(screen.queryByText("agent-fixture-policy-001")).not.toBeInTheDocument();
 
     await waitFor(() => {
