@@ -15,6 +15,7 @@ import {
   submitWriteAndFinalize,
   type WalletProvider
 } from "../contract";
+import { retryTransientCanonicalRead } from "../canonical-read";
 import type { PublicConfig } from "../config";
 import { WalletDialog } from "../components/WalletDialog";
 import { readRememberedAgentIds, rememberAgentId } from "../local-agent-index";
@@ -428,12 +429,14 @@ export function ContractProvider({
       await Promise.all(
         rememberedIds.map(async (agentId) => {
           try {
-            const snapshot = await readCanonicalSnapshot({
-              client: readClient,
-              contractAddress: config.contractAddress,
-              agentId,
-              account: account ? (account as `0x${string}`) : undefined
-            });
+            const snapshot = await retryTransientCanonicalRead(() =>
+              readCanonicalSnapshot({
+                client: readClient,
+                contractAddress: config.contractAddress,
+                agentId,
+                account: account ? (account as `0x${string}`) : undefined
+              })
+            );
             upsertSnapshot(snapshot);
           } catch {
             // Remembered IDs are only a local index. Missing/deleted IDs should not block the app.
@@ -455,15 +458,17 @@ export function ContractProvider({
       setLoading(true);
       setLastError(null);
       try {
-        const snapshot = await readCanonicalSnapshot({
-          client: readClient,
-          contractAddress: config.contractAddress,
-          agentId: cleanAgentId,
-          caseId,
-          account: wallet.address
-            ? (wallet.address as `0x${string}`)
-            : undefined
-        });
+        const snapshot = await retryTransientCanonicalRead(() =>
+          readCanonicalSnapshot({
+            client: readClient,
+            contractAddress: config.contractAddress,
+            agentId: cleanAgentId,
+            caseId,
+            account: wallet.address
+              ? (wallet.address as `0x${string}`)
+              : undefined
+          })
+        );
         if (snapshot.agent) {
           rememberAgentId(snapshot.agent.agent_id, wallet.address);
         }
