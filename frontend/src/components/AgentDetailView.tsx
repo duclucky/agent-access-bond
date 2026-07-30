@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 import { AccessCase, Verdict } from '../types';
+import { accessEventTimestamp } from '../presentation';
 
 interface AgentDetailViewProps {
   agentId: string;
@@ -388,7 +389,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
                       )}
                     </td>
                     <td className="p-3.5 font-mono text-slate-500 text-[11px]">
-                      {c.created_at}
+                      {accessEventTimestamp(c)}
                     </td>
                     <td className="p-3.5 text-right">
                       {c.verdict ? (

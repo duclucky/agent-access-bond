@@ -1,4 +1,5 @@
 import type { ContractAction } from "./workspace";
+import type { AccessCase } from "./types";
 
 const GEN_DECIMALS = 18;
 const GEN_BASE = 10n ** BigInt(GEN_DECIMALS);
@@ -172,6 +173,10 @@ export function friendlyCaseStatus(status: string) {
     CANCELED: "Review cancelled"
   };
   return labels[status] ?? status.replaceAll("_", " ").toLowerCase();
+}
+
+export function accessEventTimestamp(accessCase: AccessCase) {
+  return accessCase.verdict?.occurred_at || accessCase.created_at;
 }
 
 export function urlLabel(value: string) {

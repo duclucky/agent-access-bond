@@ -4,11 +4,11 @@
   "project": "agent-access-bond",
   "scope": "duckys-projects-bc83c6a0",
   "productionUrl": "https://agent-access-bond.vercel.app",
-  "deploymentUrl": "https://agent-access-bond-8rwri314e-duckys-projects-bc83c6a0.vercel.app",
-  "deploymentId": "dpl_9Yg2YzS56ou4CTBgae96FPRjXsD6",
-  "sourceCommit": "622593c78f04d9dd458673435c9f8f60e8b28fce",
+  "deploymentUrl": "https://agent-access-bond-egcnwaqv0-duckys-projects-bc83c6a0.vercel.app",
+  "deploymentId": "dpl_7mibbW2QR45JADeSr4cSQR9Tvid9",
+  "sourceCommit": "747e8ad4aa9cb402f69618227a892d12f76e4bf6",
   "network": "studionet",
-  "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
+  "contractAddress": "0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b",
   "verification": {
     "httpStatus": 200,
     "title": "AgentAccessBond",
@@ -34,6 +34,13 @@
     "directTransactionStatusPollingPresentInBundle": true,
     "rememberedAgentIdIndexPresentInBundle": true,
     "rememberedAgentsReloadThroughCanonicalReads": true,
+    "canonicalCaseHistoryReadPresentInBundle": true,
+    "resolvedCaseVisibleAfterReload": true,
+    "resolvedCaseCountAfterReload": 1,
+    "retryWritePresentInBundle": true,
+    "bilateralCaseCancellationWritesPresentInBundle": true,
+    "signedEventIdInputPresentInBundle": true,
+    "attestorPublicKeyInputPresentInBundle": true,
     "englishApplicationValidationVerified": true,
     "genAmountPresentationPresentInBundle": true,
     "genDecimalInputUsesTextMode": true,
@@ -49,6 +56,6 @@
     ],
     "horizontalOverflowDetected": false,
     "applicationConsoleErrors": 0,
-    "verifiedAt": "2026-07-29T04:44:45+07:00"
+    "verifiedAt": "2026-07-30T10:35:21.4095613+07:00"
   }
 }

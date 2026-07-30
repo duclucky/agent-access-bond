@@ -1,227 +1,256 @@
 # AgentAccessBond
 
-> AgentAccessBond lets GenLayer validators interpret bounded public web-access
-> evidence, quarantine noncompliant agents, and settle bonded accountability
-> without trusting the operator or challenger.
+> Validator-enforced accountability for web agents, backed by signed access
+> events, version-bound public policy evidence, and onchain bonds.
 
-AgentAccessBond is a GenLayer Projects-track dApp for accountable web agents.
-An operator bonds an immutable agent identity and access policy. A challenger
-can submit a public action receipt, and validators independently decide its
-semantic meaning. The accepted verdict directly changes execution eligibility,
-agent status, and bond accounting.
+AgentAccessBond is a GenLayer Projects-track dApp. An operator registers an
+agent, locks a bond, and commits to an immutable origin, User-Agent, policy URL,
+purpose, financial terms, and runner attestor public key. A challenger can
+submit a signed access event. GenLayer validators authenticate the event,
+independently fetch its exact policy and robots versions, and decide whether
+the access violated the registered scope.
 
-## Live App
+A finalized material violation quarantines the agent, makes
+`can_execute(agent_id)` return `false`, settles the penalty from the operator
+bond, refunds the challenge bond, and credits the designated beneficiary.
 
-- Production:
+## Live Submission
+
+- Production app:
   [agent-access-bond.vercel.app](https://agent-access-bond.vercel.app)
-- Network: `Studionet` (`61999`)
-- Browser-wallet status: an OKX extension connection has been verified on
-  production. The app discovers installed extensions through EIP-6963 and
-  keeps MetaMask mobile/QR as an explicit fallback. Two browser-initiated
-  `create_agent` transactions are captured as finalized Studionet evidence.
+- Network: GenLayer Studionet (`61999`)
+- Contract:
+  [`0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b`](https://explorer-studio.genlayer.com/address/0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b)
+- Deployed source commit:
+  [`747e8ad`](https://github.com/duclucky/agent-access-bond/commit/747e8ad4aa9cb402f69618227a892d12f76e4bf6)
+- Repository:
+  [github.com/duclucky/agent-access-bond](https://github.com/duclucky/agent-access-bond)
+- CI:
+  [GitHub Actions Check](https://github.com/duclucky/agent-access-bond/actions/workflows/check.yml)
+
+## What Changed After Review
+
+The current revision addresses all requested review items:
+
+1. Every punitive case requires a valid secp256k1 runner signature.
+2. The signed payload binds `occurred_at`, event identity, policy version URL
+   and Keccak hash, and robots version URL and Keccak hash.
+3. Validators fetch those exact version URLs and verify both content hashes
+   before semantic adjudication.
+4. Invalid signatures, identity mismatches, unavailable sources, or hash
+   mismatches produce `UNVERIFIABLE / RETRYABLE` and cannot slash a bond.
+5. Frontend case statuses and violation enums now exactly match the contract.
+6. The UI exposes real `retry_case`, `propose_case_cancel`, and
+   `accept_case_cancel` transactions with contract-matching authorization.
+7. `get_agent_case_ids` provides append-only case discovery, so resolved case
+   history and verdicts are restored after reload without local case state.
 
 ## How to Use the Web App
 
 ### 1. Connect a wallet
 
-1. Open the [production app](https://agent-access-bond.vercel.app) and unlock
-   an installed EVM wallet such as OKX Wallet. MetaMask mobile/QR is available
-   as a fallback.
-2. Select **Connect Wallet**, choose the detected extension, and approve the
-   account request.
-3. Approve the request to add or switch to GenLayer Studionet if the wallet
-   asks. The app header then shows the shortened wallet address and
-   `Studionet Active`.
+1. Open the production app and unlock an installed EVM extension.
+2. Select **Connect Wallet**.
+3. Choose a wallet discovered through EIP-6963.
+4. Approve adding or switching to GenLayer Studionet when requested.
 
-Reading an existing agent is free and does not require a wallet signature.
-Creating an agent, accepting it, opening or adjudicating a case, closing an
-agent, and withdrawing credit are real Studionet transactions. The connected
-wallet must hold enough Studionet GEN for the transaction value and fees.
+The picker supports installed extensions instead of assuming MetaMask.
+MetaMask mobile/QR remains an explicit fallback. Reads do not require a
+signature. Every write uses the selected wallet and waits for submitted,
+accepted, and finalized states.
 
-### 2. Inspect an existing agent
+### 2. Inspect an agent
 
 1. Open **Dashboard**.
-2. Enter the exact onchain Agent ID in **Inspect Agent Bond** and select
-   **Inspect**.
-3. Open the returned agent card to review its status, immutable identity and
-   policy, bond amounts, execution eligibility, cases, and finalized verdicts.
+2. Enter an exact Agent ID, for example `agent-fixture-policy-001`.
+3. Select **Inspect**.
+4. Review status, execution eligibility, immutable identity, bond accounting,
+   and the complete onchain case timeline.
 
-The app deliberately starts with an empty agent list; it does not auto-load a
-demo or fixture agent. Inspecting an ID reads canonical state from the deployed
-contract and adds that agent to the current session.
+The app starts with no hardcoded agent. Agent IDs remembered in the browser are
+only a convenience index; agent, case, verdict, credit, and accounting data are
+always re-read from the contract.
 
-### 3. Register and activate an agent
+### 3. Register an agent
 
 1. Connect the operator wallet and open **Register Agent**.
-2. Enter the protected origin, exact User-Agent string, designated user
-   address, publicly accessible policy URL, and allowed-purpose summary.
-3. Set the operator bond, penalty amount, and minimum challenge bond. The
-   operator bond must be at least `100 GEN`.
-4. Select **Create Agent Draft Bond** and approve the wallet transaction. The
-   contract creates the agent in `DRAFT` state and locks the operator bond.
-5. Connect the designated user wallet, inspect the new Agent ID, then select
-   **Approve Agent (Designated User)** and approve the transaction. The agent
-   becomes `ACTIVE` only after this second-party acceptance.
+2. Enter the protected HTTPS origin and exact User-Agent string.
+3. Enter the designated user address and public policy URL.
+4. Enter the uncompressed secp256k1 runner public key:
+   `0x04` followed by 128 hexadecimal characters.
+5. Set purpose, operator bond, penalty, and minimum challenge bond.
+6. Select **Create Agent Draft Bond** and approve the transaction.
+7. Connect the designated user wallet, inspect the new Agent ID, and approve
+   the draft. The agent becomes `ACTIVE`.
 
-Origin, User-Agent identity, policy URL, designated user, and financial terms
-are contract configuration. Verify them before signing because activation
-locks the agent configuration.
+The origin, policy URL, User-Agent, designated user, attestor key, purpose, and
+financial terms are immutable after registration.
 
-### 4. Submit and adjudicate an access review
+### 4. Produce a signed access event
 
-1. Inspect the target Agent ID first, then open **Review Cases**.
-2. Select **Submit Evidence Challenge** and provide the target endpoint URL, a
-   publicly accessible action-receipt URL, the challenge bond, and an optional
-   explanation. The bond must satisfy the agent's displayed minimum.
-3. Select **Lock Bond & Open Case** and approve the transaction. The agent
-   enters `PENDING_REVIEW`, so new execution is paused while the case is open.
-4. Open the case, select **Review & Adjudicate**, and approve the adjudication
-   transaction. GenLayer validators fetch the bounded public evidence and
-   determine the verdict; the UI does not calculate or override it.
-5. Wait for finality. On completion, refresh or inspect the Agent ID again to
-   read the canonical case, verdict, agent status, and accounting state.
+The runner publishes an HTTPS JSON receipt using
+`agent-access-event/v1`. The fixture is available at
+[`docs/evidence/public-fixtures/case-1-receipt.json`](docs/evidence/public-fixtures/case-1-receipt.json).
 
-A finalized material violation changes the agent to `QUARANTINED`, makes
-`can_execute(agent_id)` false, settles the configured penalty, refunds the
-challenge bond, and creates beneficiary credit. Other verdict classes follow
-their separate contract-defined recovery and accounting paths.
+Required signed fields:
 
-### 5. Withdraw awarded credit
+```json
+{
+  "schema": "agent-access-event/v1",
+  "event_id": "event-unique-001",
+  "agent_id": "registered-agent-id",
+  "user_agent": "ExactAgent/1.0",
+  "method": "GET",
+  "target_url": "https://protected.example/path",
+  "occurred_at": "2026-07-30T10:00:00Z",
+  "nonce": "runner-unique-nonce",
+  "policy_version": "policy-v1",
+  "policy_url": "https://public.example/policy-v1.txt",
+  "policy_hash": "0x<keccak256-of-exact-policy-bytes>",
+  "robots_version": "robots-v1",
+  "robots_url": "https://protected.example/robots.txt?v=1",
+  "robots_hash": "0x<keccak256-of-exact-robots-bytes>",
+  "attestor_public_key": "0x04<128-hex-characters>",
+  "signature": "0x<64-byte-r-plus-s-signature>"
+}
+```
 
-1. Connect the designated beneficiary wallet and open **Credits**.
-2. Confirm the amount under **Your Claimable Credits**.
-3. Select **Claim & Withdraw to Wallet** and approve the transaction.
-4. After finality, the app refreshes the credit and protocol accounting from
-   the contract.
+To sign:
 
-### 6. Close an agent
+1. Remove `signature`.
+2. Serialize all remaining fields as ASCII JSON with keys sorted
+   lexicographically, no whitespace, and separators `,` and `:`.
+3. Compute Keccak-256 of that canonical JSON.
+4. Sign the digest with the runner secp256k1 private key.
+5. Publish compact low-s `r || s` as a 64-byte hex signature.
 
-Open an inspected agent from **Dashboard**. Closing is bilateral: the operator
-or designated user selects **Propose Close** or **Propose Closure**, then the
-other party connects its wallet and selects **Accept Closure**. Do not treat a
-closure proposal as final until the agent's canonical status reads `CLOSED`.
+Never put the runner private key in the frontend or repository.
 
-### Status reference
+### 5. Open and adjudicate a case
 
-| Status | Meaning |
-| --- | --- |
-| `DRAFT` | Operator created the bond; designated-user acceptance is pending. |
-| `ACTIVE` | Agent is accepted and may execute when no case blocks it. |
-| `PENDING_REVIEW` | A challenge is open and execution is paused. |
-| `QUARANTINED` | A finalized material violation blocks execution. |
-| `CLOSED` | Bilateral closure completed and the agent is no longer active. |
+1. Inspect the agent and open **Review Cases**.
+2. Select **Submit Evidence Challenge**.
+3. Enter the signed `event_id`, target URL, public receipt URL, and challenge
+   bond.
+4. Approve `open_access_case`.
+5. Open the case and approve `adjudicate_case`.
 
-## Deployed Contract
+The contract authenticates the event before asking validators for semantic
+judgment. A punitive verdict has a defense-in-depth guard requiring
+`attestation_verified == true`.
 
-- Contract: `AgentAccessBond` (one contract)
-- Address:
-  [`0x37826aA6a75F033D67169b2F8D2616382Ca06522`](https://explorer-studio.genlayer.com/address/0x37826aA6a75F033D67169b2F8D2616382Ca06522)
-- Deployed contract source commit:
-  [`e8f9181`](https://github.com/duclucky/agent-access-bond/commit/e8f918130cf853f88611c3fd267c1a5cc913eda7)
-- Public repository:
-  [github.com/duclucky/agent-access-bond](https://github.com/duclucky/agent-access-bond)
-- Current CI:
-  [GitHub Actions Check](https://github.com/duclucky/agent-access-bond/actions/workflows/check.yml)
+### 6. Retry or cancel an unresolved case
 
-## Problem
+- A `RETRYABLE` case can be retried by the operator, designated user, or case
+  opener through **Retry Review**.
+- The operator or opener can select **Request Case Cancellation**.
+- The other party must select **Confirm Case Cancellation**.
 
-Web-agent operators benefit from preserving access and their bond. Challengers
-may overstate violations. A designated user needs a neutral result before
-routing more work to the agent. A database, ordinary EVM contract, or one
-party's LLM cannot independently fetch and interpret changing public policy
-evidence while enforcing a shared monetary consequence.
+Cancellation is bilateral, refunds the challenge bond once, clears the active
+case, and prevents reuse of the signed event ID.
 
-## Why GenLayer
+### 7. Withdraw credit or close an agent
 
-For each case, validators inspect bounded public evidence:
+- A beneficiary uses **Credits** to send `withdraw_credit`.
+- Agent closure is bilateral between operator and designated user through
+  `propose_close` and `accept_close`.
 
-- `{origin}/robots.txt`;
-- the immutable policy URL;
-- the immutable action-receipt URL;
-- the agent and case state already stored by the contract.
+## Signed Evidence Trust Model
 
-The nondeterministic evaluation runs inside the Intelligent Contract. The model
-returns only bounded semantic fields: `applicability`, `violation_type`, and a
-rationale. Contract code derives source coverage, fact IDs, required action,
-new status, verdict IDs, and every accounting amount.
+The runner signature authenticates the complete access statement. The signed
+timestamp is inseparable from the policy and robots version labels, URLs, and
+hashes used for adjudication. Validators then independently:
 
-Validators compare normalized applicability and violation type. Rationale
-wording may differ. Unavailable, malformed, oversized, contradictory, or
-identity-mismatched evidence cannot create a canonical punitive verdict.
+1. fetch the public receipt;
+2. verify event, agent, User-Agent, target, and attestor identity;
+3. verify the secp256k1 signature;
+4. fetch the exact policy and robots URLs;
+5. verify Keccak-256 content hashes;
+6. judge only bounded semantic fields.
 
-## Architecture
+The model returns `applicability`, `violation_type`, and bounded rationale.
+Contract code derives source coverage, matched facts, required action, state
+transition, verdict ID, and every accounting amount.
 
-1. `contracts/agent_access_bond.py` owns authorization, immutable agent
-   configuration, case state, semantic adjudication, credits, and execution
-   eligibility.
-2. `frontend/` is a React/Vite product workspace using `genlayer-js`. It
-   discovers installed wallets through EIP-6963, reads canonical state, and
-   requests real writes through the selected EIP-1193 provider. MetaMask
-   mobile/QR is an explicit fallback.
-3. `scripts/` contains revision-aware Studionet deployment, lifecycle,
-   recovery, and secondary-wallet smoke runners.
-4. `docs/evidence/studionet/` contains projected public evidence only. Script
-   wallets and browser-wallet proof are intentionally tracked separately.
+Exact violation enums:
 
-No backend or local storage acts as canonical contract state. The browser only
-keeps a small recent Agent ID index so reloads can re-read those IDs from the
-deployed contract.
+- `DISALLOWED_PATH`
+- `USER_AGENT_MISMATCH`
+- `POLICY_SCOPE_BREACH`
+- `RECEIPT_INSUFFICIENT`
+- `NONE`
 
-## Consequence
+Exact case statuses:
 
-A finalized `MATERIAL_VIOLATION`:
+- `OPEN`
+- `RETRYABLE`
+- `RESOLVED`
+- `CANCELED`
 
-- moves the agent to `QUARANTINED`;
-- makes `can_execute(agent_id)` return `false`;
-- transfers the fixed penalty from the operator bond to the designated user;
-- refunds the challenge bond to the case opener;
-- prevents duplicate settlement.
+## Public Interface
 
-`COMPLIANT` and `UNVERIFIABLE` have separate bounded state and accounting
-paths. Bilateral cancellation and closure provide recovery without unilateral
-fund seizure.
-
-## Verified Evidence
-
-The active Studionet lifecycle finalized:
-
-- agent activation;
-- case opening and validator-controlled adjudication;
-- `MATERIAL_VIOLATION / DISALLOWED_PATH`;
-- agent quarantine and `can_execute=false`;
-- user credit withdrawal.
-
-The independent secondary-wallet smoke finalized five more transactions:
-`create_agent`, `accept_agent`, `propose_close`, `accept_close`, and
-`withdraw_credit`. It used a 1 wei bond, closed the smoke agent, returned both
-credits to zero, restored contract accounting to its baseline, and passed an
-idempotent rerun without submitting another transaction.
-
-Evidence:
-
-- [active lifecycle](docs/evidence/studionet/deployment.json)
-- [secondary-wallet smoke](docs/evidence/studionet/secondary-wallet-smoke.json)
-- [Vercel hosting](docs/evidence/studionet/frontend-hosting.json)
-- [browser-wallet status](docs/evidence/studionet/browser-wallet.json)
-- [technical specification and claim-to-code matrix](docs/README.md)
-
-## Reusable Interface
-
-Integrators can route work without copying the adjudication logic:
+### Views
 
 ```text
 get_agent(agent_id)
 get_agent_status(agent_id)
 can_execute(agent_id)
+get_agent_case_ids(agent_id)
 get_case(case_id)
 get_verdict(verdict_id)
 get_credit(address)
 get_accounting()
 ```
 
-The contract also exposes ten lifecycle write methods documented in
-[docs/README.md](docs/README.md#public-interface). A separate consumer contract
-is not required because external products can read the primitive directly.
+### Writes
+
+```text
+create_agent(agent_id, user, user_agent, origin, policy_url,
+             allowed_purpose, penalty_amount, minimum_challenge_bond,
+             attestor_public_key) payable
+accept_agent(agent_id)
+open_access_case(case_id, agent_id, event_id, target_url, receipt_url) payable
+adjudicate_case(case_id)
+retry_case(case_id)
+propose_case_cancel(case_id)
+accept_case_cancel(case_id)
+withdraw_credit(amount)
+propose_close(agent_id)
+accept_close(agent_id)
+```
+
+There are 18 public methods: 8 views and 10 writes. Integrators can gate work
+with `can_execute(agent_id)` and restore full review history through
+`get_agent_case_ids(agent_id)` without copying this application.
+
+## Verified Studionet Lifecycle
+
+The active revision finalized:
+
+- deployment;
+- operator registration with immutable attestor key;
+- designated-user acceptance;
+- case opening with a unique signed event ID;
+- validator adjudication;
+- `attestation_verified=true`;
+- `MATERIAL_VIOLATION / DISALLOWED_PATH`;
+- agent `QUARANTINED`;
+- `can_execute=false`;
+- penalty/challenge settlement;
+- beneficiary withdrawal;
+- resolved case discovery through `get_agent_case_ids`.
+
+Evidence:
+
+- [active lifecycle](docs/evidence/studionet/deployment.json)
+- [production hosting](docs/evidence/studionet/frontend-hosting.json)
+- [browser-wallet transactions](docs/evidence/studionet/browser-wallet.json)
+- [secondary-wallet smoke](docs/evidence/studionet/secondary-wallet-smoke.json)
+- [technical specification](docs/README.md)
+
+Superseded replaceable revisions were closed and recovered to zero where their
+contract API supported recovery. Historical evidence remains archived by
+contract address under `docs/evidence/studionet/revisions/`.
 
 ## Verification
 
@@ -229,13 +258,13 @@ is not required because external products can read the primitive directly.
 npm run check
 ```
 
-The fail-fast release gate currently proves:
+Current release gate:
 
-- GenVM lint and contract schema validation;
-- 20 direct contract tests;
-- 9 deployment and receipt-parser tests;
-- 50 frontend tests;
-- frontend TypeScript validation;
+- GenVM lint and schema validation;
+- 24 direct contract tests;
+- 10 deployment/evidence tests;
+- 58 frontend tests;
+- TypeScript validation;
 - production Vite build.
 
 No critical test is skipped or marked expected-failure.
@@ -247,24 +276,17 @@ Requirements: Node.js, npm, and Python 3.12.
 ```powershell
 npm run setup
 Copy-Item frontend/.env.example frontend/.env.local
-npm --prefix frontend run dev
+npm --workspace frontend run dev
 ```
 
-Open `http://localhost:5173`. `frontend/.env.local` contains public network
-configuration only. Never place a private key in a `VITE_*` variable.
+Open `http://localhost:5173`. `VITE_*` variables are public and must never
+contain a private key.
 
-## Deploy To Studionet
+## Deployment
 
-These commands intentionally sign Studionet transactions. Use funded,
-authorized test wallets in ignored `.env`:
-
-```dotenv
-STUDIONET_PRIVATE_KEY=<operator-key>
-STUDIONET_INTEGRATOR_PRIVATE_KEY=<distinct-user-key>
-```
-
-Run each stage in order. The runner stores only allowlisted public evidence and
-resumes submitted transactions instead of replaying them:
+The deployment runner reads authorized keys from ignored project `.env` first,
+then the ignored parent workspace `.env`. It records only allowlisted public
+evidence and resumes submitted transactions.
 
 ```powershell
 npm run deploy:studionet -- inspect
@@ -275,48 +297,39 @@ npm run deploy:studionet -- withdraw-user-credit
 npm run deploy:studionet -- verify
 ```
 
-To replay the bounded secondary-wallet verification against the configured
-active contract:
-
-```powershell
-npm run smoke:secondary-wallet
-```
-
 ## Honest Limitations
 
-- Browser-signed registration is verified on Studionet. The captured attempts
-  created two distinct draft agents because the previous frontend did not
-  surface finality promptly; revision `606a148` fixes that tracking defect.
-- The verified network is Studionet only.
-- Public receipts prove inspectable content, not cryptographic runner
-  attestation.
-- `robots.txt` is an agreed signal for this protocol, not a legal ruling.
-- External integration and adoption remain unverified.
-- One historical superseded revision predates cancellation and retains locked
-  test value; it is documented separately and is not presented as recovered.
+- The active deployment is verified on Studionet, not a production mainnet.
+- The registered runner key authenticates the runner chosen by the operator;
+  it does not by itself prove DNS or website ownership.
+- `occurred_at` is signed and version-bound, but this revision validates its
+  UTC format rather than enforcing a maximum event age.
+- `robots.txt` and the registered policy are protocol evidence, not a legal
+  determination.
+- External third-party adoption remains unverified.
+- One older historical revision predates case cancellation and retains test
+  funds; it is documented as unrecovered and is not presented as active.
 
-## Submission Snapshot
+## Copy-Ready Submission
 
-- Recommended category: `Projects`
-- Title: `AgentAccessBond: Validator-Enforced Web Agent Accountability`
-- Primary contract: the Studionet explorer link above
-- Consumer contract: `N/A` - integrators call the seven view methods directly
-- Demo: production app above; canonical reads and browser-signed registration
-  writes verified
-- Successful CI: GitHub Actions workflow above
+- **Category:** Projects
+- **Title:** AgentAccessBond: Signed, Validator-Enforced Web Agent Accountability
+- **Demo:** https://agent-access-bond.vercel.app
+- **Repository:** https://github.com/duclucky/agent-access-bond
+- **Primary contract:** https://explorer-studio.genlayer.com/address/0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b
+- **Consumer contract:** N/A; integrations use the eight public views directly.
 
-**Portal description (894 characters):**
+**Description:**
 
 AgentAccessBond is a Studionet dApp for bonded web-agent accountability. An
-operator locks a bond around an immutable agent identity, origin, user-agent,
-policy URL, and purpose. A challenger submits a bounded public action receipt.
-GenLayer validators independently fetch robots.txt, the locked policy, and the
-receipt, then compare normalized applicability and violation type while
-allowing rationale wording to differ. A finalized material violation
-quarantines the agent, disables can_execute(agent_id), and credits the
-designated user and challenger. Integrators can reuse seven view methods
-without copying adjudication logic. One contract, 20 direct tests, 9 script
-tests, and 50 frontend tests are verified. The production wallet picker
-discovers EIP-6963 extensions and offers explicit MetaMask mobile/QR fallback;
-browser-signed registration proof is captured; external adoption remains
-pending.
+operator registers an immutable agent identity, policy, purpose, financial
+terms, and secp256k1 runner attestor key. Challengers submit signed access
+events whose timestamp, target, policy version/hash, and robots version/hash
+are authenticated before adjudication. GenLayer validators independently fetch
+the exact public evidence and decide bounded applicability and violation
+fields. Invalid or unavailable attestations are retryable and cannot slash.
+A finalized material violation quarantines the agent, disables
+`can_execute(agent_id)`, settles the operator penalty, refunds the challenge
+bond, and credits the beneficiary. The frontend sends real wallet
+transactions, exposes retry and bilateral case cancellation, and restores
+resolved case history from canonical contract reads after reload.
