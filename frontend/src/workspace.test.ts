@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 
-import { availableActions, executeAndRefresh } from "./workspace";
+import {
+  availableActions,
+  closureAction,
+  executeAndRefresh
+} from "./workspace";
 import type { CanonicalSnapshot } from "./types";
 
 const OPERATOR = "0x1111111111111111111111111111111111111111";
@@ -104,6 +108,28 @@ describe("availableActions", () => {
     expect(availableActions(pendingCancel, USER)).not.toContain(
       "propose_case_cancel"
     );
+  });
+});
+
+describe("closureAction", () => {
+  it("does not let the proposing party accept its own closure request", () => {
+    const agent = {
+      ...snapshot().agent!,
+      close_proposed_by: OPERATOR
+    };
+
+    expect(closureAction(agent, OPERATOR)).toBeNull();
+    expect(closureAction(agent, USER)).toBe("accept_close");
+  });
+
+  it("offers a closure proposal only to a connected agent party", () => {
+    const agent = snapshot().agent!;
+
+    expect(closureAction(agent, OPERATOR)).toBe("propose_close");
+    expect(closureAction(agent, USER)).toBe("propose_close");
+    expect(
+      closureAction(agent, "0x3333333333333333333333333333333333333333")
+    ).toBeNull();
   });
 });
 

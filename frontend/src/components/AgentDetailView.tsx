@@ -3,6 +3,7 @@ import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 import { AccessCase, Verdict } from '../types';
 import { accessEventTimestamp } from '../presentation';
+import { closureAction } from '../workspace';
 
 interface AgentDetailViewProps {
   agentId: string;
@@ -62,6 +63,10 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
   }
 
   const executable = can_execute(agent.agent_id);
+  const closeAction = closureAction(agent, wallet.address);
+  const closureProposedByCurrentWallet =
+    Boolean(agent.close_proposed_by && wallet.address) &&
+    agent.close_proposed_by?.toLowerCase() === wallet.address.toLowerCase();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn">
@@ -146,13 +151,22 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             Open Challenge
           </button>
 
-          <button
-            onClick={() => void proposeClosure(agent.agent_id)}
-            className="px-3 py-2 rounded-xl border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-700 font-mono text-xs font-bold uppercase"
-            title="Bilateral Agreement Closure"
-          >
-            {agent.close_proposed_by ? 'Accept Closure' : 'Propose Closure'}
-          </button>
+          {(closeAction || closureProposedByCurrentWallet) && (
+            <button
+              onClick={() => {
+                if (closeAction) void proposeClosure(agent.agent_id);
+              }}
+              disabled={!closeAction}
+              className="px-3 py-2 rounded-xl border border-slate-800 text-slate-500 hover:text-slate-300 hover:border-slate-700 font-mono text-xs font-bold uppercase disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:text-slate-500 disabled:hover:border-slate-800"
+              title="Bilateral Agreement Closure"
+            >
+              {closeAction === 'accept_close'
+                ? 'Accept Closure'
+                : closeAction === 'propose_close'
+                  ? 'Propose Closure'
+                  : 'Closure Proposed'}
+            </button>
+          )}
         </div>
       </header>
 

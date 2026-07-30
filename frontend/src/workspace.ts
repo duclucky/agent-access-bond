@@ -18,6 +18,28 @@ function sameAddress(left: string | undefined, right: string | undefined) {
   return Boolean(left && right && left.toLowerCase() === right.toLowerCase());
 }
 
+type ClosureAgent = {
+  operator: string;
+  user: string;
+  active_case_id?: string;
+  close_proposed_by?: string;
+  status: string;
+};
+
+export function closureAction(
+  agent: ClosureAgent,
+  account?: string
+): "propose_close" | "accept_close" | null {
+  const isParty =
+    sameAddress(account, agent.operator) || sameAddress(account, agent.user);
+  if (!isParty || agent.active_case_id || agent.status === "CLOSED") return null;
+
+  const proposer = agent.close_proposed_by;
+  if (!proposer || sameAddress(proposer, ZERO_ADDRESS)) return "propose_close";
+  if (sameAddress(account, proposer)) return null;
+  return "accept_close";
+}
+
 export function availableActions(
   snapshot: CanonicalSnapshot | null,
   account?: string
@@ -61,17 +83,8 @@ export function availableActions(
     actions.push("retry_case");
   }
   if (BigInt(snapshot.credit || "0") > 0n) actions.push("withdraw_credit");
-  if (isParty && !agent.active_case_id && agent.status !== "CLOSED") {
-    if (
-      agent.close_proposed_by &&
-      !sameAddress(agent.close_proposed_by, ZERO_ADDRESS) &&
-      !sameAddress(account, agent.close_proposed_by)
-    ) {
-      actions.push("accept_close");
-    } else {
-      actions.push("propose_close");
-    }
-  }
+  const closeAction = closureAction(agent, account);
+  if (closeAction) actions.push(closeAction);
 
   return actions;
 }
