@@ -3,6 +3,7 @@
 
 import json
 from dataclasses import dataclass
+from datetime import datetime
 
 from genlayer import *
 import genlayer.gl.vm as glvm
@@ -15,6 +16,32 @@ MAX_URL_LENGTH = 240
 MAX_PURPOSE_LENGTH = 240
 MAX_SOURCE_CHARS = 12_000
 MAX_PROMPT_EVIDENCE_CHARS = 2_000
+MAX_VERSION_LENGTH = 80
+MAX_NONCE_LENGTH = 120
+ACCESS_EVENT_SCHEMA = "agent-access-event/v1"
+SECP256K1_P = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F
+SECP256K1_N = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
+SECP256K1_G = (
+    0x79BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798,
+    0x483ADA7726A3C4655DA4FBFC0E1108A8FD17B448A68554199C47D08FFB10D4B8,
+)
+ATTESTATION_FIELDS = (
+    "schema",
+    "event_id",
+    "agent_id",
+    "user_agent",
+    "method",
+    "target_url",
+    "occurred_at",
+    "nonce",
+    "policy_version",
+    "policy_url",
+    "policy_hash",
+    "robots_version",
+    "robots_url",
+    "robots_hash",
+    "attestor_public_key",
+)
 APPLICABILITIES = ("COMPLIANT", "MATERIAL_VIOLATION", "UNVERIFIABLE")
 VIOLATION_TYPES = (
     "DISALLOWED_PATH",
@@ -33,6 +60,16 @@ CONSENSUS_FIELDS = (
     "violation_type",
     "required_action",
     "matched_fact_ids",
+    "event_id",
+    "occurred_at",
+    "attestor_public_key",
+    "policy_version",
+    "policy_url",
+    "policy_hash",
+    "robots_version",
+    "robots_url",
+    "robots_hash",
+    "attestation_verified",
 )
 
 
@@ -45,6 +82,7 @@ class Agent:
     user_agent: str
     origin: str
     policy_url: str
+    attestor_public_key: str
     allowed_purpose: str
     operator_bond: u256
     minimum_challenge_bond: u256
@@ -61,6 +99,7 @@ class Agent:
 class AccessCase:
     case_id: str
     agent_id: str
+    event_id: str
     opened_by: Address
     target_url: str
     receipt_url: str
@@ -90,6 +129,16 @@ class Verdict:
     user_credit_amount: u256
     operator_credit_amount: u256
     attempt: u256
+    event_id: str
+    occurred_at: str
+    attestor_public_key: str
+    policy_version: str
+    policy_url: str
+    policy_hash: str
+    robots_version: str
+    robots_url: str
+    robots_hash: str
+    attestation_verified: bool
 
 
 def _require(condition: bool, message: str) -> None:
@@ -107,6 +156,125 @@ def _bounded_text(value: str, name: str, max_length: int) -> str:
 def _valid_https_url(value: str, name: str) -> str:
     text = _bounded_text(value, name, MAX_URL_LENGTH)
     _require(text.startswith("https://"), f"{name} must use https")
+    return text
+
+
+def _bounded_ascii(value, name: str, max_length: int) -> str:
+    text = _bounded_text(str(value), name, max_length)
+    try:
+        text.encode("ascii")
+    except Exception as exc:
+        raise Exception(f"{name} must be ASCII") from exc
+    return text
+
+
+def _hex_value(value, name: str, byte_length: int) -> str:
+    text = _bounded_ascii(value, name, 2 + byte_length * 2).lower()
+    _require(
+        text.startswith("0x") and len(text) == 2 + byte_length * 2,
+        f"{name} has invalid length",
+    )
+    try:
+        bytes.fromhex(text[2:])
+    except Exception as exc:
+        raise Exception(f"{name} must be hex") from exc
+    return text
+
+
+def _keccak_hex(text: str) -> str:
+    return "0x" + Keccak256(text.encode("utf-8")).hexdigest()
+
+
+def _point_add(left, right):
+    if left is None:
+        return right
+    if right is None:
+        return left
+    x1, y1 = left
+    x2, y2 = right
+    if x1 == x2 and (y1 + y2) % SECP256K1_P == 0:
+        return None
+    if left == right:
+        _require(y1 != 0, "Invalid attestor public key")
+        slope = (3 * x1 * x1) * pow(2 * y1, SECP256K1_P - 2, SECP256K1_P)
+    else:
+        slope = (y2 - y1) * pow(
+            (x2 - x1) % SECP256K1_P,
+            SECP256K1_P - 2,
+            SECP256K1_P,
+        )
+    slope %= SECP256K1_P
+    x3 = (slope * slope - x1 - x2) % SECP256K1_P
+    y3 = (slope * (x1 - x3) - y1) % SECP256K1_P
+    return (x3, y3)
+
+
+def _point_mul(scalar: int, point):
+    result = None
+    addend = point
+    remaining = scalar
+    while remaining > 0:
+        if remaining & 1:
+            result = _point_add(result, addend)
+        addend = _point_add(addend, addend)
+        remaining >>= 1
+    return result
+
+
+def _public_key_point(value: str):
+    public_key = _hex_value(value, "attestor_public_key", 65)
+    _require(public_key.startswith("0x04"), "Attestor key must be uncompressed")
+    x = int(public_key[4:68], 16)
+    y = int(public_key[68:132], 16)
+    _require(
+        x < SECP256K1_P
+        and y < SECP256K1_P
+        and (y * y - (x * x * x + 7)) % SECP256K1_P == 0,
+        "Invalid attestor public key",
+    )
+    return public_key, (x, y)
+
+
+def _canonical_event_payload(receipt: dict) -> str:
+    payload = {}
+    for field in ATTESTATION_FIELDS:
+        payload[field] = _bounded_ascii(receipt.get(field, ""), field, MAX_SOURCE_CHARS)
+    return json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    )
+
+
+def _verify_event_signature(receipt: dict, expected_public_key: str) -> bool:
+    try:
+        public_key, point = _public_key_point(receipt.get("attestor_public_key", ""))
+        if public_key != expected_public_key.lower():
+            return False
+        signature = _hex_value(receipt.get("signature", ""), "signature", 64)
+        r = int(signature[2:66], 16)
+        s = int(signature[66:130], 16)
+        if not (0 < r < SECP256K1_N and 0 < s <= SECP256K1_N // 2):
+            return False
+        digest = int(_keccak_hex(_canonical_event_payload(receipt))[2:], 16)
+        inverse = pow(s, SECP256K1_N - 2, SECP256K1_N)
+        candidate = _point_add(
+            _point_mul((digest * inverse) % SECP256K1_N, SECP256K1_G),
+            _point_mul((r * inverse) % SECP256K1_N, point),
+        )
+        return candidate is not None and candidate[0] % SECP256K1_N == r
+    except Exception:
+        return False
+
+
+def _valid_event_timestamp(value) -> str:
+    text = _bounded_ascii(value, "occurred_at", 32)
+    _require(text.endswith("Z"), "occurred_at must use UTC")
+    try:
+        datetime.fromisoformat(text[:-1] + "+00:00")
+    except Exception as exc:
+        raise Exception("occurred_at is invalid") from exc
     return text
 
 
@@ -289,6 +457,7 @@ class AgentAccessBond(gl.Contract):
     agents: TreeMap[str, Agent]
     cases: TreeMap[str, AccessCase]
     verdicts: TreeMap[str, Verdict]
+    event_case_ids: TreeMap[str, str]
     credits: TreeMap[str, u256]
     total_locked_operator_bonds: u256
     total_locked_challenge_bonds: u256
@@ -356,6 +525,7 @@ class AgentAccessBond(gl.Contract):
         allowed_purpose: str,
         penalty_amount: u256,
         minimum_challenge_bond: u256,
+        attestor_public_key: str,
     ) -> None:
         normalized_id = _bounded_text(agent_id, "agent_id", MAX_ID_LENGTH)
         _require(normalized_id not in self.agents, "Agent already exists")
@@ -366,6 +536,7 @@ class AgentAccessBond(gl.Contract):
         )
         normalized_origin = _valid_https_url(origin, "origin")
         normalized_policy_url = _valid_https_url(policy_url, "policy_url")
+        normalized_attestor_key, _ = _public_key_point(attestor_public_key)
         normalized_purpose = _bounded_text(
             allowed_purpose, "allowed_purpose", MAX_PURPOSE_LENGTH
         )
@@ -382,6 +553,7 @@ class AgentAccessBond(gl.Contract):
             user_agent=normalized_user_agent,
             origin=normalized_origin,
             policy_url=normalized_policy_url,
+            attestor_public_key=normalized_attestor_key,
             allowed_purpose=normalized_purpose,
             operator_bond=value,
             minimum_challenge_bond=minimum_challenge_bond,
@@ -412,11 +584,17 @@ class AgentAccessBond(gl.Contract):
         self,
         case_id: str,
         agent_id: str,
+        event_id: str,
         target_url: str,
         receipt_url: str,
     ) -> None:
         normalized_case_id = _bounded_text(case_id, "case_id", MAX_ID_LENGTH)
         _require(normalized_case_id not in self.cases, "Case already exists")
+        normalized_event_id = _bounded_ascii(event_id, "event_id", MAX_ID_LENGTH)
+        _require(
+            normalized_event_id not in self.event_case_ids,
+            "Event already challenged",
+        )
         _require(agent_id in self.agents, "Agent not found")
         agent = self.agents[agent_id]
         _require(agent.accepted, "Agent is not active")
@@ -437,6 +615,7 @@ class AgentAccessBond(gl.Contract):
         self.cases[normalized_case_id] = AccessCase(
             case_id=normalized_case_id,
             agent_id=agent_id,
+            event_id=normalized_event_id,
             opened_by=gl.message.sender_address,
             target_url=normalized_target,
             receipt_url=normalized_receipt,
@@ -448,18 +627,18 @@ class AgentAccessBond(gl.Contract):
             cancel_proposed_by=Address(ZERO_ADDRESS),
         )
         agent.active_case_id = normalized_case_id
+        agent.status = "PENDING_REVIEW"
         agent.case_count += u256(1)
         self.agents[agent_id] = agent
+        self.event_case_ids[normalized_event_id] = normalized_case_id
         self.total_locked_challenge_bonds += challenge_value
-
-    def _robots_url(self, origin: str) -> str:
-        return origin.rstrip("/") + "/robots.txt"
 
     def _normalize_access_result(
         self,
         raw_result,
         agent: Agent,
         case: AccessCase,
+        attestation: dict,
     ) -> dict:
         parsed = _parse_json_object(raw_result)
         applicability = str(parsed.get("applicability", "")).upper()
@@ -477,27 +656,140 @@ class AgentAccessBond(gl.Contract):
             "case_id": case.case_id,
             "target_url": case.target_url,
             "applicability": applicability,
-            "source_coverage": "SUFFICIENT",
+            "source_coverage": (
+                "SUFFICIENT" if attestation["attestation_verified"] else "FAILED"
+            ),
             "violation_type": violation_type,
             "required_action": _action_for_applicability(applicability),
             "matched_fact_ids": _facts_for_violation(violation_type),
             "rationale": rationale,
+            **attestation,
+        }
+
+    def _attestation_result_fields(self, raw_result, case: AccessCase) -> dict:
+        parsed = _parse_json_object(raw_result)
+        verified = parsed.get("attestation_verified") is True
+        return {
+            "event_id": _bounded_ascii(
+                parsed.get("event_id", case.event_id),
+                "event_id",
+                MAX_ID_LENGTH,
+            ),
+            "occurred_at": (
+                _valid_event_timestamp(parsed.get("occurred_at", ""))
+                if verified
+                else str(parsed.get("occurred_at", ""))
+            ),
+            "attestor_public_key": str(parsed.get("attestor_public_key", "")),
+            "policy_version": str(parsed.get("policy_version", "")),
+            "policy_url": str(parsed.get("policy_url", "")),
+            "policy_hash": str(parsed.get("policy_hash", "")),
+            "robots_version": str(parsed.get("robots_version", "")),
+            "robots_url": str(parsed.get("robots_url", "")),
+            "robots_hash": str(parsed.get("robots_hash", "")),
+            "attestation_verified": verified,
+        }
+
+    def _unverifiable_result(self, agent: Agent, case: AccessCase) -> dict:
+        attestation = {
+            "event_id": case.event_id,
+            "occurred_at": "",
+            "attestor_public_key": agent.attestor_public_key,
+            "policy_version": "",
+            "policy_url": agent.policy_url,
+            "policy_hash": "",
+            "robots_version": "",
+            "robots_url": "",
+            "robots_hash": "",
+            "attestation_verified": False,
+        }
+        return self._normalize_access_result(
+            {
+                "applicability": "UNVERIFIABLE",
+                "violation_type": "RECEIPT_INSUFFICIENT",
+                "rationale": "Authenticated access evidence could not be verified.",
+            },
+            agent,
+            case,
+            attestation,
+        )
+
+    def _authenticated_evidence(self, agent: Agent, case: AccessCase) -> dict:
+        receipt_text = _limit_source(
+            gl.nondet.web.get(case.receipt_url),
+            "receipt",
+        )
+        receipt = _parse_json_object(receipt_text)
+        _require(receipt.get("schema") == ACCESS_EVENT_SCHEMA, "Invalid receipt schema")
+        _require(receipt.get("event_id") == case.event_id, "Receipt event mismatch")
+        _require(receipt.get("agent_id") == agent.agent_id, "Receipt agent mismatch")
+        _require(receipt.get("user_agent") == agent.user_agent, "Receipt user-agent mismatch")
+        _require(receipt.get("target_url") == case.target_url, "Receipt target mismatch")
+        _bounded_ascii(receipt.get("method", ""), "method", 16)
+        occurred_at = _valid_event_timestamp(receipt.get("occurred_at", ""))
+        _bounded_ascii(receipt.get("nonce", ""), "nonce", MAX_NONCE_LENGTH)
+        policy_version = _bounded_ascii(
+            receipt.get("policy_version", ""),
+            "policy_version",
+            MAX_VERSION_LENGTH,
+        )
+        robots_version = _bounded_ascii(
+            receipt.get("robots_version", ""),
+            "robots_version",
+            MAX_VERSION_LENGTH,
+        )
+        policy_url = _valid_https_url(receipt.get("policy_url", ""), "policy_url")
+        robots_url = _valid_https_url(receipt.get("robots_url", ""), "robots_url")
+        _require(policy_url == agent.policy_url, "Receipt policy URL mismatch")
+        _require(
+            robots_url.startswith(agent.origin.rstrip("/") + "/robots.txt"),
+            "Receipt robots URL mismatch",
+        )
+        policy_hash = _hex_value(receipt.get("policy_hash", ""), "policy_hash", 32)
+        robots_hash = _hex_value(receipt.get("robots_hash", ""), "robots_hash", 32)
+        _require(
+            _verify_event_signature(receipt, agent.attestor_public_key),
+            "Invalid event signature",
+        )
+
+        policy = _limit_source(gl.nondet.web.get(policy_url), "policy")
+        robots = _limit_source(gl.nondet.web.get(robots_url), "robots")
+        _require(_keccak_hex(policy) == policy_hash, "Policy version hash mismatch")
+        _require(_keccak_hex(robots) == robots_hash, "Robots version hash mismatch")
+        return {
+            "event_id": case.event_id,
+            "occurred_at": occurred_at,
+            "attestor_public_key": agent.attestor_public_key,
+            "policy_version": policy_version,
+            "policy_url": policy_url,
+            "policy_hash": policy_hash,
+            "robots_version": robots_version,
+            "robots_url": robots_url,
+            "robots_hash": robots_hash,
+            "attestation_verified": True,
+            "policy": policy,
+            "robots": robots,
+            "receipt": json.dumps(
+                {field: receipt.get(field) for field in ATTESTATION_FIELDS},
+                sort_keys=True,
+                separators=(",", ":"),
+            ),
         }
 
     def _evaluate_access_case(self, agent: Agent, case: AccessCase) -> dict:
         def evaluate():
-            robots = _limit_source(
-                gl.nondet.web.get(self._robots_url(agent.origin)),
-                "robots",
+            try:
+                evidence = self._authenticated_evidence(agent, case)
+            except Exception:
+                return self._unverifiable_result(agent, case)
+            robots_evidence = _compact_policy_evidence(
+                evidence["robots"],
+                case.target_url,
             )
-            policy = _limit_source(gl.nondet.web.get(agent.policy_url), "policy")
-            receipt = _validate_receipt_text(
-                _limit_source(gl.nondet.web.get(case.receipt_url), "receipt"),
-                agent,
-                case,
+            policy_evidence = _compact_policy_evidence(
+                evidence["policy"],
+                case.target_url,
             )
-            robots_evidence = _compact_policy_evidence(robots, case.target_url)
-            policy_evidence = _compact_policy_evidence(policy, case.target_url)
             prompt = f"""
 AgentAccessBond adjudicator.
 Determine whether the recorded web access complied with the bounded policy
@@ -529,20 +821,40 @@ target_path={_target_path(case.target_url)}
 {policy_evidence}
 </untrusted_policy>
 <untrusted_receipt>
-{receipt}
+{evidence["receipt"]}
 </untrusted_receipt>
 """.strip()
             raw_result = gl.nondet.exec_prompt(prompt, response_format="json")
-            return self._normalize_access_result(raw_result, agent, case)
+            attestation = {
+                field: evidence[field]
+                for field in (
+                    "event_id",
+                    "occurred_at",
+                    "attestor_public_key",
+                    "policy_version",
+                    "policy_url",
+                    "policy_hash",
+                    "robots_version",
+                    "robots_url",
+                    "robots_hash",
+                    "attestation_verified",
+                )
+            }
+            return self._normalize_access_result(raw_result, agent, case, attestation)
 
         def validator_fn(leader_result: glvm.Result) -> bool:
             if not isinstance(leader_result, glvm.Return):
                 return False
             try:
+                attestation = self._attestation_result_fields(
+                    leader_result.calldata,
+                    case,
+                )
                 proposed = self._normalize_access_result(
                     leader_result.calldata,
                     agent,
                     case,
+                    attestation,
                 )
                 replay = evaluate()
                 return all(replay[field] == proposed[field] for field in CONSENSUS_FIELDS)
@@ -567,6 +879,10 @@ target_path={_target_path(case.target_url)}
         operator_credit = u256(0)
 
         if result["applicability"] == "MATERIAL_VIOLATION":
+            _require(
+                result["attestation_verified"],
+                "Punitive verdict requires authenticated evidence",
+            )
             user_credit = agent.penalty_amount
             agent.operator_bond -= agent.penalty_amount
             self.total_locked_operator_bonds -= agent.penalty_amount
@@ -596,6 +912,16 @@ target_path={_target_path(case.target_url)}
             user_credit_amount=user_credit,
             operator_credit_amount=operator_credit,
             attempt=next_attempt,
+            event_id=result["event_id"],
+            occurred_at=result["occurred_at"],
+            attestor_public_key=result["attestor_public_key"],
+            policy_version=result["policy_version"],
+            policy_url=result["policy_url"],
+            policy_hash=result["policy_hash"],
+            robots_version=result["robots_version"],
+            robots_url=result["robots_url"],
+            robots_hash=result["robots_hash"],
+            attestation_verified=result["attestation_verified"],
         )
         self.verdicts[verdict_id] = verdict
 

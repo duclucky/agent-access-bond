@@ -2,6 +2,9 @@
 
 import json
 
+from eth_keys import keys
+from eth_utils import keccak
+
 from tests.direct.conftest import to_hex
 
 
@@ -9,9 +12,68 @@ CONTRACT_PATH = "contracts/agent_access_bond.py"
 OPERATOR_BOND = 500
 PENALTY_AMOUNT = 100
 CHALLENGE_BOND = 10
-ROBOTS_URL = "https://example.com/robots.txt"
-POLICY_URL = "https://example.com/agent-policy"
-RECEIPT_URL = "https://example.com/receipts/case-1.json"
+TEST_PRIVATE_KEY = keys.PrivateKey(bytes.fromhex("11" * 32))
+ATTESTOR_PUBLIC_KEY = "0x04" + TEST_PRIVATE_KEY.public_key.to_bytes().hex()
+EVENT_ID = "event-1"
+ROBOTS_URL = "https://example.com/robots.txt?v=1"
+POLICY_URL = "https://example.com/policy/v1.txt"
+RECEIPT_URL = "https://example.com/receipts/event-1.json"
+POLICY_TEXT = "AgentAccessBot may only fetch public research pages."
+
+
+def content_hash(text):
+    return "0x" + keccak(text=text).hex()
+
+
+def signed_receipt(robots_body, policy_body=POLICY_TEXT, **overrides):
+    payload = {
+        "schema": "agent-access-event/v1",
+        "event_id": EVENT_ID,
+        "agent_id": "agent-alpha",
+        "user_agent": "AgentAccessBot/1.0",
+        "method": "GET",
+        "target_url": "https://example.com/private/report",
+        "occurred_at": "2026-07-30T10:00:00Z",
+        "nonce": "runner-nonce-1",
+        "policy_version": "v1",
+        "policy_url": POLICY_URL,
+        "policy_hash": content_hash(policy_body),
+        "robots_version": "v1",
+        "robots_url": ROBOTS_URL,
+        "robots_hash": content_hash(robots_body),
+        "attestor_public_key": ATTESTOR_PUBLIC_KEY,
+    }
+    payload.update(overrides)
+    canonical = json.dumps(
+        payload,
+        sort_keys=True,
+        separators=(",", ":"),
+        ensure_ascii=True,
+    ).encode("ascii")
+    signature = TEST_PRIVATE_KEY.sign_msg_hash(keccak(canonical))
+    return {
+        **payload,
+        "signature": "0x"
+        + signature.r.to_bytes(32, "big").hex()
+        + signature.s.to_bytes(32, "big").hex(),
+    }
+
+
+def result_with_attestation(result, robots_body, policy_body=POLICY_TEXT):
+    receipt = signed_receipt(robots_body, policy_body)
+    return {
+        **result,
+        "event_id": receipt["event_id"],
+        "occurred_at": receipt["occurred_at"],
+        "attestor_public_key": receipt["attestor_public_key"],
+        "policy_version": receipt["policy_version"],
+        "policy_url": receipt["policy_url"],
+        "policy_hash": receipt["policy_hash"],
+        "robots_version": receipt["robots_version"],
+        "robots_url": receipt["robots_url"],
+        "robots_hash": receipt["robots_hash"],
+        "attestation_verified": True,
+    }
 
 
 def create_agent(
@@ -32,6 +94,7 @@ def create_agent(
         "research only",
         PENALTY_AMOUNT,
         CHALLENGE_BOND,
+        ATTESTOR_PUBLIC_KEY,
     )
     contract_address = vm._contract_address
     current_balance = vm._balances.get(bytes(contract_address), 0)
@@ -57,7 +120,13 @@ def open_access_case(
 ):
     vm.sender = opener
     vm.value = value
-    contract.open_access_case(case_id, agent_id, target_url, receipt_url)
+    contract.open_access_case(
+        case_id,
+        agent_id,
+        EVENT_ID,
+        target_url,
+        receipt_url,
+    )
     contract_address = vm._contract_address
     current_balance = vm._balances.get(bytes(contract_address), 0)
     vm.deal(contract_address, current_balance + value)
@@ -71,7 +140,7 @@ def mock_access_result(vm, result):
         else "User-agent: AgentAccessBot\nDisallow: /admin/"
     )
     vm.mock_web(
-        r".*example\.com/robots\.txt",
+        r".*example\.com/robots\.txt\?v=1",
         {
             "method": "GET",
             "status": 200,
@@ -79,28 +148,19 @@ def mock_access_result(vm, result):
         },
     )
     vm.mock_web(
-        r".*example\.com/agent-policy",
+        r".*example\.com/policy/v1\.txt",
         {
             "method": "GET",
             "status": 200,
-            "body": "AgentAccessBot may only fetch public research pages.",
+            "body": POLICY_TEXT,
         },
     )
     vm.mock_web(
-        r".*example\.com/receipts/case-1\.json",
+        r".*example\.com/receipts/event-1\.json",
         {
             "method": "GET",
             "status": 200,
-            "body": json.dumps(
-                {
-                    "agent_id": "agent-alpha",
-                    "case_id": "case-1",
-                    "target_url": "https://example.com/private/report",
-                    "user_agent": "AgentAccessBot/1.0",
-                    "method": "GET",
-                    "timestamp": "2026-07-27T00:00:00Z",
-                }
-            ),
+            "body": json.dumps(signed_receipt(robots_body)),
         },
     )
     vm.mock_llm(
@@ -253,7 +313,7 @@ def test_compliant_keeps_agent_active(
     assert contract.can_execute("agent-alpha") is True
 
 
-def test_malformed_receipt_rejects_without_canonical_state(
+def test_malformed_receipt_becomes_retryable_without_slashing(
     direct_vm,
     direct_deploy,
     direct_alice,
@@ -264,23 +324,24 @@ def test_malformed_receipt_rejects_without_canonical_state(
     create_and_accept_agent(contract, direct_vm, direct_alice, direct_bob)
     open_access_case(contract, direct_vm, direct_charlie)
     direct_vm.mock_web(
-        r".*example\.com/robots\.txt",
+        r".*example\.com/robots\.txt\?v=1",
         {"method": "GET", "status": 200, "body": "User-agent: *\nDisallow: /private/"},
     )
     direct_vm.mock_web(
-        r".*example\.com/agent-policy",
+        r".*example\.com/policy/v1\.txt",
         {"method": "GET", "status": 200, "body": "Policy text."},
     )
     direct_vm.mock_web(
-        r".*example\.com/receipts/case-1\.json",
+        r".*example\.com/receipts/event-1\.json",
         {"method": "GET", "status": 200, "body": "not json"},
     )
 
-    with direct_vm.expect_revert("Expected JSON object"):
-        contract.adjudicate_case("case-1")
+    verdict_id = contract.adjudicate_case("case-1")
 
     case = contract.get_case("case-1")
-    assert case.status == "OPEN"
-    assert case.verdict_id == ""
-    assert contract.get_agent_status("agent-alpha") == "ACTIVE"
+    verdict = contract.get_verdict(verdict_id)
+    assert case.status == "RETRYABLE"
+    assert verdict.applicability == "UNVERIFIABLE"
+    assert verdict.attestation_verified is False
+    assert contract.get_agent_status("agent-alpha") == "PENDING_REVIEW"
     assert contract.can_execute("agent-alpha") is False
