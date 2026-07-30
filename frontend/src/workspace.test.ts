@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import {
   availableActions,
+  canOpenAccessCase,
   closureAction,
   executeAndRefresh
 } from "./workspace";
@@ -130,6 +131,24 @@ describe("closureAction", () => {
     expect(
       closureAction(agent, "0x3333333333333333333333333333333333333333")
     ).toBeNull();
+  });
+});
+
+describe("canOpenAccessCase", () => {
+  it("matches the contract status and active-case preconditions", () => {
+    const activeAgent = snapshot().agent!;
+
+    expect(canOpenAccessCase(activeAgent)).toBe(true);
+    expect(
+      canOpenAccessCase({ ...activeAgent, status: "PENDING_REVIEW" })
+    ).toBe(true);
+    expect(canOpenAccessCase({ ...activeAgent, status: "QUARANTINED" })).toBe(
+      false
+    );
+    expect(canOpenAccessCase({ ...activeAgent, accepted: false })).toBe(false);
+    expect(
+      canOpenAccessCase({ ...activeAgent, active_case_id: "case-1" })
+    ).toBe(false);
   });
 });
 

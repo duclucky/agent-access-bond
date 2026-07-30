@@ -3,7 +3,7 @@ import { Icon } from './Icon';
 import { useContract } from '../context/ContractContext';
 import { AccessCase, Verdict } from '../types';
 import { accessEventTimestamp } from '../presentation';
-import { closureAction } from '../workspace';
+import { canOpenAccessCase, closureAction } from '../workspace';
 
 interface AgentDetailViewProps {
   agentId: string;
@@ -20,7 +20,6 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
     get_agent,
     can_execute,
     approveAgent,
-    togglePauseAgent,
     proposeClosure,
     wallet,
     adjudicateCase,
@@ -67,6 +66,9 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
   const closureProposedByCurrentWallet =
     Boolean(agent.close_proposed_by && wallet.address) &&
     agent.close_proposed_by?.toLowerCase() === wallet.address.toLowerCase();
+  const isDesignatedUser =
+    Boolean(wallet.address) &&
+    agent.user.toLowerCase() === wallet.address.toLowerCase();
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn">
@@ -124,7 +126,7 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
         </div>
 
         <div className="flex items-center gap-2 flex-wrap">
-          {agent.status === 'DRAFT' && (
+          {agent.status === 'DRAFT' && isDesignatedUser && (
             <button
               onClick={() => void approveAgent(agent.agent_id)}
               className="px-4 py-2 rounded-xl bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase hover:bg-emerald-400 transition-colors shadow-sm flex items-center gap-1.5"
@@ -134,22 +136,15 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
             </button>
           )}
 
-          {agent.status === 'ACTIVE' && (
+          {canOpenAccessCase(agent) && (
             <button
-              onClick={() => void togglePauseAgent(agent.agent_id)}
-              className="px-4 py-2 rounded-xl border border-slate-800 bg-slate-900 text-slate-300 hover:bg-slate-800 transition-colors font-mono text-xs font-bold uppercase"
+              onClick={() => onOpenChallengeForAgent(agent.agent_id)}
+              className="px-4 py-2 rounded-xl bg-orange-500 text-slate-950 hover:bg-orange-400 transition-colors font-mono text-xs font-bold uppercase shadow-sm flex items-center gap-1.5"
             >
-              Propose Close
+              <Icon name="gavel" className="text-sm" />
+              Open Challenge
             </button>
           )}
-
-          <button
-            onClick={() => onOpenChallengeForAgent(agent.agent_id)}
-            className="px-4 py-2 rounded-xl bg-orange-500 text-slate-950 hover:bg-orange-400 transition-colors font-mono text-xs font-bold uppercase shadow-sm flex items-center gap-1.5"
-          >
-            <Icon name="gavel" className="text-sm" />
-            Open Challenge
-          </button>
 
           {(closeAction || closureProposedByCurrentWallet) && (
             <button

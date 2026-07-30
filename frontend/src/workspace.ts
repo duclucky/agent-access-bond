@@ -21,10 +21,19 @@ function sameAddress(left: string | undefined, right: string | undefined) {
 type ClosureAgent = {
   operator: string;
   user: string;
+  accepted?: boolean;
   active_case_id?: string;
   close_proposed_by?: string;
   status: string;
 };
+
+export function canOpenAccessCase(agent: ClosureAgent) {
+  return Boolean(
+    agent.accepted &&
+      !agent.active_case_id &&
+      (agent.status === "ACTIVE" || agent.status === "PENDING_REVIEW")
+  );
+}
 
 export function closureAction(
   agent: ClosureAgent,
@@ -53,13 +62,7 @@ export function availableActions(
   const isParty = isOperator || isUser;
 
   if (agent.status === "DRAFT" && isUser) actions.push("accept_agent");
-  if (
-    agent.accepted &&
-    !agent.active_case_id &&
-    (agent.status === "ACTIVE" || agent.status === "PENDING_REVIEW")
-  ) {
-    actions.push("open_access_case");
-  }
+  if (canOpenAccessCase(agent)) actions.push("open_access_case");
   if (caseRecord?.status === "OPEN") actions.push("adjudicate_case");
   if (
     caseRecord &&
