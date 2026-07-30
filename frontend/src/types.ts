@@ -5,6 +5,7 @@ export type AgentRecord = {
   user_agent: string;
   origin: string;
   policy_url: string;
+  attestor_public_key: string;
   allowed_purpose: string;
   operator_bond: string | number;
   minimum_challenge_bond: string | number;
@@ -19,6 +20,7 @@ export type AgentRecord = {
 export type CaseRecord = {
   case_id: string;
   agent_id: string;
+  event_id: string;
   opened_by: string;
   target_url: string;
   receipt_url: string;
@@ -46,6 +48,16 @@ export type VerdictRecord = {
   user_credit_amount: string | number;
   operator_credit_amount: string | number;
   attempt: string | number;
+  event_id: string;
+  occurred_at: string;
+  attestor_public_key: string;
+  policy_version: string;
+  policy_url: string;
+  policy_hash: string;
+  robots_version: string;
+  robots_url: string;
+  robots_hash: string;
+  attestation_verified: boolean;
 };
 
 export type AccountingRecord = {
@@ -71,7 +83,7 @@ export type AgentStatus =
   | "QUARANTINED"
   | "CLOSED";
 
-export type CaseStatus = "OPEN" | "RETRYABLE" | "RESOLVED" | "CANCELLED";
+export type CaseStatus = "OPEN" | "RETRYABLE" | "RESOLVED" | "CANCELED";
 
 export type ApplicabilityClass =
   | "MATERIAL_VIOLATION"
@@ -80,10 +92,9 @@ export type ApplicabilityClass =
 
 export type ViolationType =
   | "DISALLOWED_PATH"
-  | "RATE_LIMIT_EXCEEDED"
-  | "ROBOTS_TXT_BYPASS"
-  | "UNAUTHORIZED_DATA_SCRAPING"
-  | "FORM_SUBMISSION_VIOLATION"
+  | "USER_AGENT_MISMATCH"
+  | "POLICY_SCOPE_BREACH"
+  | "RECEIPT_INSUFFICIENT"
   | "NONE";
 
 export interface Verdict {
@@ -102,14 +113,22 @@ export interface Verdict {
   user_credit_amount: number;
   operator_credit_amount: number;
   attempt: number;
-  timestamp: string;
-  validator_signatures: number;
-  total_validators: number;
+  event_id: string;
+  occurred_at: string;
+  attestor_public_key: string;
+  policy_version: string;
+  policy_url: string;
+  policy_hash: string;
+  robots_version: string;
+  robots_url: string;
+  robots_hash: string;
+  attestation_verified: boolean;
 }
 
 export interface AccessCase {
   case_id: string;
   agent_id: string;
+  event_id: string;
   opened_by: string;
   target_url: string;
   receipt_url: string;
@@ -131,6 +150,7 @@ export interface AgentBond {
   user_agent: string;
   origin: string;
   policy_url: string;
+  attestor_public_key: string;
   allowed_purpose: string;
   operator_bond: number;
   minimum_challenge_bond: number;

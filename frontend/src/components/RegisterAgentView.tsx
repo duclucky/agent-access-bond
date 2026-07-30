@@ -13,6 +13,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
   const [origin, setOrigin] = useState('');
   const [userAgent, setUserAgent] = useState('');
   const [designatedUser, setDesignatedUser] = useState('');
+  const [attestorPublicKey, setAttestorPublicKey] = useState('');
   const [policyUrl, setPolicyUrl] = useState('');
   const [allowedPurpose, setAllowedPurpose] = useState('');
   const [operatorBond, setOperatorBond] = useState<number>(1000);
@@ -34,8 +35,19 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
     e.preventDefault();
     setErrorMsg('');
 
-    if (!origin.trim() || !userAgent.trim() || !policyUrl.trim() || !allowedPurpose.trim()) {
+    if (
+      !origin.trim() ||
+      !userAgent.trim() ||
+      !policyUrl.trim() ||
+      !allowedPurpose.trim() ||
+      !attestorPublicKey.trim()
+    ) {
       setErrorMsg('Please fill in all required agent identity and policy fields.');
+      return;
+    }
+
+    if (!/^0x04[0-9a-fA-F]{128}$/.test(attestorPublicKey.trim())) {
+      setErrorMsg('Runner attestor key must be an uncompressed secp256k1 public key.');
       return;
     }
 
@@ -52,6 +64,7 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
         user_agent: userAgent,
         user: designatedUser || wallet.address,
         policy_url: policyUrl,
+        attestor_public_key: attestorPublicKey.trim(),
         allowed_purpose: allowedPurpose,
         operator_bond: Number(operatorBond),
         minimum_challenge_bond: Number(minimumChallengeBond),
@@ -158,6 +171,24 @@ export const RegisterAgentView: React.FC<RegisterAgentViewProps> = ({ onSuccess,
                     className="w-full bg-slate-950 border border-slate-800 text-orange-400 font-mono text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-orange-500"
                   />
                 </div>
+              </div>
+
+              <div>
+                <label htmlFor="attestor-public-key" className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1.5">
+                  Runner Attestor Public Key <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="attestor-public-key"
+                  type="text"
+                  value={attestorPublicKey}
+                  onChange={(e) => setAttestorPublicKey(e.target.value)}
+                  placeholder="0x04... uncompressed secp256k1 public key"
+                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-orange-500"
+                  required
+                />
+                <p className="text-[11px] text-slate-500 mt-1 font-sans">
+                  Access receipts must be signed by this immutable runner key before a bond can be slashed.
+                </p>
               </div>
             </div>
           </div>

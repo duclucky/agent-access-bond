@@ -30,6 +30,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
     initialAgentIdForChallenge || (agents[0]?.agent_id ?? '')
   );
   const [targetUrl, setTargetUrl] = useState<string>('');
+  const [eventId, setEventId] = useState<string>('');
   const [receiptUrl, setReceiptUrl] = useState<string>('');
   const [challengeBond, setChallengeBond] = useState<number>(50);
   const [challengeDesc, setChallengeDesc] = useState<string>('');
@@ -56,8 +57,8 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
   const handleOpenChallengeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!targetUrl.trim() || !receiptUrl.trim()) {
-      setErrorMsg('Enter the target URL and public action receipt URL.');
+    if (!eventId.trim() || !targetUrl.trim() || !receiptUrl.trim()) {
+      setErrorMsg('Enter the signed event ID, target URL, and public action receipt URL.');
       return;
     }
     if (!targetAgentId.trim()) {
@@ -74,6 +75,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
     try {
       const newCaseId = await openChallenge({
         agent_id: targetAgentId,
+        event_id: eventId.trim(),
         target_url: targetUrl.startsWith('http') ? targetUrl : `https://${targetUrl}`,
         receipt_url: receiptUrl.startsWith('http') ? receiptUrl : `https://${receiptUrl}`,
         challenge_bond: Number(challengeBond),
@@ -82,6 +84,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 
       setShowChallengeModal(false);
       setTargetUrl('');
+      setEventId('');
       setReceiptUrl('');
       const created = get_agent(targetAgentId)?.cases.find(c => c.case_id === newCaseId);
       if (created) setSelectedCase(created);
@@ -417,6 +420,21 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
             </div>
 
             <form noValidate onSubmit={handleOpenChallengeSubmit} className="space-y-4">
+              <div>
+                <label htmlFor="access-event-id" className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
+                  Signed Access Event ID
+                </label>
+                <input
+                  id="access-event-id"
+                  type="text"
+                  value={eventId}
+                  onChange={(e) => setEventId(e.target.value)}
+                  placeholder="event-runner-20260730-001"
+                  className="w-full bg-slate-950 border border-slate-800 text-slate-200 font-mono text-xs px-3.5 py-2.5 rounded-xl focus:outline-none focus:border-orange-500"
+                  required
+                />
+              </div>
+
               <div>
                 <label className="block font-mono text-xs text-slate-400 uppercase font-bold mb-1">
                   Target Agent ID

@@ -15,6 +15,7 @@ function snapshot(overrides: Partial<CanonicalSnapshot> = {}): CanonicalSnapshot
       user_agent: "AgentAccessBot/1.0",
       origin: "https://example.com",
       policy_url: "https://example.com/policy",
+      attestor_public_key: `0x04${"11".repeat(64)}`,
       allowed_purpose: "research",
       operator_bond: "500",
       minimum_challenge_bond: "10",
@@ -56,6 +57,7 @@ describe("availableActions", () => {
       case: {
         case_id: "case-1",
         agent_id: "agent-alpha",
+        event_id: "event-1",
         opened_by: USER,
         target_url: "https://example.com/private",
         receipt_url: "https://example.com/receipt",
@@ -84,6 +86,7 @@ describe("availableActions", () => {
       case: {
         case_id: "case-1",
         agent_id: "agent-alpha",
+        event_id: "event-1",
         opened_by: USER,
         target_url: "https://example.com/private",
         receipt_url: "https://example.com/receipt",

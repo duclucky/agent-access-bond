@@ -48,6 +48,7 @@ type RegisterAgentInput = {
   user_agent: string;
   user: string;
   policy_url: string;
+  attestor_public_key: string;
   allowed_purpose: string;
   operator_bond: number;
   minimum_challenge_bond: number;
@@ -56,6 +57,7 @@ type RegisterAgentInput = {
 
 type ChallengeInput = {
   agent_id: string;
+  event_id: string;
   target_url: string;
   receipt_url: string;
   challenge_bond: number;
@@ -154,7 +156,7 @@ function normalizeCaseStatus(value: string | undefined): CaseStatus {
     status === "OPEN" ||
     status === "RETRYABLE" ||
     status === "RESOLVED" ||
-    status === "CANCELLED"
+    status === "CANCELED"
   ) {
     return status;
   }
@@ -175,10 +177,9 @@ function normalizeApplicability(value: string | undefined): ApplicabilityClass {
 function normalizeViolation(value: string | undefined): ViolationType {
   if (
     value === "DISALLOWED_PATH" ||
-    value === "RATE_LIMIT_EXCEEDED" ||
-    value === "ROBOTS_TXT_BYPASS" ||
-    value === "UNAUTHORIZED_DATA_SCRAPING" ||
-    value === "FORM_SUBMISSION_VIOLATION" ||
+    value === "USER_AGENT_MISMATCH" ||
+    value === "POLICY_SCOPE_BREACH" ||
+    value === "RECEIPT_INSUFFICIENT" ||
     value === "NONE"
   ) {
     return value;
@@ -236,9 +237,16 @@ function verdictFromSnapshot(snapshot: CanonicalSnapshot): Verdict | undefined {
     user_credit_amount: toNumberFromWei(verdict.user_credit_amount),
     operator_credit_amount: toNumberFromWei(verdict.operator_credit_amount),
     attempt: Number(verdict.attempt || 0),
-    timestamp: snapshot.readAt,
-    validator_signatures: 0,
-    total_validators: 0
+    event_id: verdict.event_id || caseRecord.event_id,
+    occurred_at: verdict.occurred_at,
+    attestor_public_key: verdict.attestor_public_key,
+    policy_version: verdict.policy_version,
+    policy_url: verdict.policy_url,
+    policy_hash: verdict.policy_hash,
+    robots_version: verdict.robots_version,
+    robots_url: verdict.robots_url,
+    robots_hash: verdict.robots_hash,
+    attestation_verified: Boolean(verdict.attestation_verified)
   };
 }
 
@@ -249,6 +257,7 @@ function caseFromSnapshot(snapshot: CanonicalSnapshot): AccessCase | undefined {
   return {
     case_id: caseRecord.case_id,
     agent_id: caseRecord.agent_id,
+    event_id: caseRecord.event_id,
     opened_by: caseRecord.opened_by,
     target_url: caseRecord.target_url,
     receipt_url: caseRecord.receipt_url,
@@ -274,6 +283,7 @@ function agentFromSnapshot(snapshot: CanonicalSnapshot): AgentBond | undefined {
     user_agent: agent.user_agent,
     origin: agent.origin,
     policy_url: agent.policy_url,
+    attestor_public_key: agent.attestor_public_key,
     allowed_purpose: agent.allowed_purpose,
     operator_bond: toNumberFromWei(agent.operator_bond),
     minimum_challenge_bond: toNumberFromWei(agent.minimum_challenge_bond),
@@ -604,7 +614,8 @@ export function ContractProvider({
             data.policy_url,
             data.allowed_purpose,
             parseGen(String(data.penalty_amount)),
-            parseGen(String(data.minimum_challenge_bond))
+            parseGen(String(data.minimum_challenge_bond)),
+            data.attestor_public_key
           ],
           value: parseGen(String(data.operator_bond)),
           refreshAgentId: agentId
@@ -632,7 +643,13 @@ export function ContractProvider({
         const caseId = generatedCaseId(data.agent_id);
         await sendWrite({
           functionName: "open_access_case",
-          args: [caseId, data.agent_id, data.target_url, data.receipt_url],
+          args: [
+            caseId,
+            data.agent_id,
+            data.event_id,
+            data.target_url,
+            data.receipt_url
+          ],
           value: parseGen(String(data.challenge_bond)),
           refreshAgentId: data.agent_id,
           refreshCaseId: caseId

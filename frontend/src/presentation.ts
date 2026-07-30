@@ -169,7 +169,7 @@ export function friendlyCaseStatus(status: string) {
     OPEN: "Ready for review",
     RETRYABLE: "Review needs attention",
     RESOLVED: "Review complete",
-    CANCELLED: "Review cancelled"
+    CANCELED: "Review cancelled"
   };
   return labels[status] ?? status.replaceAll("_", " ").toLowerCase();
 }

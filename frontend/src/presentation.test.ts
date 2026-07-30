@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   formatGen,
   friendlyAction,
+  friendlyCaseStatus,
   friendlyStatus,
   friendlyVerdict,
   friendlyVerdictTone,
@@ -37,5 +38,6 @@ describe("product presentation", () => {
     expect(friendlyVerdictTone("COMPLIANT")).toBe("success");
     expect(friendlyVerdictTone("UNVERIFIABLE")).toBe("warning");
     expect(friendlyAction("propose_close")).toBe("Request closure");
+    expect(friendlyCaseStatus("CANCELED")).toBe("Review cancelled");
   });
 });

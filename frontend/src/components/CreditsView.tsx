@@ -164,7 +164,7 @@ export const CreditsView: React.FC = () => {
                     <td className="p-3.5 font-mono font-black text-emerald-400">
                       +{c.verdict?.user_credit_amount} GEN
                     </td>
-                    <td className="p-3.5 font-mono text-slate-500 text-[11px]">{c.verdict?.timestamp}</td>
+                    <td className="p-3.5 font-mono text-slate-500 text-[11px]">{c.verdict?.occurred_at}</td>
                   </tr>
                 ))}
               </tbody>

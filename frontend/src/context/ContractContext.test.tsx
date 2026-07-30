@@ -49,6 +49,7 @@ function TransactionProbe() {
             user_agent: "AgentAccessBot/1.0",
             user: "0x45ad397c438397a702b53a7499a78d08961d39db",
             policy_url: "https://example.com/policy.txt",
+            attestor_public_key: `0x04${"11".repeat(64)}`,
             allowed_purpose: "Read public pages",
             operator_bond: 100,
             minimum_challenge_bond: 10,
@@ -65,6 +66,7 @@ function TransactionProbe() {
 
 function StateProbe() {
   const { wallet, agents } = useContract();
+  const latestCase = agents[0]?.cases[0];
   return (
     <>
       <output aria-label="wallet-address">{wallet.address}</output>
@@ -73,6 +75,13 @@ function StateProbe() {
           <li key={agent.agent_id}>{agent.agent_id}</li>
         ))}
       </ul>
+      <output aria-label="case-status">{latestCase?.status || ""}</output>
+      <output aria-label="violation-type">
+        {latestCase?.verdict?.violation_type || ""}
+      </output>
+      <output aria-label="attestation-time">
+        {latestCase?.verdict?.occurred_at || ""}
+      </output>
     </>
   );
 }
@@ -115,6 +124,7 @@ describe("ContractProvider transaction lifecycle", () => {
         user_agent: "AgentAccessBot/1.0",
         origin: "https://example.com",
         policy_url: "https://example.com/policy.txt",
+        attestor_public_key: `0x04${"11".repeat(64)}`,
         allowed_purpose: "Read public pages",
         operator_bond: "100000000000000000000",
         minimum_challenge_bond: "10000000000000000000",
@@ -205,6 +215,113 @@ describe("ContractProvider transaction lifecycle", () => {
     await waitFor(() => {
       expect(screen.getByRole("status")).toHaveTextContent(
         "finalized:create_agent:0xabc"
+      );
+    });
+  });
+
+  it("preserves exact contract case, violation, and attestation fields", async () => {
+    const provider = { request: vi.fn() };
+    rememberAgentId("agent-mapping");
+    vi.mocked(subscribeToInjectedWallets).mockImplementation((onWallet) => {
+      onWallet({
+        info: {
+          uuid: "wallet-map",
+          name: "Browser Wallet",
+          icon: "",
+          rdns: "io.test.wallet"
+        },
+        provider
+      });
+      return () => undefined;
+    });
+    vi.mocked(createAgentAccessClients).mockReturnValue({
+      readClient: {} as never,
+      writeClient: null,
+      contractAddress: config.contractAddress
+    });
+    vi.mocked(readCanonicalSnapshot).mockResolvedValue({
+      agent: {
+        agent_id: "agent-mapping",
+        operator: "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        user: "0x45ad397c438397a702b53a7499a78d08961d39db",
+        user_agent: "AgentAccessBot/1.0",
+        origin: "https://example.com",
+        policy_url: "https://example.com/policy/v1.txt",
+        attestor_public_key: `0x04${"11".repeat(64)}`,
+        allowed_purpose: "Read public pages",
+        operator_bond: "100",
+        minimum_challenge_bond: "10",
+        penalty_amount: "25",
+        status: "ACTIVE",
+        accepted: true,
+        active_case_id: "",
+        case_count: "1",
+        close_proposed_by: "0x0000000000000000000000000000000000000000"
+      },
+      case: {
+        case_id: "case-1",
+        agent_id: "agent-mapping",
+        event_id: "event-1",
+        opened_by: "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        target_url: "https://example.com/private/report",
+        receipt_url: "https://example.com/receipt.json",
+        challenge_bond: "10",
+        status: "CANCELED",
+        attempt_count: "1",
+        verdict_id: "verdict-1",
+        bond_settled: true,
+        cancel_proposed_by: "0x0000000000000000000000000000000000000000"
+      },
+      verdict: {
+        verdict_id: "verdict-1",
+        case_id: "case-1",
+        agent_id: "agent-mapping",
+        target_url: "https://example.com/private/report",
+        applicability: "MATERIAL_VIOLATION",
+        source_coverage: "SUFFICIENT",
+        violation_type: "POLICY_SCOPE_BREACH",
+        required_action: "QUARANTINE_AND_CREDIT",
+        matched_fact_ids: "POLICY_SCOPE,RECEIPT,TARGET_PATH",
+        rationale: "The signed event exceeded policy scope.",
+        previous_agent_status: "PENDING_REVIEW",
+        new_agent_status: "QUARANTINED",
+        user_credit_amount: "25",
+        operator_credit_amount: "0",
+        attempt: "1",
+        event_id: "event-1",
+        occurred_at: "2026-07-30T10:00:00Z",
+        attestor_public_key: `0x04${"11".repeat(64)}`,
+        policy_version: "v1",
+        policy_url: "https://example.com/policy/v1.txt",
+        policy_hash: `0x${"22".repeat(32)}`,
+        robots_version: "v1",
+        robots_url: "https://example.com/robots.txt?v=1",
+        robots_hash: `0x${"33".repeat(32)}`,
+        attestation_verified: true
+      },
+      credit: "0",
+      accounting: {
+        locked_operator_bonds: "75",
+        locked_challenge_bonds: "0",
+        withdrawable_credits: "25"
+      },
+      canExecute: false,
+      readAt: "2026-07-30T11:00:00.000Z"
+    });
+
+    render(
+      <ContractProvider config={config}>
+        <StateProbe />
+      </ContractProvider>
+    );
+
+    await waitFor(() => {
+      expect(screen.getByLabelText("case-status")).toHaveTextContent("CANCELED");
+      expect(screen.getByLabelText("violation-type")).toHaveTextContent(
+        "POLICY_SCOPE_BREACH"
+      );
+      expect(screen.getByLabelText("attestation-time")).toHaveTextContent(
+        "2026-07-30T10:00:00Z"
       );
     });
   });

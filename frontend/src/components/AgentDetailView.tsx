@@ -495,9 +495,9 @@ export const AgentDetailView: React.FC<AgentDetailViewProps> = ({
               </div>
 
               <div>
-                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Validator Consensus</span>
-                <span className="text-emerald-400 font-bold">
-                  {selectedVerdict.validator_signatures}/{selectedVerdict.total_validators} Nodes Agreed (100%)
+                <span className="text-slate-500 text-[10px] block uppercase font-bold mb-1">Runner Attestation</span>
+                <span className={selectedVerdict.attestation_verified ? "text-emerald-400 font-bold" : "text-amber-400 font-bold"}>
+                  {selectedVerdict.attestation_verified ? 'Signature and versions verified' : 'Not verified'}
                 </span>
               </div>
             </div>

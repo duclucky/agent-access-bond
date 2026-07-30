@@ -28,6 +28,7 @@ const snapshot: CanonicalSnapshot = {
     user_agent: "AgentAccessBot/1.0",
     origin: "https://example.com",
     policy_url: "https://example.com/policy",
+    attestor_public_key: `0x04${"11".repeat(64)}`,
     allowed_purpose: "research",
     operator_bond: "1000000000000000000",
     minimum_challenge_bond: "100000000000000000",
@@ -41,6 +42,7 @@ const snapshot: CanonicalSnapshot = {
   case: {
     case_id: "case-1",
     agent_id: "agent-alpha",
+    event_id: "event-1",
     opened_by: "0x2222222222222222222222222222222222222222",
     target_url: "https://example.com/private",
     receipt_url: "https://example.com/receipt",
@@ -66,7 +68,17 @@ const snapshot: CanonicalSnapshot = {
     new_agent_status: "QUARANTINED",
     user_credit_amount: "100000000000000000",
     operator_credit_amount: "0",
-    attempt: "1"
+    attempt: "1",
+    event_id: "event-1",
+    occurred_at: "2026-07-30T10:00:00Z",
+    attestor_public_key: `0x04${"11".repeat(64)}`,
+    policy_version: "v1",
+    policy_url: "https://example.com/policy",
+    policy_hash: `0x${"22".repeat(32)}`,
+    robots_version: "v1",
+    robots_url: "https://example.com/robots.txt?v=1",
+    robots_hash: `0x${"33".repeat(32)}`,
+    attestation_verified: true
   },
   credit: "0",
   accounting: {

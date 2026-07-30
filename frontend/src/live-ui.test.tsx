@@ -89,7 +89,9 @@ describe("live product UI", () => {
 
     await userEvent.click(challengeButton);
     expect(
-      screen.getByText("Enter the target URL and public action receipt URL.")
+      screen.getByText(
+        "Enter the signed event ID, target URL, and public action receipt URL."
+      )
     ).toBeVisible();
   });
 
@@ -102,6 +104,7 @@ describe("live product UI", () => {
         user_agent: "AgentAccessBot/1.0",
         origin: "https://raw.githubusercontent.com",
         policy_url: "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        attestor_public_key: `0x04${"11".repeat(64)}`,
         allowed_purpose: "public search research only",
         operator_bond: "1000000000000000000",
         minimum_challenge_bond: "100000000000000000",
