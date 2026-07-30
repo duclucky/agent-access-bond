@@ -151,5 +151,126 @@
     },
     "observedAt": "2026-07-28T08:13:14.855Z"
   },
-  "verifiedAt": "2026-07-28T08:20:51.516Z"
+  "verifiedAt": "2026-07-28T08:20:51.516Z",
+  "recovery": {
+    "agentId": "agent-fixture-policy-001",
+    "transactions": {
+      "acceptClose": {
+        "transactionHash": "0xd0495b7bc8f48bea10702988c36e349599116df0c510205e3c0426a0a22858d8",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:02:21.094Z"
+      },
+      "withdrawOperatorCredit": {
+        "transactionHash": "0x7678bcd3b831b9a37f4034e39a79369e4b295f3cd29d20b9e7671748fa15610d",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:03:10.089Z"
+      },
+      "withdrawOperatorResidualCredit": {
+        "transactionHash": "0x441ce85315ab81a9f45d6fd7e4be7128360ce203b22c6291f6fcf6092ec2a39a",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:12:13.628Z"
+      }
+    },
+    "browserAgents": {
+      "agent-raw-githubusercontent-com-ms4uk3uq": {
+        "transactions": {
+          "proposeClose": {
+            "transactionHash": "0x4ad69e7ffcb9481ee855b005cbc0d115e462259d3a859b21b43d11c5f80ff766",
+            "status": "FINALIZED",
+            "execution": "FINISHED_WITH_RETURN",
+            "finalizedAt": "2026-07-30T03:08:46.788Z"
+          },
+          "acceptClose": {
+            "transactionHash": "0x220b465b8710cecec32b0d357bdbe569ae180a830657689f8f4d668dcc5af48a",
+            "status": "FINALIZED",
+            "execution": "FINISHED_WITH_RETURN",
+            "finalizedAt": "2026-07-30T03:09:24.170Z"
+          }
+        },
+        "state": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        }
+      },
+      "agent-raw-githubusercontent-com-ms4ulzti": {
+        "transactions": {
+          "proposeClose": {
+            "transactionHash": "0xe9b07532d48f644fe2d9bc8025f02470d42012c26a1ac4c948a794ea4dabe9ba",
+            "status": "FINALIZED",
+            "execution": "FINISHED_WITH_RETURN",
+            "finalizedAt": "2026-07-30T03:10:06.503Z"
+          },
+          "acceptClose": {
+            "transactionHash": "0x22da409577eed4746eda05ff9892b39da838a3612ee74a40600f147afc308128",
+            "status": "FINALIZED",
+            "execution": "FINISHED_WITH_RETURN",
+            "finalizedAt": "2026-07-30T03:10:44.445Z"
+          }
+        },
+        "state": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        }
+      },
+      "agent-raw-githubusercontent-com-ms565e75": {
+        "transactions": {
+          "acceptClose": {
+            "transactionHash": "0xe16703a17845975b5e3d58984393f68e25ef7921ac5fe3c81668c054bf633953",
+            "status": "FINALIZED",
+            "execution": "FINISHED_WITH_RETURN",
+            "finalizedAt": "2026-07-30T03:11:27.835Z"
+          }
+        },
+        "state": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        }
+      }
+    },
+    "state": {
+      "agent": {
+        "accepted": true,
+        "active_case_id": "",
+        "agent_id": "agent-fixture-policy-001",
+        "allowed_purpose": "public search research only",
+        "case_count": 1,
+        "close_proposed_by": "0x0000000000000000000000000000000000000000",
+        "minimum_challenge_bond": "100000000000000000",
+        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        "operator_bond": 0,
+        "origin": "https://raw.githubusercontent.com",
+        "penalty_amount": "1000000000000000000",
+        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        "status": "CLOSED",
+        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "user_agent": "AgentAccessBot/1.0"
+      },
+      "browserAgents": {
+        "agent-raw-githubusercontent-com-ms4uk3uq": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        },
+        "agent-raw-githubusercontent-com-ms4ulzti": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        },
+        "agent-raw-githubusercontent-com-ms565e75": {
+          "status": "CLOSED",
+          "operatorBondWei": "0"
+        }
+      },
+      "operatorCreditWei": 0,
+      "userCreditWei": 0,
+      "accounting": {
+        "locked_challenge_bonds": 0,
+        "locked_operator_bonds": 0,
+        "withdrawable_credits": 0
+      }
+    },
+    "status": "RECOVERED_ZERO",
+    "completedAt": "2026-07-30T03:12:19.237Z"
+  }
 }

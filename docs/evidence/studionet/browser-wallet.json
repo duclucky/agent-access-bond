@@ -20,6 +20,15 @@
       "agentId": "agent-raw-githubusercontent-com-ms4ulzti",
       "canonicalAgentStatus": "DRAFT",
       "createdAt": "2026-07-28T16:06:45.442458+00:00"
+    },
+    {
+      "action": "create_agent",
+      "hash": "0x7d903073e5e2989dc0b460eba9a8fa23edc91f29f965299febfee45c5d06c53b",
+      "status": "FINALIZED",
+      "valueWei": "100000000000000000000",
+      "agentId": "agent-raw-githubusercontent-com-ms565e75",
+      "canonicalAgentStatus": "DRAFT",
+      "createdAt": "2026-07-28T21:29:49.735052+00:00"
     }
   ],
   "canonicalReadsCaptured": true,
@@ -68,5 +77,5 @@
     "applicationConsoleErrors": 0,
     "verifiedAt": "2026-07-28T12:23:16.6662420Z"
   },
-  "reason": "The user initiated registration from the production frontend and approved the browser wallet request. The two resulting create_agent transactions were independently recovered from Studionet by the public operator address, verified FINALIZED, decoded to their generated agent IDs, and confirmed through canonical get_agent reads. The duplicate registrations exposed a frontend finality-tracking defect that was fixed in source commit 606a148e69844601c3f2a0bc111bac2a097bd5a0. Script-signed lifecycle evidence remains separate in deployment.json."
+  "reason": "The user initiated registration from the production frontend and approved the browser wallet requests. Three create_agent transactions were independently recovered from Studionet by the public operator address, verified FINALIZED, decoded to their generated agent IDs, and confirmed through canonical get_agent reads. Duplicate registrations exposed a frontend finality-tracking defect that was fixed in source commit 606a148e69844601c3f2a0bc111bac2a097bd5a0. Script-signed lifecycle evidence remains separate in deployment.json."
 }

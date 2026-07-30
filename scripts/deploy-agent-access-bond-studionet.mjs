@@ -23,6 +23,7 @@ const ROOT_DIR = path.resolve(SCRIPT_DIR, "..");
 const ENV_PATHS = deploymentEnvPaths(ROOT_DIR);
 const EVIDENCE_DIR = path.join(ROOT_DIR, "docs", "evidence", "studionet");
 const EVIDENCE_PATH = path.join(EVIDENCE_DIR, "deployment.json");
+const BROWSER_EVIDENCE_PATH = path.join(EVIDENCE_DIR, "browser-wallet.json");
 const CONTRACT_PATH = path.join(ROOT_DIR, "contracts", "agent_access_bond.py");
 const RPC_URL = studionet.rpcUrls.default.http[0];
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
@@ -351,7 +352,8 @@ async function recoverSupersededRevision() {
   const recovery = {
     ...(evidence.recovery ?? {}),
     agentId: AGENT_ID,
-    transactions: { ...(evidence.recovery?.transactions ?? {}) }
+    transactions: { ...(evidence.recovery?.transactions ?? {}) },
+    browserAgents: { ...(evidence.recovery?.browserAgents ?? {}) }
   };
   const persist = () => writeExistingEvidence({ recovery });
   let agent = await readView(operator.client, address, "get_agent", [AGENT_ID]);
@@ -454,24 +456,119 @@ async function recoverSupersededRevision() {
     }
   }
 
+  const browserEvidence = existsSync(BROWSER_EVIDENCE_PATH)
+    ? JSON.parse(readFileSync(BROWSER_EVIDENCE_PATH, "utf8"))
+    : null;
+  const browserAgentIds =
+    browserEvidence?.contractAddress?.toLowerCase() === address.toLowerCase()
+      ? [
+          ...new Set(
+            (browserEvidence.capturedTransactions ?? [])
+              .filter(
+                (transaction) =>
+                  transaction.action === "create_agent" &&
+                  transaction.status === "FINALIZED"
+              )
+              .map((transaction) => transaction.agentId)
+              .filter(Boolean)
+          )
+        ]
+      : [];
+
+  for (const browserAgentId of browserAgentIds) {
+    const agentRecovery = {
+      ...(recovery.browserAgents[browserAgentId] ?? {}),
+      transactions: {
+        ...(recovery.browserAgents[browserAgentId]?.transactions ?? {})
+      }
+    };
+    recovery.browserAgents[browserAgentId] = agentRecovery;
+    let browserAgent = await readView(
+      operator.client,
+      address,
+      "get_agent",
+      [browserAgentId]
+    );
+    if (
+      browserAgent.status !== "CLOSED" &&
+      String(browserAgent.close_proposed_by).toLowerCase() === ZERO_ADDRESS
+    ) {
+      agentRecovery.transactions.proposeClose = await writeFinalized(
+        operator.client,
+        address,
+        "propose_close",
+        [browserAgentId],
+        0n,
+        agentRecovery.transactions.proposeClose,
+        (pending) => {
+          agentRecovery.transactions.proposeClose = pending;
+          persist();
+        }
+      );
+      persist();
+      browserAgent = await readView(
+        operator.client,
+        address,
+        "get_agent",
+        [browserAgentId]
+      );
+    }
+    if (browserAgent.status !== "CLOSED") {
+      const proposedBy = String(browserAgent.close_proposed_by).toLowerCase();
+      const acceptor =
+        proposedBy === operator.account.address.toLowerCase() ? user : operator;
+      agentRecovery.transactions.acceptClose = await writeFinalized(
+        acceptor.client,
+        address,
+        "accept_close",
+        [browserAgentId],
+        0n,
+        agentRecovery.transactions.acceptClose,
+        (pending) => {
+          agentRecovery.transactions.acceptClose = pending;
+          persist();
+        }
+      );
+      persist();
+    }
+    agentRecovery.state = {
+      status: await readView(
+        operator.client,
+        address,
+        "get_agent_status",
+        [browserAgentId]
+      ),
+      operatorBondWei: String(
+        (
+          await readView(operator.client, address, "get_agent", [browserAgentId])
+        ).operator_bond
+      )
+    };
+    persist();
+  }
+
   const operatorCredit = BigInt(
     await readView(operator.client, address, "get_credit", [
       operator.account.address
     ])
   );
+  const operatorWithdrawalKey =
+    recovery.transactions.withdrawOperatorCredit?.status === "FINALIZED"
+      ? "withdrawOperatorResidualCredit"
+      : "withdrawOperatorCredit";
   if (
     operatorCredit > 0n &&
-    recovery.transactions.withdrawOperatorCredit?.status !== "FINALIZED"
+    recovery.transactions[operatorWithdrawalKey]?.status !== "FINALIZED"
   ) {
-    recovery.transactions.withdrawOperatorCredit = await writeFinalized(
+    recovery.transactions[operatorWithdrawalKey] = await writeFinalized(
       operator.client,
       address,
       "withdraw_credit",
       [operatorCredit],
       0n,
-      recovery.transactions.withdrawOperatorCredit,
+      recovery.transactions[operatorWithdrawalKey],
       (pending) => {
-        recovery.transactions.withdrawOperatorCredit = pending;
+        recovery.transactions[operatorWithdrawalKey] = pending;
         persist();
       }
     );
@@ -480,6 +577,12 @@ async function recoverSupersededRevision() {
 
   recovery.state = {
     agent: await readView(operator.client, address, "get_agent", [AGENT_ID]),
+    browserAgents: Object.fromEntries(
+      Object.entries(recovery.browserAgents).map(([agentId, item]) => [
+        agentId,
+        item.state
+      ])
+    ),
     operatorCreditWei: await readView(operator.client, address, "get_credit", [
       operator.account.address
     ]),
@@ -491,6 +594,9 @@ async function recoverSupersededRevision() {
   const accounting = recovery.state.accounting;
   if (
     recovery.state.agent.status !== "CLOSED" ||
+    Object.values(recovery.state.browserAgents).some(
+      (item) => item?.status !== "CLOSED" || BigInt(item?.operatorBondWei ?? 0) !== 0n
+    ) ||
     BigInt(recovery.state.operatorCreditWei) !== 0n ||
     BigInt(recovery.state.userCreditWei) !== 0n ||
     BigInt(accounting.locked_operator_bonds) !== 0n ||
