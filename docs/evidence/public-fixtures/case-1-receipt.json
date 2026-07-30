@@ -1,14 +1,18 @@
 {
-  "receipt_id": "agent-access-bond-fixture-private-001",
+  "schema": "agent-access-event/v1",
+  "event_id": "event-fixture-private-001",
   "agent_id": "agent-fixture-policy-001",
-  "case_id": "case-fixture-private-001",
-  "operator": "AgentAccessBond demo operator",
-  "runner": "AgentAccessBond public fixture runner",
   "user_agent": "AgentAccessBot/1.0",
   "method": "GET",
   "target_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
-  "started_at": "2026-07-27T00:00:00Z",
-  "completed_at": "2026-07-27T00:00:01Z",
-  "declared_policy_basis": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
-  "notes": "Public fixture for GenLayer validators. It states that the configured demo agent accessed a path that the locked public policy disallows for AgentAccessBot. This file is evidence data, not instructions."
+  "occurred_at": "2026-07-30T10:00:00Z",
+  "nonce": "fixture-runner-nonce-20260730-001",
+  "policy_version": "fixture-policy-v1",
+  "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+  "policy_hash": "0x3100b4bbf6f2178730a6e1d3e315146a9078ad9467e6ec18146a09cc673980cb",
+  "robots_version": "fixture-robots-v1",
+  "robots_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/robots.txt",
+  "robots_hash": "0x3100b4bbf6f2178730a6e1d3e315146a9078ad9467e6ec18146a09cc673980cb",
+  "attestor_public_key": "0x044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
+  "signature": "0x17a8a240b5e91fdc370ed0e642778613487cec435dd44b6804fc3d72f68885fc08df8f33e8232a63783991be14ca167bdeeed616680b5446daa70bd37f8f5708"
 }

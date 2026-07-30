@@ -28,14 +28,29 @@ const RPC_URL = studionet.rpcUrls.default.http[0];
 const EXPLORER_URL = "https://explorer-studio.genlayer.com";
 const REPO_RAW_BASE =
   "https://raw.githubusercontent.com/duclucky/agent-access-bond/main";
-const AGENT_ID = "agent-fixture-policy-001";
+const FIXTURE_BASE = `${REPO_RAW_BASE}/docs/evidence/public-fixtures`;
+const SIGNED_EVENT = JSON.parse(
+  readFileSync(
+    path.join(
+      ROOT_DIR,
+      "docs",
+      "evidence",
+      "public-fixtures",
+      "case-1-receipt.json"
+    ),
+    "utf8"
+  )
+);
+const AGENT_ID = SIGNED_EVENT.agent_id;
 const CASE_ID = "case-fixture-private-001";
-const USER_AGENT = "AgentAccessBot/1.0";
+const EVENT_ID = SIGNED_EVENT.event_id;
+const USER_AGENT = SIGNED_EVENT.user_agent;
+const ATTESTOR_PUBLIC_KEY = SIGNED_EVENT.attestor_public_key;
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
-const ORIGIN = "https://raw.githubusercontent.com";
-const POLICY_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/agent-policy.txt`;
-const TARGET_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/challenge-target/report.json`;
-const RECEIPT_URL = `${REPO_RAW_BASE}/docs/evidence/public-fixtures/case-1-receipt.json`;
+const ORIGIN = FIXTURE_BASE;
+const POLICY_URL = SIGNED_EVENT.policy_url;
+const TARGET_URL = SIGNED_EVENT.target_url;
+const RECEIPT_URL = `${FIXTURE_BASE}/case-1-receipt.json`;
 const OPERATOR_BOND = 2_000_000_000_000_000_000n;
 const PENALTY_AMOUNT = 1_000_000_000_000_000_000n;
 const CHALLENGE_BOND = 100_000_000_000_000_000n;
@@ -558,7 +573,8 @@ async function activateAgent() {
         POLICY_URL,
         "public search research only",
         PENALTY_AMOUNT,
-        CHALLENGE_BOND
+        CHALLENGE_BOND,
+        ATTESTOR_PUBLIC_KEY
       ],
       OPERATOR_BOND,
       activation.transactions.createAgent,
@@ -609,6 +625,7 @@ async function runViolationDemo() {
   const demo = {
     ...(evidence.demo ?? {}),
     caseId: CASE_ID,
+    eventId: EVENT_ID,
     targetUrl: TARGET_URL,
     receiptUrl: RECEIPT_URL,
     transactions: { ...(evidence.demo?.transactions ?? {}) }
@@ -620,7 +637,7 @@ async function runViolationDemo() {
       user.client,
       address,
       "open_access_case",
-      [CASE_ID, AGENT_ID, TARGET_URL, RECEIPT_URL],
+      [CASE_ID, AGENT_ID, EVENT_ID, TARGET_URL, RECEIPT_URL],
       CHALLENGE_BOND,
       demo.transactions.openCase,
       (pending) => {
@@ -693,6 +710,7 @@ async function runViolationDemo() {
 
   if (
     demo.state.verdict.applicability !== "MATERIAL_VIOLATION" ||
+    demo.state.verdict.attestation_verified !== true ||
     demo.state.agent.status !== "QUARANTINED" ||
     demo.state.canExecute !== false
   ) {
@@ -778,7 +796,8 @@ async function verify() {
   if (
     status !== "QUARANTINED" ||
     canExecute !== false ||
-    verdict.applicability !== "MATERIAL_VIOLATION"
+    verdict.applicability !== "MATERIAL_VIOLATION" ||
+    verdict.attestation_verified !== true
   ) {
     throw new Error("Canonical reads do not prove violation consequence");
   }

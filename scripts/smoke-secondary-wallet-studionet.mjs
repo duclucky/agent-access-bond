@@ -32,6 +32,16 @@ const AGENT_ID = "agent-secondary-wallet-smoke-20260728-01";
 const ZERO_ADDRESS = "0x0000000000000000000000000000000000000000";
 const POLICY_URL =
   "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt";
+const SIGNED_EVENT = readJson(
+  path.join(
+    ROOT_DIR,
+    "docs",
+    "evidence",
+    "public-fixtures",
+    "case-1-receipt.json"
+  )
+);
+const ATTESTOR_PUBLIC_KEY = SIGNED_EVENT.attestor_public_key;
 const TERMINAL_FAILURES = new Set([
   "UNDETERMINED",
   "CANCELED",
@@ -245,7 +255,8 @@ if (!agent) {
       POLICY_URL,
       "secondary wallet lifecycle smoke",
       1n,
-      1n
+      1n,
+      ATTESTOR_PUBLIC_KEY
     ],
     value: 1n,
     record: evidence.transactions.createAgent,
