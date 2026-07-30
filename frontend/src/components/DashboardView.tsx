@@ -23,8 +23,8 @@ export const DashboardView: React.FC<DashboardViewProps> = ({ onSelectAgent, onN
     if (match) {
       onSelectAgent(match.agent_id);
     } else {
-      await refreshAgent(cleanQuery);
-      onSelectAgent(cleanQuery);
+      const refreshedAgent = await refreshAgent(cleanQuery);
+      if (refreshedAgent) onSelectAgent(refreshedAgent.agent_id);
     }
   };
 

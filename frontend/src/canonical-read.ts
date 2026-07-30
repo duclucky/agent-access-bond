@@ -18,7 +18,7 @@ function isTransientReadError(error: unknown) {
 export async function retryTransientCanonicalRead<T>(
   read: () => Promise<T>
 ): Promise<T> {
-  const retryDelays = [400, 800];
+  const retryDelays = [500, 1_000, 2_000, 4_000];
   for (let attempt = 0; ; attempt += 1) {
     try {
       return await read();
