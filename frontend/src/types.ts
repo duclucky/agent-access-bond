@@ -70,6 +70,10 @@ export type CanonicalSnapshot = {
   agent: AgentRecord | null;
   case: CaseRecord | null;
   verdict: VerdictRecord | null;
+  caseHistory?: Array<{
+    case: CaseRecord;
+    verdict: VerdictRecord | null;
+  }>;
   credit: string;
   accounting: AccountingRecord;
   canExecute: boolean;

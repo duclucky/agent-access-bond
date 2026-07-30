@@ -278,7 +278,22 @@ function caseFromSnapshot(snapshot: CanonicalSnapshot): AccessCase | undefined {
 function agentFromSnapshot(snapshot: CanonicalSnapshot): AgentBond | undefined {
   const agent = snapshot.agent;
   if (!agent) return undefined;
-  const accessCase = caseFromSnapshot(snapshot);
+  const historicalCases = (snapshot.caseHistory ?? [])
+    .map((item) =>
+      caseFromSnapshot({
+        ...snapshot,
+        case: item.case,
+        verdict: item.verdict
+      })
+    )
+    .filter((accessCase): accessCase is AccessCase => Boolean(accessCase));
+  const selectedCase = caseFromSnapshot(snapshot);
+  const cases =
+    historicalCases.length > 0
+      ? historicalCases
+      : selectedCase
+        ? [selectedCase]
+        : [];
   return {
     agent_id: agent.agent_id,
     operator: agent.operator,
@@ -296,7 +311,7 @@ function agentFromSnapshot(snapshot: CanonicalSnapshot): AgentBond | undefined {
     active_case_id: optionalText(agent.active_case_id),
     case_count: Number(agent.case_count || 0),
     close_proposed_by: optionalText(agent.close_proposed_by),
-    cases: accessCase ? [accessCase] : [],
+    cases,
     created_at: snapshot.readAt
   };
 }

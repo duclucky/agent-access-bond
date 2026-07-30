@@ -6,8 +6,8 @@
   "network": "studionet",
   "deploymentIdentity": {
     "network": "studionet",
-    "sourceCommit": "e8f918130cf853f88611c3fd267c1a5cc913eda7",
-    "contractSourceSha256": "fb3cd9f41ff59d9fb366677fab7a6d800cd24a732719c21690fcc69fce560237",
+    "sourceCommit": "aa134dcacf66cfc49dd260403c71e0396d0926e5",
+    "contractSourceSha256": "71856179b7decb9c5672fed94c94e65fc4f76e6cb384d6da29c99c5f2aa962a8",
     "depends": "py-genlayer:1jb45aa8ynh2a9c9xn3b7qqh8sm5q93hwfp7jqmwsfhh8jpz09h6"
   },
   "status": "ACTIVE",
@@ -16,26 +16,26 @@
     "userAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db"
   },
   "primary": {
-    "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
-    "transactionHash": "0xd70158005f15925fd0667fa0a5d9af5a9d87d0d8f21d8c953527ade753bf41bb",
+    "contractAddress": "0x102Cd0B4e870997C93D639A2F54a31ce5Df9E329",
+    "transactionHash": "0x9731c619e256d6e3ee68a1ceb4116fbfe8c0ebba80c9e59c11c03db3fe680f84",
     "status": "FINALIZED",
     "execution": "FINISHED_WITH_RETURN",
-    "finalizedAt": "2026-07-28T08:08:10.554Z"
+    "finalizedAt": "2026-07-30T03:14:34.646Z"
   },
   "activation": {
     "agentId": "agent-fixture-policy-001",
     "transactions": {
       "createAgent": {
-        "transactionHash": "0x0425d171d3df24e39e0e758c2aa88075ca309818fbcf35bb54b1f9f3e1803325",
+        "transactionHash": "0x6c57825eb37af4ebc821150f90098dcf70708061239f551bd03442b44d47db7c",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-28T08:09:19.716Z"
+        "finalizedAt": "2026-07-30T03:15:28.916Z"
       },
       "acceptAgent": {
-        "transactionHash": "0xf4e3fbac3b4bbf2eded9802af8a3757168bb39f8a5ab82fd484b1fa5566c9420",
+        "transactionHash": "0x7ff31afc5a4b948a15b7f6025cd8defc582d9b6e6b64277075d2b1400b687505",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-28T08:10:02.928Z"
+        "finalizedAt": "2026-07-30T03:16:11.516Z"
       }
     },
     "state": {
@@ -44,12 +44,13 @@
         "active_case_id": "",
         "agent_id": "agent-fixture-policy-001",
         "allowed_purpose": "public search research only",
+        "attestor_public_key": "0x044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
         "case_count": 0,
         "close_proposed_by": "0x0000000000000000000000000000000000000000",
         "minimum_challenge_bond": "100000000000000000",
         "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
         "operator_bond": "2000000000000000000",
-        "origin": "https://raw.githubusercontent.com",
+        "origin": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures",
         "penalty_amount": "1000000000000000000",
         "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
         "status": "ACTIVE",
@@ -59,24 +60,25 @@
       "status": "ACTIVE",
       "canExecute": true
     },
-    "completedAt": "2026-07-28T08:10:07.147Z"
+    "completedAt": "2026-07-30T03:16:15.741Z"
   },
   "demo": {
     "caseId": "case-fixture-private-001",
+    "eventId": "event-fixture-private-001",
     "targetUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
     "receiptUrl": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
     "transactions": {
       "openCase": {
-        "transactionHash": "0x91e6c3ae6253a392be80d6e7c462ce846b6e1f8ba14f1b9bc7d599df49fddd04",
+        "transactionHash": "0x0f4d11d1b994069dffbe170a8405eb715117e60ff63ba39e9df0c643c19168b7",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-28T08:10:59.287Z"
+        "finalizedAt": "2026-07-30T03:17:06.937Z"
       },
       "adjudicateCase": {
-        "transactionHash": "0x6efbd23c5951195324e6165e1f5c7798cbff01e52b52a28f40e4d5243750a821",
+        "transactionHash": "0x5958b0f5303961969662400f3d1d310bccc9b3afdbf13d7015a7097cbbfe9d12",
         "status": "FINALIZED",
         "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-28T08:11:57.761Z"
+        "finalizedAt": "2026-07-30T03:18:05.224Z"
       }
     },
     "verdictId": "verdict-case-fixture-private-001-1",
@@ -86,12 +88,13 @@
         "active_case_id": "",
         "agent_id": "agent-fixture-policy-001",
         "allowed_purpose": "public search research only",
+        "attestor_public_key": "0x044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
         "case_count": 1,
         "close_proposed_by": "0x0000000000000000000000000000000000000000",
         "minimum_challenge_bond": "100000000000000000",
         "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
         "operator_bond": "1000000000000000000",
-        "origin": "https://raw.githubusercontent.com",
+        "origin": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures",
         "penalty_amount": "1000000000000000000",
         "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
         "status": "QUARANTINED",
@@ -105,6 +108,7 @@
         "cancel_proposed_by": "0x0000000000000000000000000000000000000000",
         "case_id": "case-fixture-private-001",
         "challenge_bond": "100000000000000000",
+        "event_id": "event-fixture-private-001",
         "opened_by": "0x45ad397c438397a702b53a7499a78d08961d39db",
         "receipt_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/case-1-receipt.json",
         "status": "RESOLVED",
@@ -115,13 +119,23 @@
         "agent_id": "agent-fixture-policy-001",
         "applicability": "MATERIAL_VIOLATION",
         "attempt": 1,
+        "attestation_verified": true,
+        "attestor_public_key": "0x044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
         "case_id": "case-fixture-private-001",
+        "event_id": "event-fixture-private-001",
         "matched_fact_ids": "RECEIPT,ROBOTS_RULE,TARGET_PATH,USER_AGENT",
         "new_agent_status": "QUARANTINED",
+        "occurred_at": "2026-07-30T10:00:00Z",
         "operator_credit_amount": 0,
-        "previous_agent_status": "ACTIVE",
-        "rationale": "The receipt shows a GET to the target URL/path by user agent AgentAccessBot/1.0. The provided policy explicitly disallows user-agent AgentAccessBot from accessing /duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/. The requested target_path falls within that disallowed prefix. The wildcard allow for a broader parent path does not override the more specific disallow applicable to the named agent. Evidence is sufficient to support a concrete path-policy breach.",
+        "policy_hash": "0x3100b4bbf6f2178730a6e1d3e315146a9078ad9467e6ec18146a09cc673980cb",
+        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        "policy_version": "fixture-policy-v1",
+        "previous_agent_status": "PENDING_REVIEW",
+        "rationale": "The target path '/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json' is explicitly disallowed for the user agent 'AgentAccessBot' in both the robots.txt and policy directives. The receipt confirms the agent accessed this disallowed path, constituting a concrete breach of the bounded policy.",
         "required_action": "QUARANTINE_AND_CREDIT",
+        "robots_hash": "0x3100b4bbf6f2178730a6e1d3e315146a9078ad9467e6ec18146a09cc673980cb",
+        "robots_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/robots.txt",
+        "robots_version": "fixture-robots-v1",
         "source_coverage": "SUFFICIENT",
         "target_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/challenge-target/report.json",
         "user_credit_amount": "1000000000000000000",
@@ -137,140 +151,19 @@
       },
       "canExecute": false
     },
-    "completedAt": "2026-07-28T08:12:07.831Z"
+    "completedAt": "2026-07-30T03:18:15.327Z"
   },
   "withdrawal": {
     "userAddress": "0x45aD397c438397A702B53a7499a78D08961D39Db",
     "withdrawnCreditWei": "1100000000000000000",
     "remainingCreditWei": "0",
     "transaction": {
-      "transactionHash": "0xc2a5c21acc9e0bfb38a49c63c2da89263975b46b82c1f651be79a292bf7bf71e",
+      "transactionHash": "0x387c8ac50818a16a4cab2c61fdba63a3baccbc7bb68ec2c2e0563a013e6581dc",
       "status": "FINALIZED",
       "execution": "FINISHED_WITH_RETURN",
-      "finalizedAt": "2026-07-28T08:13:13.445Z"
+      "finalizedAt": "2026-07-30T03:19:05.302Z"
     },
-    "observedAt": "2026-07-28T08:13:14.855Z"
+    "observedAt": "2026-07-30T03:19:06.699Z"
   },
-  "verifiedAt": "2026-07-28T08:20:51.516Z",
-  "recovery": {
-    "agentId": "agent-fixture-policy-001",
-    "transactions": {
-      "acceptClose": {
-        "transactionHash": "0xd0495b7bc8f48bea10702988c36e349599116df0c510205e3c0426a0a22858d8",
-        "status": "FINALIZED",
-        "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-30T03:02:21.094Z"
-      },
-      "withdrawOperatorCredit": {
-        "transactionHash": "0x7678bcd3b831b9a37f4034e39a79369e4b295f3cd29d20b9e7671748fa15610d",
-        "status": "FINALIZED",
-        "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-30T03:03:10.089Z"
-      },
-      "withdrawOperatorResidualCredit": {
-        "transactionHash": "0x441ce85315ab81a9f45d6fd7e4be7128360ce203b22c6291f6fcf6092ec2a39a",
-        "status": "FINALIZED",
-        "execution": "FINISHED_WITH_RETURN",
-        "finalizedAt": "2026-07-30T03:12:13.628Z"
-      }
-    },
-    "browserAgents": {
-      "agent-raw-githubusercontent-com-ms4uk3uq": {
-        "transactions": {
-          "proposeClose": {
-            "transactionHash": "0x4ad69e7ffcb9481ee855b005cbc0d115e462259d3a859b21b43d11c5f80ff766",
-            "status": "FINALIZED",
-            "execution": "FINISHED_WITH_RETURN",
-            "finalizedAt": "2026-07-30T03:08:46.788Z"
-          },
-          "acceptClose": {
-            "transactionHash": "0x220b465b8710cecec32b0d357bdbe569ae180a830657689f8f4d668dcc5af48a",
-            "status": "FINALIZED",
-            "execution": "FINISHED_WITH_RETURN",
-            "finalizedAt": "2026-07-30T03:09:24.170Z"
-          }
-        },
-        "state": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        }
-      },
-      "agent-raw-githubusercontent-com-ms4ulzti": {
-        "transactions": {
-          "proposeClose": {
-            "transactionHash": "0xe9b07532d48f644fe2d9bc8025f02470d42012c26a1ac4c948a794ea4dabe9ba",
-            "status": "FINALIZED",
-            "execution": "FINISHED_WITH_RETURN",
-            "finalizedAt": "2026-07-30T03:10:06.503Z"
-          },
-          "acceptClose": {
-            "transactionHash": "0x22da409577eed4746eda05ff9892b39da838a3612ee74a40600f147afc308128",
-            "status": "FINALIZED",
-            "execution": "FINISHED_WITH_RETURN",
-            "finalizedAt": "2026-07-30T03:10:44.445Z"
-          }
-        },
-        "state": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        }
-      },
-      "agent-raw-githubusercontent-com-ms565e75": {
-        "transactions": {
-          "acceptClose": {
-            "transactionHash": "0xe16703a17845975b5e3d58984393f68e25ef7921ac5fe3c81668c054bf633953",
-            "status": "FINALIZED",
-            "execution": "FINISHED_WITH_RETURN",
-            "finalizedAt": "2026-07-30T03:11:27.835Z"
-          }
-        },
-        "state": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        }
-      }
-    },
-    "state": {
-      "agent": {
-        "accepted": true,
-        "active_case_id": "",
-        "agent_id": "agent-fixture-policy-001",
-        "allowed_purpose": "public search research only",
-        "case_count": 1,
-        "close_proposed_by": "0x0000000000000000000000000000000000000000",
-        "minimum_challenge_bond": "100000000000000000",
-        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
-        "operator_bond": 0,
-        "origin": "https://raw.githubusercontent.com",
-        "penalty_amount": "1000000000000000000",
-        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
-        "status": "CLOSED",
-        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
-        "user_agent": "AgentAccessBot/1.0"
-      },
-      "browserAgents": {
-        "agent-raw-githubusercontent-com-ms4uk3uq": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        },
-        "agent-raw-githubusercontent-com-ms4ulzti": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        },
-        "agent-raw-githubusercontent-com-ms565e75": {
-          "status": "CLOSED",
-          "operatorBondWei": "0"
-        }
-      },
-      "operatorCreditWei": 0,
-      "userCreditWei": 0,
-      "accounting": {
-        "locked_challenge_bonds": 0,
-        "locked_operator_bonds": 0,
-        "withdrawable_credits": 0
-      }
-    },
-    "status": "RECOVERED_ZERO",
-    "completedAt": "2026-07-30T03:12:19.237Z"
-  }
+  "verifiedAt": "2026-07-30T03:19:12.205Z"
 }

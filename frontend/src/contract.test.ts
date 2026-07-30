@@ -17,6 +17,7 @@ describe("readCanonicalSnapshot", () => {
           status: "QUARANTINED",
           active_case_id: "case-1"
         },
+        get_agent_case_ids: ["case-1"],
         get_case: {
           case_id: "case-1",
           status: "RESOLVED",
@@ -47,6 +48,9 @@ describe("readCanonicalSnapshot", () => {
     expect(snapshot.agent?.status).toBe("QUARANTINED");
     expect(snapshot.case?.case_id).toBe("case-1");
     expect(snapshot.verdict?.applicability).toBe("MATERIAL_VIOLATION");
+    expect(snapshot.caseHistory?.map((item) => item.case.case_id)).toEqual([
+      "case-1"
+    ]);
     expect(snapshot.credit).toBe("100");
     expect(snapshot.canExecute).toBe(false);
   });
@@ -59,6 +63,7 @@ describe("readCanonicalSnapshot", () => {
           status: "QUARANTINED",
           active_case_id: ""
         },
+        get_agent_case_ids: ["case-1"],
         get_case: {
           case_id: "case-1",
           status: "RESOLVED",
@@ -83,6 +88,59 @@ describe("readCanonicalSnapshot", () => {
 
     expect(snapshot.case?.status).toBe("RESOLVED");
     expect(snapshot.verdict?.verdict_id).toBe("verdict-case-1-1");
+  });
+
+  it("restores every resolved case and verdict without a local case index", async () => {
+    const readContract = vi.fn(
+      async ({
+        functionName,
+        args
+      }: {
+        functionName: string;
+        args: string[];
+      }) => {
+        if (functionName === "get_agent") {
+          return {
+            agent_id: "agent-alpha",
+            status: "QUARANTINED",
+            active_case_id: "",
+            case_count: "2"
+          };
+        }
+        if (functionName === "get_agent_case_ids") return ["case-1", "case-2"];
+        if (functionName === "get_case") {
+          return {
+            case_id: args[0],
+            status: "RESOLVED",
+            verdict_id: `verdict-${args[0]}-1`
+          };
+        }
+        if (functionName === "get_verdict") {
+          return {
+            verdict_id: args[0],
+            applicability: "MATERIAL_VIOLATION"
+          };
+        }
+        if (functionName === "get_accounting") return {};
+        if (functionName === "can_execute") return false;
+        return "0";
+      }
+    );
+
+    const snapshot = await readCanonicalSnapshot({
+      client: { readContract } as never,
+      contractAddress: CONTRACT,
+      agentId: "agent-alpha"
+    });
+
+    expect(snapshot.caseHistory?.map((item) => item.case.case_id)).toEqual([
+      "case-1",
+      "case-2"
+    ]);
+    expect(snapshot.caseHistory?.map((item) => item.verdict?.verdict_id)).toEqual([
+      "verdict-case-1-1",
+      "verdict-case-2-1"
+    ]);
   });
 });
 

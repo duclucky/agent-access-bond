@@ -81,26 +81,41 @@ export async function readCanonicalSnapshot({
     "get_agent",
     [agentId]
   );
-  let caseRecord: CaseRecord | null = null;
-  let verdict: VerdictRecord | null = null;
+  const storedCaseIds = await readJson<string[]>(
+    client,
+    contractAddress,
+    "get_agent_case_ids",
+    [agentId]
+  );
+  const caseIds = Array.from(
+    new Set([...storedCaseIds, ...(caseId ? [caseId] : [])])
+  );
+  const caseHistory = await Promise.all(
+    caseIds.map(async (storedCaseId) => {
+      const caseRecord = await readJson<CaseRecord>(
+        client,
+        contractAddress,
+        "get_case",
+        [storedCaseId]
+      );
+      const verdict = caseRecord.verdict_id
+        ? await readJson<VerdictRecord>(
+            client,
+            contractAddress,
+            "get_verdict",
+            [caseRecord.verdict_id]
+          )
+        : null;
+      return { case: caseRecord, verdict };
+    })
+  );
 
-  const canonicalCaseId = caseId || agent.active_case_id;
-  if (canonicalCaseId) {
-    caseRecord = await readJson<CaseRecord>(
-      client,
-      contractAddress,
-      "get_case",
-      [canonicalCaseId]
-    );
-  }
-  if (caseRecord?.verdict_id) {
-    verdict = await readJson<VerdictRecord>(
-      client,
-      contractAddress,
-      "get_verdict",
-      [caseRecord.verdict_id]
-    );
-  }
+  const canonicalCaseId =
+    caseId || agent.active_case_id || storedCaseIds[storedCaseIds.length - 1];
+  const selectedHistory =
+    caseHistory.find((item) => item.case.case_id === canonicalCaseId) ?? null;
+  const caseRecord = selectedHistory?.case ?? null;
+  const verdict = selectedHistory?.verdict ?? null;
 
   const [accounting, canExecute, credit] = await Promise.all([
     readJson<AccountingRecord>(client, contractAddress, "get_accounting"),
@@ -119,6 +134,7 @@ export async function readCanonicalSnapshot({
     agent,
     case: caseRecord,
     verdict,
+    caseHistory,
     credit: String(credit),
     accounting,
     canExecute,

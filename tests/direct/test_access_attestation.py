@@ -110,6 +110,7 @@ def test_signed_version_bound_event_can_slash(
     assert verdict.robots_hash == content_hash(ROBOTS_TEXT)
     assert verdict.applicability == "MATERIAL_VIOLATION"
     assert int(contract.get_credit(to_hex(direct_bob))) == PENALTY_AMOUNT
+    assert contract.get_agent_case_ids("agent-alpha") == ["case-1"]
 
 
 def test_tampered_signed_event_is_retryable_and_never_slashes(

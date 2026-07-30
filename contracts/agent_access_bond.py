@@ -458,6 +458,7 @@ class AgentAccessBond(gl.Contract):
     cases: TreeMap[str, AccessCase]
     verdicts: TreeMap[str, Verdict]
     event_case_ids: TreeMap[str, str]
+    agent_case_ids: TreeMap[str, str]
     credits: TreeMap[str, u256]
     total_locked_operator_bonds: u256
     total_locked_challenge_bonds: u256
@@ -498,6 +499,14 @@ class AgentAccessBond(gl.Contract):
     def get_case(self, case_id: str) -> AccessCase:
         _require(case_id in self.cases, "Case not found")
         return self.cases[case_id]
+
+    @gl.public.view
+    def get_agent_case_ids(self, agent_id: str) -> list[str]:
+        agent = self.get_agent(agent_id)
+        return [
+            self.agent_case_ids[f"{agent_id}:{index}"]
+            for index in range(int(agent.case_count))
+        ]
 
     @gl.public.view
     def get_verdict(self, verdict_id: str) -> Verdict:
@@ -626,6 +635,9 @@ class AgentAccessBond(gl.Contract):
             bond_settled=False,
             cancel_proposed_by=Address(ZERO_ADDRESS),
         )
+        self.agent_case_ids[
+            f"{agent_id}:{int(agent.case_count)}"
+        ] = normalized_case_id
         agent.active_case_id = normalized_case_id
         agent.status = "PENDING_REVIEW"
         agent.case_count += u256(1)
