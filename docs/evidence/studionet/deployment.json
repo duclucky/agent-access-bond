@@ -165,5 +165,59 @@
     },
     "observedAt": "2026-07-30T03:19:06.699Z"
   },
-  "verifiedAt": "2026-07-30T03:19:12.205Z"
+  "verifiedAt": "2026-07-30T03:19:12.205Z",
+  "recovery": {
+    "agentId": "agent-fixture-policy-001",
+    "transactions": {
+      "proposeClose": {
+        "transactionHash": "0x73fc24b0c3306a56acd5ea68fbafcefcba664d8035adefa57bb292c88aadf4d8",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:26:04.697Z"
+      },
+      "acceptClose": {
+        "transactionHash": "0x5594a73284cff9d947a4908ef3f498242705894ec49976e6b798e8881eabe271",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:26:47.817Z"
+      },
+      "withdrawOperatorCredit": {
+        "transactionHash": "0xde37f5933ad5f91f17e0f09818833087bfbdd3a844f31ba3317165d705cad643",
+        "status": "FINALIZED",
+        "execution": "FINISHED_WITH_RETURN",
+        "finalizedAt": "2026-07-30T03:27:25.232Z"
+      }
+    },
+    "browserAgents": {},
+    "state": {
+      "agent": {
+        "accepted": true,
+        "active_case_id": "",
+        "agent_id": "agent-fixture-policy-001",
+        "allowed_purpose": "public search research only",
+        "attestor_public_key": "0x044f355bdcb7cc0af728ef3cceb9615d90684bb5b2ca5f859ab0f0b704075871aa385b6b1b8ead809ca67454d9683fcf2ba03456d6fe2c4abe2b07f0fbdbb2f1c1",
+        "case_count": 1,
+        "close_proposed_by": "0x0000000000000000000000000000000000000000",
+        "minimum_challenge_bond": "100000000000000000",
+        "operator": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+        "operator_bond": 0,
+        "origin": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures",
+        "penalty_amount": "1000000000000000000",
+        "policy_url": "https://raw.githubusercontent.com/duclucky/agent-access-bond/main/docs/evidence/public-fixtures/agent-policy.txt",
+        "status": "CLOSED",
+        "user": "0x45ad397c438397a702b53a7499a78d08961d39db",
+        "user_agent": "AgentAccessBot/1.0"
+      },
+      "browserAgents": {},
+      "operatorCreditWei": 0,
+      "userCreditWei": 0,
+      "accounting": {
+        "locked_challenge_bonds": 0,
+        "locked_operator_bonds": 0,
+        "withdrawable_credits": 0
+      }
+    },
+    "status": "RECOVERED_ZERO",
+    "completedAt": "2026-07-30T03:27:30.848Z"
+  }
 }
