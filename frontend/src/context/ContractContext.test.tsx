@@ -86,6 +86,23 @@ function StateProbe() {
   );
 }
 
+function RecoveryProbe() {
+  const {
+    connectWallet,
+    retryCase,
+    proposeCaseCancel,
+    acceptCaseCancel
+  } = useContract();
+  return (
+    <>
+      <button type="button" onClick={connectWallet}>Connect recovery wallet</button>
+      <button type="button" onClick={() => void retryCase("case-1")}>Retry case</button>
+      <button type="button" onClick={() => void proposeCaseCancel("case-1")}>Propose cancel</button>
+      <button type="button" onClick={() => void acceptCaseCancel("case-1")}>Accept cancel</button>
+    </>
+  );
+}
+
 describe("ContractProvider transaction lifecycle", () => {
   afterEach(() => {
     cleanup();
@@ -322,6 +339,67 @@ describe("ContractProvider transaction lifecycle", () => {
       );
       expect(screen.getByLabelText("attestation-time")).toHaveTextContent(
         "2026-07-30T10:00:00Z"
+      );
+    });
+  });
+
+  it("routes retry and bilateral cancellation through real contract writes", async () => {
+    vi.mocked(createAgentAccessClients).mockReturnValue({
+      readClient: {} as never,
+      writeClient: {} as never,
+      contractAddress: config.contractAddress
+    });
+    vi.mocked(connectStudionetWallet).mockResolvedValue({
+      account: "0xc495ef51618d03267a1f227afe5b27b38c748272",
+      provider: {} as never,
+      transport: "metamask-connect"
+    });
+    vi.mocked(submitWriteAndFinalize).mockImplementation(async ({ onStatus }) => {
+      onStatus("submitted", "0xabc");
+      onStatus("accepted", "0xabc");
+      onStatus("finalized", "0xabc");
+      return "0xabc";
+    });
+
+    render(
+      <ContractProvider config={config}>
+        <RecoveryProbe />
+      </ContractProvider>
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "Connect recovery wallet" })
+    );
+    fireEvent.click(
+      screen.getByRole("button", { name: "MetaMask mobile or QR" })
+    );
+    await waitFor(() => {
+      expect(
+        screen.queryByRole("dialog", { name: "Connect wallet" })
+      ).not.toBeInTheDocument();
+    });
+
+    fireEvent.click(screen.getByRole("button", { name: "Retry case" }));
+    await waitFor(() => {
+      expect(submitWriteAndFinalize).toHaveBeenCalledWith(
+        expect.objectContaining({ functionName: "retry_case", args: ["case-1"] })
+      );
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Propose cancel" }));
+    await waitFor(() => {
+      expect(submitWriteAndFinalize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          functionName: "propose_case_cancel",
+          args: ["case-1"]
+        })
+      );
+    });
+    fireEvent.click(screen.getByRole("button", { name: "Accept cancel" }));
+    await waitFor(() => {
+      expect(submitWriteAndFinalize).toHaveBeenCalledWith(
+        expect.objectContaining({
+          functionName: "accept_case_cancel",
+          args: ["case-1"]
+        })
       );
     });
   });

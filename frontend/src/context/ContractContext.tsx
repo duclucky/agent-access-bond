@@ -92,6 +92,9 @@ interface ContractContextType {
     forcedViolationType?: ViolationType,
     customRationale?: string
   ) => Promise<void>;
+  retryCase: (caseId: string) => Promise<void>;
+  proposeCaseCancel: (caseId: string) => Promise<void>;
+  acceptCaseCancel: (caseId: string) => Promise<void>;
   claimCredit: () => Promise<number>;
   proposeClosure: (agentId: string) => Promise<void>;
   connectWallet: () => void;
@@ -660,6 +663,36 @@ export function ContractProvider({
         const accessCase = get_case(caseId);
         await sendWrite({
           functionName: "adjudicate_case",
+          args: [caseId],
+          value: 0n,
+          refreshAgentId: accessCase?.agent_id,
+          refreshCaseId: caseId
+        });
+      },
+      retryCase: async (caseId) => {
+        const accessCase = get_case(caseId);
+        await sendWrite({
+          functionName: "retry_case",
+          args: [caseId],
+          value: 0n,
+          refreshAgentId: accessCase?.agent_id,
+          refreshCaseId: caseId
+        });
+      },
+      proposeCaseCancel: async (caseId) => {
+        const accessCase = get_case(caseId);
+        await sendWrite({
+          functionName: "propose_case_cancel",
+          args: [caseId],
+          value: 0n,
+          refreshAgentId: accessCase?.agent_id,
+          refreshCaseId: caseId
+        });
+      },
+      acceptCaseCancel: async (caseId) => {
+        const accessCase = get_case(caseId);
+        await sendWrite({
+          functionName: "accept_case_cancel",
           args: [caseId],
           value: 0n,
           refreshAgentId: accessCase?.agent_id,

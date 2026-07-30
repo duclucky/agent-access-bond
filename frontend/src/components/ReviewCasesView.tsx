@@ -14,8 +14,12 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
 }) => {
   const {
     agents,
+    wallet,
     openChallenge,
     adjudicateCase,
+    retryCase,
+    proposeCaseCancel,
+    acceptCaseCancel,
     get_agent,
   } = useContract();
 
@@ -36,7 +40,7 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
   const [challengeDesc, setChallengeDesc] = useState<string>('');
   const [isSubmittingChallenge, setIsSubmittingChallenge] = useState<boolean>(false);
 
-  const [isAdjudicating, setIsAdjudicating] = useState<boolean>(false);
+  const [isCaseActionPending, setIsCaseActionPending] = useState<boolean>(false);
   const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
@@ -96,17 +100,61 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
   };
 
   const handleRunAdjudication = async (caseId: string) => {
-    setIsAdjudicating(true);
+    setIsCaseActionPending(true);
     setErrorMsg('');
     try {
       await adjudicateCase(caseId);
-      setIsAdjudicating(false);
       setSelectedCase(null);
     } catch (error) {
       setErrorMsg(error instanceof Error ? error.message : 'Failed to run adjudication.');
-      setIsAdjudicating(false);
+    } finally {
+      setIsCaseActionPending(false);
     }
   };
+
+  const handleCaseRecoveryAction = async (
+    action: (caseId: string) => Promise<void>,
+    caseId: string,
+    failureMessage: string
+  ) => {
+    setIsCaseActionPending(true);
+    setErrorMsg('');
+    try {
+      await action(caseId);
+      setSelectedCase(null);
+    } catch (error) {
+      setErrorMsg(error instanceof Error ? error.message : failureMessage);
+    } finally {
+      setIsCaseActionPending(false);
+    }
+  };
+
+  const selectedAgent = selectedCase ? get_agent(selectedCase.agent_id) : undefined;
+  const walletAddress = wallet.address.toLowerCase();
+  const isOperator = Boolean(
+    walletAddress && selectedAgent?.operator.toLowerCase() === walletAddress
+  );
+  const isDesignatedUser = Boolean(
+    walletAddress && selectedAgent?.user.toLowerCase() === walletAddress
+  );
+  const isOpener = Boolean(
+    walletAddress && selectedCase?.opened_by.toLowerCase() === walletAddress
+  );
+  const cancelProposer = selectedCase?.cancel_proposed_by?.toLowerCase();
+  const hasCancelProposal = Boolean(
+    cancelProposer && cancelProposer !== '0x0000000000000000000000000000000000000000'
+  );
+  const isUnresolved =
+    selectedCase?.status === 'OPEN' || selectedCase?.status === 'RETRYABLE';
+  const canRetry =
+    selectedCase?.status === 'RETRYABLE' && (isOperator || isDesignatedUser || isOpener);
+  const canProposeCancel =
+    isUnresolved && (isOperator || isOpener) && !hasCancelProposal;
+  const canAcceptCancel =
+    isUnresolved &&
+    (isOperator || isOpener) &&
+    hasCancelProposal &&
+    cancelProposer !== walletAddress;
 
   return (
     <div className="space-y-6 max-w-7xl mx-auto animate-fadeIn">
@@ -349,40 +397,103 @@ export const ReviewCasesView: React.FC<ReviewCasesViewProps> = ({
                   </p>
                 </div>
               </div>
-            ) : (
-              /* If Open, show Adjudication Control & Validator Simulation */
+            ) : isUnresolved ? (
               <div className="space-y-4 bg-slate-950 p-5 rounded-2xl border border-slate-800">
-                <div className="border-b border-slate-800 pb-2">
-                  <h4 className="font-headline text-base font-black uppercase text-white flex items-center gap-2">
-                    <Icon name="auto_mode" className="text-amber-500" />
-                    Run GenLayer Validator Adjudication Consensus
-                  </h4>
-                  <p className="font-sans text-xs text-slate-400">
-                    GenLayer validators will independently evaluate robots.txt, policy document, and action receipt.
-                  </p>
-                </div>
+                {selectedCase.status === 'OPEN' && (
+                  <>
+                    <div className="border-b border-slate-800 pb-2">
+                      <h4 className="font-headline text-base font-black uppercase text-white flex items-center gap-2">
+                        <Icon name="auto_mode" className="text-amber-500" />
+                        Run GenLayer Validator Adjudication Consensus
+                      </h4>
+                      <p className="font-sans text-xs text-slate-400">
+                        GenLayer validators authenticate the signed event and independently inspect its version-bound policy and robots evidence.
+                      </p>
+                    </div>
 
+                    <p className="font-sans text-xs text-slate-400">
+                      The browser submits a real Studionet transaction. Only an authenticated event can produce a punitive verdict.
+                    </p>
+
+                    <button
+                      onClick={() => void handleRunAdjudication(selectedCase.case_id)}
+                      disabled={isCaseActionPending}
+                      className="w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
+                    >
+                      {isCaseActionPending ? (
+                        <>
+                          <Icon name="sync" className="text-base animate-spin" />
+                          <span>Validators Executing Equivalence Consensus...</span>
+                        </>
+                      ) : (
+                        <>
+                          <Icon name="gavel" className="text-base" />
+                          <span>Execute Validator Consensus Adjudication</span>
+                        </>
+                      )}
+                    </button>
+                  </>
+                )}
+
+                {selectedCase.status === 'RETRYABLE' && (
+                  <div className="space-y-3">
+                    <p className="font-sans text-xs text-amber-300">
+                      This review could not finalize from the submitted evidence. An authorized case party can retry after correcting a transient source failure.
+                    </p>
+                    {canRetry && (
+                      <button
+                        onClick={() => void handleCaseRecoveryAction(
+                          retryCase,
+                          selectedCase.case_id,
+                          'Failed to retry the review.'
+                        )}
+                        disabled={isCaseActionPending}
+                        className="w-full bg-amber-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-amber-400 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Icon name="refresh" className="text-base" />
+                        <span>Retry review</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+
+                {(canProposeCancel || canAcceptCancel) && (
+                  <div className="pt-3 border-t border-slate-800">
+                    {canProposeCancel ? (
+                      <button
+                        onClick={() => void handleCaseRecoveryAction(
+                          proposeCaseCancel,
+                          selectedCase.case_id,
+                          'Failed to request case cancellation.'
+                        )}
+                        disabled={isCaseActionPending}
+                        className="w-full border border-red-500/40 text-red-300 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Icon name="cancel" className="text-base" />
+                        <span>Request case cancellation</span>
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => void handleCaseRecoveryAction(
+                          acceptCaseCancel,
+                          selectedCase.case_id,
+                          'Failed to confirm case cancellation.'
+                        )}
+                        disabled={isCaseActionPending}
+                        className="w-full border border-red-500/40 text-red-300 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-red-500/10 transition-colors flex items-center justify-center gap-2 disabled:opacity-50"
+                      >
+                        <Icon name="check_circle" className="text-base" />
+                        <span>Confirm case cancellation</span>
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="bg-slate-950 p-5 rounded-2xl border border-slate-800">
                 <p className="font-sans text-xs text-slate-400">
-                  The browser will submit a real Studionet transaction. The contract determines the verdict from bounded public evidence; this UI does not override validator output.
+                  This case is {selectedCase.status.toLowerCase()} and has no adjudication action available.
                 </p>
-
-                <button
-                  onClick={() => void handleRunAdjudication(selectedCase.case_id)}
-                  disabled={isAdjudicating}
-                  className="w-full bg-emerald-500 text-slate-950 font-mono text-xs font-bold uppercase py-3 px-4 rounded-xl hover:bg-emerald-400 transition-colors flex items-center justify-center gap-2 shadow-lg disabled:opacity-50 cursor-pointer"
-                >
-                  {isAdjudicating ? (
-                    <>
-                      <Icon name="sync" className="text-base animate-spin" />
-                      <span>Validators Executing Equivalence Consensus...</span>
-                    </>
-                  ) : (
-                    <>
-                      <Icon name="gavel" className="text-base" />
-                      <span>Execute Validator Consensus Adjudication</span>
-                    </>
-                  )}
-                </button>
               </div>
             )}
 
