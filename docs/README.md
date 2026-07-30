@@ -258,7 +258,7 @@ Verified counts:
 
 - 24 direct contract tests;
 - 10 deployment/evidence tests;
-- 58 frontend tests;
+- 64 frontend tests;
 - 18-method GenVM schema;
 - successful TypeScript and Vite production build.
 

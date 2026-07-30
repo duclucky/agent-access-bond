@@ -1,38 +1,25 @@
 {
   "network": "studionet",
-  "contractAddress": "0x37826aA6a75F033D67169b2F8D2616382Ca06522",
+  "contractAddress": "0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b",
   "status": "CAPTURED_USER_WALLET_PROOF",
   "capturedTransactions": [
     {
-      "action": "create_agent",
-      "hash": "0xfb5927a45d7cb75d90b11b0fe0e6b9c472ebb97074f039510c71956337b0706e",
+      "action": "propose_close",
+      "hash": "0x6b23708de4c0ced94f60184b29ed42b03ec686ec89a89404b9fda2804625d650",
       "status": "FINALIZED",
-      "valueWei": "100000000000000000000",
-      "agentId": "agent-raw-githubusercontent-com-ms4uk3uq",
-      "canonicalAgentStatus": "DRAFT",
-      "createdAt": "2026-07-28T16:05:19.645530+00:00"
-    },
-    {
-      "action": "create_agent",
-      "hash": "0xd59ee12d2e8137d95a3143d224c05fdd82db34e68b628591a694528bf3c4ff14",
-      "status": "FINALIZED",
-      "valueWei": "100000000000000000000",
-      "agentId": "agent-raw-githubusercontent-com-ms4ulzti",
-      "canonicalAgentStatus": "DRAFT",
-      "createdAt": "2026-07-28T16:06:45.442458+00:00"
-    },
-    {
-      "action": "create_agent",
-      "hash": "0x7d903073e5e2989dc0b460eba9a8fa23edc91f29f965299febfee45c5d06c53b",
-      "status": "FINALIZED",
-      "valueWei": "100000000000000000000",
-      "agentId": "agent-raw-githubusercontent-com-ms565e75",
-      "canonicalAgentStatus": "DRAFT",
-      "createdAt": "2026-07-28T21:29:49.735052+00:00"
+      "execution": "SUCCESS",
+      "consensus": "Accepted",
+      "valueWei": "0",
+      "agentId": "agent-fixture-policy-001",
+      "canonicalAgentStatus": "QUARANTINED",
+      "canonicalCloseProposedBy": "0xc495ef51618d03267a1f227afe5b27b38c748272",
+      "createdAt": "2026-07-30T04:15:21.000Z",
+      "finalizedAt": "2026-07-30T04:15:59.000Z",
+      "explorerUrl": "https://explorer-studio.genlayer.com/tx/0x6b23708de4c0ced94f60184b29ed42b03ec686ec89a89404b9fda2804625d650"
     }
   ],
   "canonicalReadsCaptured": true,
-  "transactionProofVerifiedAt": "2026-07-28T23:28:45.4774858+07:00",
+  "transactionProofVerifiedAt": "2026-07-30T11:49:16.0860777+07:00",
   "productionFrontendUrl": "https://agent-access-bond.vercel.app",
   "connectionUiVerification": {
     "eip6963RequestPresentInBundle": true,
@@ -52,7 +39,7 @@
       "dialogWidth": 335,
       "horizontalOverflow": false
     },
-    "verifiedAt": "2026-07-28T12:23:16.6662420Z"
+    "verifiedAt": "2026-07-30T11:49:16.0860777+07:00"
   },
   "productUiVerification": {
     "plainLanguageAgentStatus": true,
@@ -63,6 +50,11 @@
     "genDecimalInputUsesTextMode": true,
     "canonicalAgentReadVisible": true,
     "walletPickerStillOpens": true,
+    "walletConnectionRestoredAfterReload": true,
+    "resolvedCaseVisibleAfterReload": true,
+    "signedAttestationAndVersionBindingVisible": true,
+    "closureAuthorizationMappingVerified": true,
+    "quarantinedOpenChallengeHidden": true,
     "responsiveWidthsVerified": [
       375,
       768,
@@ -75,7 +67,7 @@
     ],
     "horizontalOverflowDetected": false,
     "applicationConsoleErrors": 0,
-    "verifiedAt": "2026-07-28T12:23:16.6662420Z"
+    "verifiedAt": "2026-07-30T11:49:16.0860777+07:00"
   },
-  "reason": "The user initiated registration from the production frontend and approved the browser wallet requests. Three create_agent transactions were independently recovered from Studionet by the public operator address, verified FINALIZED, decoded to their generated agent IDs, and confirmed through canonical get_agent reads. Duplicate registrations exposed a frontend finality-tracking defect that was fixed in source commit 606a148e69844601c3f2a0bc111bac2a097bd5a0. Script-signed lifecycle evidence remains separate in deployment.json."
+  "reason": "The user unlocked OKX Wallet in Chrome and approved a production-frontend propose_close transaction. GenLayer Studio Explorer independently shows the browser-signed call from the connected operator wallet to the active contract as FINALIZED, SUCCESS, and Accepted for agent-fixture-policy-001. Canonical get_agent reads confirm close_proposed_by equals the connected wallet while the agent remains QUARANTINED. Script-signed lifecycle evidence remains separate in deployment.json."
 }

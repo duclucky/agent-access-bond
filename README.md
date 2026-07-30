@@ -263,7 +263,7 @@ Current release gate:
 - GenVM lint and schema validation;
 - 24 direct contract tests;
 - 10 deployment/evidence tests;
-- 58 frontend tests;
+- 64 frontend tests;
 - TypeScript validation;
 - production Vite build.
 

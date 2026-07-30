@@ -4,9 +4,9 @@
   "project": "agent-access-bond",
   "scope": "duckys-projects-bc83c6a0",
   "productionUrl": "https://agent-access-bond.vercel.app",
-  "deploymentUrl": "https://agent-access-bond-79w9qnjzr-duckys-projects-bc83c6a0.vercel.app",
-  "deploymentId": "dpl_2tPjg5dUiVNjpxhErGo15xrunSZF",
-  "sourceCommit": "ccd3982047bacc4ae3e3fb846161c8ce95562d07",
+  "deploymentUrl": "https://agent-access-bond-gkbtsfbfg-duckys-projects-bc83c6a0.vercel.app",
+  "deploymentId": "dpl_9NRALVWUVtBNw1S7m3D54599SnM3",
+  "sourceCommit": "88f3c26df2132d17cd5c7191be8c2fa7bd23c487",
   "network": "studionet",
   "contractAddress": "0x4e2ff0c3Ced6e72bE66FA603c0d2913319e56C0b",
   "verification": {
@@ -38,8 +38,13 @@
     "resolvedCaseVisibleAfterReload": true,
     "resolvedCaseCountAfterReload": 1,
     "signedAccessTimestampVisible": true,
+    "signedAttestationAndVersionBindingVisible": true,
     "retryWritePresentInBundle": true,
     "bilateralCaseCancellationWritesPresentInBundle": true,
+    "transientCanonicalReadRetryPresentInBundle": true,
+    "failedInspectRemainsOnDashboard": true,
+    "closureAuthorizationMappingVerified": true,
+    "quarantinedOpenChallengeHidden": true,
     "signedEventIdInputPresentInBundle": true,
     "attestorPublicKeyInputPresentInBundle": true,
     "englishApplicationValidationVerified": true,
@@ -57,6 +62,6 @@
     ],
     "horizontalOverflowDetected": false,
     "applicationConsoleErrors": 0,
-    "verifiedAt": "2026-07-30T10:42:23.9802998+07:00"
+    "verifiedAt": "2026-07-30T11:49:16.0860777+07:00"
   }
 }
